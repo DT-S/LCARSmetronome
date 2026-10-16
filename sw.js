@@ -1,0 +1,7 @@
+const PREFIX='lcars-core-'+new URL(self.registration.scope).pathname+'-';
+const CACHE=PREFIX+'lcars-core-v5.0.0';
+const FILES=['./','./index.html','./style.css','./manifest.webmanifest','./assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png','./src/app.js','./src/charts.js','./src/custom-sounds.js','./src/diary.js','./src/diary-ui.js','./src/model.js','./src/rhythm.js','./src/audio.js','./src/scheduler.js','./src/storage.js','./src/synth.js','./src/training-ui.js','./src/number-control.js',...['switchingmenus','hoversound','Acceptsound','invalidsound','Warningsound','buttonpress'].map(n=>`./assets/audio/ui/${n}.mp3`)];
+self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(FILES);})()));
+self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith(PREFIX)&&k!==CACHE)await caches.delete(k);await self.clients.claim();})()));
+self.addEventListener('message',e=>{if(e.data==='ACTIVATE')self.skipWaiting();});
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin)return;e.respondWith((async()=>{const c=await caches.open(CACHE),cached=await c.match(e.request);if(cached)return cached;try{return await fetch(e.request);}catch{if(e.request.mode==='navigate')return c.match('./index.html');return new Response('',{status:503});}})());});

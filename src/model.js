@@ -1,15 +1,17 @@
+import {UI_SCALES} from './interface.js';
 import {validateSounds} from './custom-sounds.js';
 import {diaryDefaults,validateDiary} from './diary.js';
 import {SOUNDS} from './synth.js';
 export const MODES={standard:'Standard metronome',polyrhythm:'Polyrhythm',polymeter:'Polymeter',gap:'Gap click',random:'Random gap',offbeat:'Offbeat',displacement:'Beat displacement',ramp:'Tempo ramp'};
 export const trainingDefaults=()=>({cycleQuarters:4,audibleBars:4,silentBars:4,minOn:2,maxOn:4,minOff:1,maxOff:4,changeBars:4,resolution:4,shiftStep:1,direction:1,manual:false,offset:0,targetBpm:160,bpmStep:5,rampReturn:false});
 /** @typedef {0|1|2|3} ClickState 0=double accent, 1=accent, 2=normal, 3=silent */
-export const fresh = () => ({version:5, customSounds:[], diary:diaryDefaults(), mode:'standard', swing:.5, training:trainingDefaults(), bpm:120, beats:4, subdivisions:2, outer:[0,2,2,2], inner:[3,2], countIn:0, duration:0, master:.65, uiVolume:.18, uiEnabled:true, hoverEnabled:true, haptic:false, channels:[{volume:.8,pan:0,sounds:['click','click','click'],mute:false,solo:false},{volume:.6,pan:0,sounds:['click','click','click'],mute:false,solo:false}], presets:[]});
+export const fresh = () => ({version:5, uiScale:1, customSounds:[], diary:diaryDefaults(), mode:'standard', swing:.5, training:trainingDefaults(), bpm:120, beats:4, subdivisions:2, outer:[0,2,2,2], inner:[3,2], countIn:0, duration:0, master:.65, uiVolume:.18, uiEnabled:true, hoverEnabled:true, haptic:false, channels:[{volume:.8,pan:0,sounds:['click','click','click'],mute:false,solo:false},{volume:.6,pan:0,sounds:['click','click','click'],mute:false,solo:false}], presets:[]});
 export const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 export function resize(pattern, n) { return Array.from({length:n},(_,i)=>pattern[i]??2); }
 export function validate(raw,inheritedSounds=null) {
   if (!raw || ![1,2,3,4,5].includes(raw.version)) throw Error('Unsupported backup version.');
   const s=fresh();
+  if(raw.uiScale!==undefined){if(!UI_SCALES.includes(raw.uiScale))throw Error('Invalid interface scale');s.uiScale=raw.uiScale;}
   if(raw.version>=5)s.customSounds=validateSounds(raw.customSounds);
   const bank=inheritedSounds??s.customSounds;
   if(raw.version>=2){
@@ -54,4 +56,4 @@ export function validate(raw,inheritedSounds=null) {
 export const audible=(channels,i)=>!channels[i].mute&&(!channels.some(c=>c.solo)||channels[i].solo);
 
 export const presetSettings=s=>structuredClone({...s,customSounds:[],diary:diaryDefaults(),presets:[]});
-export const loadPreset=(state,preset)=>validate({...preset.settings,presets:state.presets,version:5,customSounds:state.customSounds,diary:state.diary});
+export const loadPreset=(state,preset)=>validate({...preset.settings,presets:state.presets,version:5,uiScale:state.uiScale,customSounds:state.customSounds,diary:state.diary});

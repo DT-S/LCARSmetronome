@@ -53,3 +53,7 @@ Reines UI-Update: semantische Label-Spans, gefüllte Parameter- und Statusfelder
 ## 0.5.1 interaction/audio fixes
 
 `tempo-control.js` separates the persistent BPM gesture display from its hidden keyboard editor. Pointer capture remains on the tempo surface during re-rendering. The shared numeric gesture calculation supports vertical and orbit adjustment; double tap/click or holding activates editing. Dial ticks use explicit 5-degree geometry. Mixer channel gains include a 2x multiplier; their stereo outputs feed a dedicated DynamicsCompressor before master. UI gain bypasses that compressor.
+
+## 0.5.2 mobile feedback and scaling
+
+`interface.js` centralizes delegated pointer/click feedback. Click classification occurs in capture phase before page/mode state changes. Pointer-held feedback awaits audio unlock/loading and is cancelled on release, cancellation or scrolling. Summary controls are included; native label forwarding is deduplicated. `uiScale` is an optional backwards-compatible model-v5 field (default 1), bounded to predefined choices, rendered with CSS zoom on the app shell and preserved when loading rhythm presets. Mobile layout remains responsive; viewport pinch zoom is unrestricted.

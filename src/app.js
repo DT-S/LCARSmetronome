@@ -1,3 +1,4 @@
+import {installFeedback,UI_SCALES} from './interface.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {customSoundUI} from './custom-sounds.js';
 import {createDiaryUI} from './diary-ui.js';
@@ -22,7 +23,7 @@ function number(k,v,min,max){if(!Number.isFinite(v))return;state[k]=clamp(Math.r
 function cycle(channel,i){const key=channel?'inner':'outer';state[key][i]=(state[key][i]+1)%4;renderPatterns();changed();}
 const shortModes={standard:'STANDARD',polyrhythm:'POLYRHYTHM',polymeter:'POLYMETER',gap:'GAP CLICK',random:'RANDOM GAP',offbeat:'OFFBEAT',displacement:'DISPLACEMENT',ramp:'TEMPO RAMP'};
 for(const [value,label] of Object.entries(shortModes)){
- const b=document.createElement('button');b.type='button';b.dataset.mode=value;b.textContent=label;b.title=MODES[value];b.onclick=()=>{state.mode=value;render();changed();audio.ui('switchingmenus',state);};$('#modeButtons').append(b);
+ const b=document.createElement('button');b.type='button';b.dataset.mode=value;b.textContent=label;b.title=MODES[value];b.onclick=()=>{state.mode=value;render();changed();};$('#modeButtons').append(b);
 }
 $('#swing').oninput=e=>{state.swing=Number(e.target.value)/100;syncSwing(state);changed();};
 let heardTempo=null;
@@ -57,7 +58,13 @@ function renderPatterns(){
     }
   }
 }
-function render(){for(const k of ['bpm','beats','subdivisions','countIn','duration','master','uiVolume'])$('#'+k).value=state[k];for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).checked=state[k];$$('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===state.mode));
+function applyScale(){
+ document.querySelector('.app-shell').style.zoom=state.uiScale;
+ document.querySelectorAll('[data-ui-scale]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.uiScale)===state.uiScale));
+ $('#scaleReadout').textContent=Math.round(state.uiScale*100)+'%';
+}
+for(const scale of UI_SCALES){const b=document.createElement('button');b.type='button';b.dataset.uiScale=scale;b.textContent=Math.round(scale*100)+'%';b.onclick=()=>{state.uiScale=scale;applyScale();save();};$('#scaleButtons').append(b);}
+function render(){applyScale();for(const k of ['bpm','beats','subdivisions','countIn','duration','master','uiVolume'])$('#'+k).value=state[k];for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).checked=state[k];$$('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===state.mode));
   const poly=['polyrhythm','polymeter'].includes(state.mode);
   $('#outerLabel').textContent=poly?'OUTER PATTERN LENGTH':'QUARTERS PER BAR';
   $('#innerLabel').textContent=poly?'INNER PATTERN LENGTH':'SUBDIVISIONS / QUARTER';
@@ -104,7 +111,7 @@ $('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hid
 
 for(const k of ['master','uiVolume'])$('#'+k).oninput=e=>{state[k]=Number(e.target.value);changed();};
 for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};
-$$('[data-tab]').forEach(b=>b.onclick=()=>{$$('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);$$('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();audio.ui('switchingmenus',state);});
+$$('[data-tab]').forEach(b=>b.onclick=()=>{$$('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);$$('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};
 $('#export').onclick=()=>{download(`lcars-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(state,null,2));notify('Backup exported.');};
 $('#import').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>25e6)throw Error('Backup is too large.');const next=validate(JSON.parse(await f.text()));if(soundUI.isBusy()||restoring||starting)throw Error('Wait for the current import to finish.');if(!confirm('Replace settings, presets, practice entries and custom sounds with this backup?'))return;stop();restoring=true;e.target.disabled=true;await unlock();await audio.loading;const prepared=await audio.prepareCustom(next.customSounds);for(const key of audio.buffers.keys())if(key.startsWith('user-'))audio.buffers.delete(key);for(const [key,buffer] of prepared)audio.buffers.set(key,buffer);state=next;activePreset='';diaryUI.closeEditor();render();changed();notify('Backup restored.');}catch(err){notify('Import rejected: '+err.message,'invalidsound');}finally{restoring=false;e.target.disabled=false;e.target.value='';}};
@@ -121,9 +128,7 @@ function gesture(el,isTempo=false){let g=null,suppressClick=false;
 gesture($('#rings'));installTempoControl($('#tempo'),$('#tempoValue'),$('#bpm'),()=>state.bpm,v=>number('bpm',v,20,400));
 $('#rings').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const p=e.target.closest('[data-index]');if(p){e.preventDefault();const channel=p.dataset.channel,index=p.dataset.index;cycle(Number(channel),Number(index));$(`#rings [data-channel="${channel}"][data-index="${index}"]`)?.focus();}}});
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.target.closest('input,button,select,textarea,[role=button],dialog')){e.preventDefault();$('#start').click();}});
-document.addEventListener('pointerdown',()=>{unlock().catch(()=>{});},{capture:true});
-document.addEventListener('click',e=>{if(e.target.closest('button,label.file-button')){if(!e.target.closest('[data-tab],[data-mode],.sound-choices'))audio.ui('buttonpress',state);if(state.haptic)navigator.vibrate?.(8);}});
-let hoverAt=0;document.addEventListener('pointerover',e=>{if(e.pointerType==='mouse'&&state.hoverEnabled&&e.target.closest('button')&&!e.target.closest('button').contains(e.relatedTarget)&&performance.now()-hoverAt>100){hoverAt=performance.now();audio.ui('hoversound',state);}});
+installFeedback(document,{unlock,audio,state:()=>state});
 async function storageStatus(){const yes=await navigator.storage?.persisted?.();$('#storageStatus').textContent=yes?'Persistent storage granted. Keep exporting backups.':'Best-effort storage. Export regular backups.';}
 $('#persist').onclick=async()=>{try{const ok=await navigator.storage?.persist?.();await storageStatus();notify(ok?'Persistent storage granted.':'Browser did not grant persistent storage.','Warningsound');}catch{notify('Storage request unavailable.','Warningsound');}};
 const connection=()=>$('#connection').textContent=navigator.onLine?'LOCAL SYSTEM':'OFFLINE SYSTEM';addEventListener('online',connection);addEventListener('offline',connection);connection();

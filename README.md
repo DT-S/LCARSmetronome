@@ -1,4 +1,14 @@
-# LCARS METRONOME — Version 0.5.1
+# LCARS METRONOME — Version 0.5.2
+
+## iPhone-Bedienung in 0.5.2
+
+- **Touch-Feedback:** Auflegen des Fingers auf einen aktiven Bedienknopf oder eine Info-Klappe spielt den Hoverton. Loslassen/Aktivieren spielt den Tastenton. Wechsel zu einer anderen Hauptseite oder einem anderen Metronom-Modus verwendet den Wechselton; erneutes Drücken der aktiven Auswahl verwendet `buttonpress.mp3`. Sound-Auswahlknöpfe behalten ihre Instrumentenvorschau.
+- **Info-Klappen:** Öffnen und Schließen per Summary-Fläche (inklusive Plus-/Minus-Symbol) erzeugt den Tastenton; funktioniert auch per Tastatur.
+- **Kein verspäteter Hover:** Wird der Finger vor Abschluss der Audiofreigabe losgelassen oder zum Scrollen bewegt, entfällt ein noch ausstehender Hoverton. UI SOUNDS und HOVER / TOUCH SOUND bleiben abschaltbar. Beim allerersten Kontakt muss der Browser die Audioausgabe freigeben und Dateien laden.
+- **SETTINGS → INTERFACE SIZE:** 70, 80, 90, 100 oder 110 Prozent. Empfehlung zum Ausprobieren auf dem iPhone: 80 oder 90 Prozent. Die Wahl wird lokal und im Backup gespeichert; Presetwechsel behalten sie bei. Bestehende Backups ohne diesen Wert starten unverändert bei 100 Prozent. Browser-Pinch-Zoom bleibt möglich.
+- **Mobile Anordnung:** Metronom-Modi in zwei Reihen mit je vier Buttons, kompaktere Abstände zwischen Kopf, Instrument und Panels. Skalierungsfeld oben in Settings über die volle Breite.
+
+85 Logiktests bestanden, einschließlich Touch-Feedback, Abbruch bei Scrollen/Loslassen, aktive Navigation und Skalierungs-Migration. Syntax, Modulpfade, statische IDs und Offline-Dateiliste geprüft. Kein echter iPhone-/Safari-Test in dieser Umgebung; Skalierung und Soundfreigabe auf dem Gerät gegenprüfen.
 
 ## Korrekturen in 0.5.1
 
@@ -109,7 +119,7 @@ Auf dem iPhone HTTPS-Adresse in Safari öffnen, zum Home-Bildschirm hinzufügen,
 
 JSON enthält Einstellungen, die sechs Akzent-Klangzuweisungen, Presets und das Übungstagebuch. Vor einem Import wird validiert und die Ersetzung bestätigt. Persistenz schützt nicht vor manuellem Löschen oder Geräteverlust; regelmäßig exportieren.
 
-Bei späteren Codeänderungen Cache-Version in `sw.js` erhöhen, aktuell `lcars-core-v5.1.0`. Updates warten auf manuelle Aktivierung und löschen keine IndexedDB-Daten.
+Bei späteren Codeänderungen Cache-Version in `sw.js` erhöhen, aktuell `lcars-core-v5.2.0`. Updates warten auf manuelle Aktivierung und löschen keine IndexedDB-Daten.
 
 ## Tests und offener Umfang
 

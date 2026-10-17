@@ -1,3 +1,4 @@
+import {installTempoControl,radialTicks} from './tempo-control.js';
 import {customSoundUI} from './custom-sounds.js';
 import {createDiaryUI} from './diary-ui.js';
 import {SOUNDS} from './synth.js';
@@ -26,6 +27,7 @@ for(const [value,label] of Object.entries(shortModes)){
 $('#swing').oninput=e=>{state.swing=Number(e.target.value)/100;syncSwing(state);changed();};
 let heardTempo=null;
 function tempoReadout(event=null){
+ $('#tempoValue').textContent=state.bpm;$('#tempoValue').setAttribute('aria-valuenow',state.bpm);
  if(event)heardTempo=event;
  const ramp=state.mode==='ramp';$('#rampReadout').hidden=!ramp;$('#tempo').classList.toggle('ramp-tempo',ramp);$('#tempoLabel').textContent=ramp?'START / BPM':'QUARTER / MIN';
  const active=scheduler.running&&heardTempo,now=active?heardTempo.bpm:state.bpm;
@@ -37,7 +39,8 @@ function tempoReadout(event=null){
 function trainingChanged(){tempoReadout();changed();}
 const names=['double accent','accent','normal','silent'];
 function renderPatterns(){
-  let svg='<circle class="track" cx="250" cy="250" r="212"/><circle class="track inner-track" cx="250" cy="250" r="149"/><circle class="dial-ticks" cx="250" cy="250" r="182"/>';
+  let svg='<circle class="track" cx="250" cy="250" r="212"/><circle class="track inner-track" cx="250" cy="250" r="149"/>';
+  svg+='<g class="dial-ticks" aria-hidden="true">'+radialTicks().map(t=>`<line x1="${t.x1}" y1="${t.y1}" x2="${t.x2}" y2="${t.y2}"/>`).join('')+'</g>';
   for(const [channel,key,r] of [[0,'outer',212],[1,'inner',149]]){
     svg+=`<circle class="hit-ring" data-ring="${channel}" cx="250" cy="250" r="${r}"/>`;
     state[key].forEach((s,i)=>{const a=i/state[key].length*Math.PI*2-Math.PI/2,x=250+Math.cos(a)*r,y=250+Math.sin(a)*r;
@@ -93,7 +96,7 @@ function stop(message='READY',endTime=audio.ctx?.currentTime){
  if(entry){entry.reason=message==='READY'?'Stopped':message;if(state.diary.entries.length<10000){state.diary.entries.push(entry);save();diaryUI.render();}else notify('Diary full. Export and remove old entries.','Warningsound');}
  scheduler.stop();releaseWake();$('#start').textContent='START';$('#playStatus').textContent=message;heardTempo=null;tempoReadout();$('#dial').classList.remove('gap-phase');$$('.playing').forEach(n=>n.classList.remove('playing'));}
 $('#start').onclick=async()=>{if(starting||restoring)return;if(soundUI.isBusy())return notify('Wait for sound import to finish.','Warningsound');if(scheduler.running){stop();return;}starting=true;$('#start').disabled=true;try{await unlock();await audio.loading;await audio.loadCustom(state.customSounds);audio.mix(state);scheduler.start(state,state.diary.enabled?{exercise:state.diary.exercise,category:state.diary.category,preset:activePreset}:null);$('#start').textContent='STOP';$('#playStatus').textContent='PLAYING';if(navigator.wakeLock)try{wakeLock=await navigator.wakeLock.request('screen');}catch{}}catch{notify('Audio could not start. Tap Start again.','invalidsound');}finally{starting=false;$('#start').disabled=false;}};
-for(const [k,min,max] of [['bpm',20,400],['beats',1,20],['subdivisions',1,20],['countIn',0,8],['duration',0,3600]])$('#'+k).onchange=e=>number(k,Number(e.target.value),min,max);
+for(const [k,min,max] of [['beats',1,20],['subdivisions',1,20],['countIn',0,8],['duration',0,3600]])$('#'+k).onchange=e=>number(k,Number(e.target.value),min,max);
 for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id));
 $('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>number('bpm',state.bpm+1,20,400);
 let taps=[];$('#tap').onclick=()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;};
@@ -115,7 +118,7 @@ function gesture(el,isTempo=false){let g=null,suppressClick=false;
   el.addEventListener('pointerup',e=>end(e));el.addEventListener('pointercancel',e=>end(e,true));el.addEventListener('lostpointercapture',()=>{g=null;});
   el.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return;}if(isTempo)return;const p=e.target.closest('[data-index]');if(p)cycle(Number(p.dataset.channel),Number(p.dataset.index));});
 }
-gesture($('#rings'));gesture($('#tempo'),true);
+gesture($('#rings'));installTempoControl($('#tempo'),$('#tempoValue'),$('#bpm'),()=>state.bpm,v=>number('bpm',v,20,400));
 $('#rings').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const p=e.target.closest('[data-index]');if(p){e.preventDefault();const channel=p.dataset.channel,index=p.dataset.index;cycle(Number(channel),Number(index));$(`#rings [data-channel="${channel}"][data-index="${index}"]`)?.focus();}}});
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.target.closest('input,button,select,textarea,[role=button],dialog')){e.preventDefault();$('#start').click();}});
 document.addEventListener('pointerdown',()=>{unlock().catch(()=>{});},{capture:true});

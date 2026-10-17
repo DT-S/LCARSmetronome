@@ -1,5 +1,6 @@
 import {decodeBytes} from './custom-sounds.js';
 import {synthesize,SOUNDS} from './synth.js';
+export const METRONOME_GAIN=2;
 import {audible} from './model.js';
 export class AudioEngine {
   constructor(){this.buffers=new Map();this.active=new Set();this.sampleStatus=[];}
@@ -8,7 +9,9 @@ export class AudioEngine {
       this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
       this.master=this.ctx.createGain();this.master.connect(this.ctx.destination);
       this.uiGain=this.ctx.createGain();this.uiGain.connect(this.master);
-      this.tracks=[0,1].map(()=>{const gain=this.ctx.createGain(),pan=this.ctx.createStereoPanner();gain.connect(pan);pan.connect(this.master);return {gain,pan};});
+      this.metronomeBus=this.ctx.createDynamicsCompressor();
+      this.metronomeBus.threshold.value=-3;this.metronomeBus.knee.value=3;this.metronomeBus.ratio.value=20;this.metronomeBus.attack.value=.001;this.metronomeBus.release.value=.06;this.metronomeBus.connect(this.master);
+      this.tracks=[0,1].map(()=>{const gain=this.ctx.createGain(),pan=this.ctx.createStereoPanner();gain.connect(pan);pan.connect(this.metronomeBus);return {gain,pan};});
       // Unlock synchronously within the original user gesture before fetching.
       const silent=this.ctx.createBufferSource();silent.buffer=this.ctx.createBuffer(1,1,this.ctx.sampleRate);silent.connect(this.ctx.destination);silent.start();
       this.loading=this.load();
@@ -26,7 +29,7 @@ export class AudioEngine {
   }
   async prepareCustom(bank){const buffers=new Map();for(const sound of bank){const buffer=await this.ctx.decodeAudioData(decodeBytes(sound.data));if(buffer.duration>5||buffer.duration<=0)throw Error('Custom sound exceeds 5 seconds.');buffers.set(sound.id,buffer);}return buffers;}
   async loadCustom(bank){for(const sound of bank)if(!this.buffers.has(sound.id)){const buffer=await this.ctx.decodeAudioData(decodeBytes(sound.data));if(buffer.duration>5||buffer.duration<=0)throw Error('Custom sound exceeds 5 seconds.');this.buffers.set(sound.id,buffer);}}
-  mix(s){if(!this.ctx)return;this.master.gain.setValueAtTime(s.master,this.ctx.currentTime);this.uiGain.gain.value=s.uiVolume;this.tracks.forEach((t,i)=>{t.gain.gain.value=audible(s.channels,i)?s.channels[i].volume:0;t.pan.pan.value=s.channels[i].pan;});}
+  mix(s){if(!this.ctx)return;this.master.gain.setValueAtTime(s.master,this.ctx.currentTime);this.uiGain.gain.value=s.uiVolume;this.tracks.forEach((t,i)=>{t.gain.gain.value=audible(s.channels,i)?s.channels[i].volume*METRONOME_GAIN:0;t.pan.pan.value=s.channels[i].pan;});}
   click(event,time){
     if(event.state===3)return;
     const c=this.ctx,track=this.tracks[event.channel];

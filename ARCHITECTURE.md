@@ -49,3 +49,7 @@ Reines UI-Update: semantische Label-Spans, gefüllte Parameter- und Statusfelder
 ## 0.5 visual analysis and samples
 
 `charts.js` creates SVG plots from daily aggregates or recorded session boundaries. Missing tempo values break paths; time/count plots include zero days. The seven-day mean uses matching entries before the selected display window. `custom-sounds.js` validates bounded base64 sample banks and manages upload/deletion. Model v5 includes the bank in full backups, with references only in presets. Scheduler snapshots exclude the sample bank. AudioEngine decodes samples before transport starts and schedules them directly through existing channel paths. Import prepares a temporary decoded bank before committing state; a decode failure preserves current data.
+
+## 0.5.1 interaction/audio fixes
+
+`tempo-control.js` separates the persistent BPM gesture display from its hidden keyboard editor. Pointer capture remains on the tempo surface during re-rendering. The shared numeric gesture calculation supports vertical and orbit adjustment; double tap/click or holding activates editing. Dial ticks use explicit 5-degree geometry. Mixer channel gains include a 2x multiplier; their stereo outputs feed a dedicated DynamicsCompressor before master. UI gain bypasses that compressor.

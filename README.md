@@ -1,4 +1,13 @@
-# LCARS METRONOME — Version 0.5.0
+# LCARS METRONOME — Version 0.5.1
+
+## Korrekturen in 0.5.1
+
+- Erster Operating-Mode-Button links abgerundet; der zusätzliche linke Rand entfällt.
+- Die große BPM-Zahl ist direkt eine Gestenfläche: vertikal ziehen oder mit seitlichem Beginn kreisförmig drehen. Doppeltippen/Doppelklick oder 600 ms halten öffnet die Tastatureingabe. Enter/Verlassen übernimmt, Escape verwirft. Pfeiltasten ändern das Tempo um 1 BPM. Plus/Minus bleiben separat bedienbar.
+- 72 geometrisch gesetzte Teilstriche im Abstand von exakt 5°, inklusive der vier Hauptachsen, ersetzen die gestrichelte Kreislinie mit unpassender Naht.
+- Metronomkanäle mit Faktor 2 (+6,02 dB) vor dem gemeinsamen Metronomkompressor. Der Kompressor reduziert starke Summenspitzen; UI-Töne und gespeicherte Reglerwerte bleiben unverändert. +6 dB Signalpegel bedeutet nicht zwingend doppelt wahrgenommene Lautheit. Gilt für Synth- und eigene Sounds.
+
+79 Logiktests bestanden, darunter direkte Touchgesten, Doppeltippen, Doppelklick, Halten/Abbruch, Zahleneingabe, exakte Teilung und getrennte Pegel. Kein echter iPhone-Gesten-, visueller Browser- oder Hörtest dieser Version in dieser Umgebung. Bitte zunächst mit reduziertem Gerätepegel gegenprüfen.
 
 ## Neu in 0.5.0 – animierte Analyse und eigene Sounds
 
@@ -100,7 +109,7 @@ Auf dem iPhone HTTPS-Adresse in Safari öffnen, zum Home-Bildschirm hinzufügen,
 
 JSON enthält Einstellungen, die sechs Akzent-Klangzuweisungen, Presets und das Übungstagebuch. Vor einem Import wird validiert und die Ersetzung bestätigt. Persistenz schützt nicht vor manuellem Löschen oder Geräteverlust; regelmäßig exportieren.
 
-Bei späteren Codeänderungen Cache-Version in `sw.js` erhöhen, aktuell `lcars-core-v5.0.0`. Updates warten auf manuelle Aktivierung und löschen keine IndexedDB-Daten.
+Bei späteren Codeänderungen Cache-Version in `sw.js` erhöhen, aktuell `lcars-core-v5.1.0`. Updates warten auf manuelle Aktivierung und löschen keine IndexedDB-Daten.
 
 ## Tests und offener Umfang
 

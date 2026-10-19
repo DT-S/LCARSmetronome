@@ -1,4 +1,62 @@
-# LCARS METRONOME — Version 0.5.2
+# LCARS METRONOME — Version 0.5.6
+
+## v0.5.6 · Mobile LCARS polish
+
+- Durchgehender, farblich segmentierter Kopf-Balken oberhalb von RHYTHM PADD, verbunden mit dem linken LCARS-Elbow.
+- Runde Beat-Dots im Circular Sequencer durch echte, gekrümmte SVG-Arc-Segmente ersetzt. Vier Beat-Zustände, Pointer-Gesten, Tastaturzugriff, bis 20 Beats bleiben erhalten.
+- Mobile Stats-Charts verwenden eine kompakte SVG-Plotgeometrie statt 520-Pixel-Mindestbreite: kein seitliches Scrollen innerhalb der Diagramme. Modus-/History-Buttons verkleinert.
+- Diary-Category- und Analytics-Filtersegmente bilden durchgehende LCARS-Gruppen mit äußeren Rundungen. Details/Delete spiegelbildlich gestaltet.
+- Practice Calendar verwendet proportional skalierte, abgerundete Tagesquadrate mit Tagesnummer, Monatswechselmarkierung und aktiver Auswahl.
+- Panel-Titel rechtsbündig in ihrer tatsächlichen Inhaltsfläche verankert, kompaktere mobile Statistiktabellen.
+- Desktop- und iPad-Layout unverändert; Audio-Engine, Timing und lokales Datenschema unverändert. Cache-Version für Offline-PWAs erhöht.
+- 85 automatisierte Tests bestanden; Chromium-Checks bei 320, 375, 390, 430, 768 und 1440 CSS-Pixeln mit Beispiel-Einträgen; iPhone-Safari-Hardwaretest steht noch aus.
+
+---
+
+## v0.5.5 · Rhythm PADD (mobile)
+
+- Komplett neue mobile TNG-PADD-Oberfläche für Smartphones bis 640 CSS-Pixel Breite: fester LCARS-Rahmen mit originalgetreuem Header-Elbow, sechs vertikalen Navigationsfeldern, farbiger linker Systemleiste, unterem Abschlussband und segmentierten Bedienelementen.
+- Voll funktionsfähiger Circular Sequencer auf iPhone 13 jetzt 236 CSS-Pixel, bei sehr schmalen Geräten 207 CSS-Pixel. Linearansicht weiterhin umschaltbar.
+- In der Metronomansicht: acht Modi als zweireihige LCARS-Schalter, Status- und Taktparameter-Felder sowie große TAP TEMPO / START-Schaltflächen mit beidseitigen Rundungen.
+- Der Rahmen bleibt während des Scrollens im Inhaltsbereich sichtbar. Längere Trainings-, Audio-, Log-, Analyse- und Einstellungsseiten scrollen ausschließlich innerhalb des rechten Kontrollfeldes.
+- Wechsel zwischen den sechs Ansichten setzt auf Smartphones die Inhaltsposition zurück an den Anfang der neuen Ansicht.
+- Keine externen Fonts oder sonstige Netzabhängigkeiten hinzugefügt. Tablet/PC-Design unverändert, Audio-/Rhythmus-Engine und gespeicherte Daten unverändert.
+- Service-Worker-Cache auf v5.6.0 angehoben, um die neue Oberfläche auch in installierten PWAs auszuliefern.
+- 85 Node-Tests bestanden, Browserchecks bei 320, 375, 390, 768 und 1440 CSS-Pixeln: alle sechs Ansichten, acht Betriebsmodi, Circular/Linear-Umschaltung, keine horizontalen Überläufe oder Laufzeitfehler in Chromium. START ist im iPhone-13-Viewport ohne Scrollen erreichbar. Echter Safari-/iPhone-Gerätetest ausstehend.
+
+---
+
+# LCARS METRONOME — Version 0.5.4
+
+## 0.5.4 · Authentisches mobiles LCARS-Brückendesign
+
+- Größere zusammenhängende LCARS-Bögen: hohler orangefarbener Header, mehrfarbige durchlaufende Balken und ein breiter segmentierter Navigationssteg.
+- Sechs navigierbare Ansichten in zwei Zeilen zu je drei Tasten mit gerundeten äußeren rechten Abschlüssen. Keine gewöhnlichen Web-App-Kacheln.
+- Funktionsleiste und acht Betriebsmodi mit eigener geschwungener LCARS-Seitenschiene.
+- Die komplette Metronom-Bediengruppe bildet ein zusammenhängendes rosafarbenes LCARS-Gehäuse mit oberem Bogen und unterem blau-violettem Abschluss; Circular Sequencer bewusst auf maximal 300 CSS-Pixel verkleinert.
+- START und TAP TEMPO bleiben vor dem Sequencer; ausreichend große Berührungsflächen, auch bei 320 CSS-Pixeln.
+- Nur mobile CSS-Regeln (max-width 640px) verändert. Metronom-Engine, Zustandsmodell, Audio und Desktop-/iPad-Layout unverändert.
+- Service-Worker-Cache auf v5.4.0 aktualisiert, damit installierte PWAs die überarbeitete Stylesheet-Version laden.
+- Automatisierte Node-Tests: 85 bestanden. Darstellung und Klickaktionen im Chromium-Browsermodell überprüft; echter iPhone-Safari-Test steht aus.
+
+---
+
+## Vorherige Version 0.5.3
+
+## iPhone LCARS bridge layout (0.5.3)
+
+- Exclusive phone-first visual layout on viewports up to 640 CSS pixels. Desktop and iPad use the existing layout.
+- Six navigation tabs appear as a 3 × 2 LCARS console with a continuous left spine and rounded outer-right edges. Very narrow phones use 2 × 3 tabs.
+- Clearly separated rows for eight rhythm modes; their outer buttons have LCARS caps.
+- START and TAP TEMPO come before the circular sequencer on phones, so transport is accessible without scrolling past the dial. The dial stays large, and the four pattern states remain visible.
+- Space-efficient header, title bars, information panels, readable labels and safe-area-aware padding.
+- Only CSS layout and UI copy changed; no audio, state, gesture, storage or rhythm logic touched.
+- Offline cache updated so installed PWAs receive the new CSS on update.
+- 85 existing Node tests passed. Automated Chromium render/layout previews at 320, 375, 390, 768 and 1440 CSS pixels showed no horizontal overflow. Real iPhone Safari/PWA appearance must still be verified on the device.
+
+---
+
+## Previous version 0.5.2
 
 ## iPhone-Bedienung in 0.5.2
 

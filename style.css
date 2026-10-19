@@ -58,3 +58,1247 @@
 /* 0.5.2: touch feedback and user-controlled interface scale */
 .touch-pressed{filter:brightness(1.2)!important}summary{cursor:pointer;touch-action:manipulation}summary:focus-visible{outline:2px solid white;outline-offset:3px}.scale-buttons{display:flex;gap:5px;flex-wrap:wrap}.scale-buttons button{flex:1;min-width:52px;min-height:52px;padding:10px 7px;border-radius:0;background:var(--purple)}.scale-buttons button:first-child{border-radius:26px 0 0 26px}.scale-buttons button:last-child{border-radius:0 26px 26px 0}.scale-buttons button[aria-pressed=true]{background:var(--orange);box-shadow:inset 0 -5px #fff0d9}#scaleReadout{float:right;margin-left:12px}.interface-panel{grid-column:1/-1}
 @media(max-width:640px){.app-shell{padding-top:8px}header{margin-bottom:0}.section-heading{margin-bottom:12px;min-height:56px}.mode-buttons{margin-bottom:12px}.instrument-layout{gap:10px}.side-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}.side-controls>.operation-info{margin-top:0}.panel{margin-bottom:18px}.cards{gap:16px}.play-status{margin:10px 0 14px}.legend{margin-bottom:16px}.transport{padding-top:8px}#modeButtons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}#modeButtons button{min-height:46px}#settings .interface-panel{order:-1}.scale-buttons button{min-height:56px}}
+
+/* 0.5.3 · Dedicated compact LCARS bridge layout.
+   Tablet/desktop styling is intentionally untouched; this is not a shrunken tablet. */
+@media (max-width: 640px) {
+  .app-shell {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    padding: max(10px, env(safe-area-inset-top))
+             max(12px, env(safe-area-inset-right))
+             max(24px, env(safe-area-inset-bottom))
+             max(12px, env(safe-area-inset-left));
+  }
+  .app-shell > header {
+    position: relative;
+    display: block;
+    height: 82px;
+    min-height: 82px;
+    margin: 0 0 5px;
+    padding: 0;
+  }
+  .elbow {
+    display: block;
+    left: 0;
+    top: 0;
+    width: 73px;
+    height: 82px;
+    background: var(--orange);
+    border: 0;
+    border-radius: 42px 0 0 0;
+  }
+  .elbow::after {
+    left: 23px;
+    top: 14px;
+    right: 0;
+    bottom: 0;
+    border-radius: 24px 0 0 0;
+  }
+  .heading {
+    position: relative;
+    z-index: 1;
+    margin: 0 0 0 84px;
+    padding-top: 12px;
+    min-width: 0;
+  }
+  .heading .eyebrow {
+    display: block;
+    font-size: 9px;
+    letter-spacing: .08em;
+    color: var(--ice);
+    white-space: nowrap;
+  }
+  h1 {
+    font-size: clamp(21px, 6.4vw, 29px);
+    letter-spacing: -.025em;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+  header::after {
+    left: 84px;
+    right: 0;
+    bottom: 5px;
+    height: 10px;
+    border-radius: 0 12px 12px 0;
+    background: linear-gradient(to right,
+       var(--orange) 0 57%, #000 57% 59%,
+       var(--ice) 59% 82%, #000 82% 84%,
+       var(--pink) 84% 100%);
+  }
+  .header-tail, .rail, .rail-end { display: none; }
+  aside {
+    display: block;
+    width: 100%;
+    margin: 0 0 10px;
+  }
+  aside nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: row;
+    gap: 4px;
+    margin: 0;
+    padding: 0 0 0 5px;
+    border-left: 13px solid var(--salmon);
+    border-radius: 18px 0 0 18px;
+    background: #000;
+  }
+  aside .nav {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    min-width: 0;
+    min-height: 52px;
+    padding: 5px 4px 5px 9px;
+    margin: 0;
+    border-radius: 0;
+    color: #000;
+    font-size: clamp(9px, 2.7vw, 11px);
+    font-weight: 800;
+    letter-spacing: -.01em;
+    line-height: 1.15;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  aside .nav small {
+    display: block;
+    margin: 0 0 4px;
+    font-size: 11px;
+    line-height: 1;
+    opacity: .7;
+  }
+  aside .nav:nth-child(3),
+  aside .nav:nth-child(6) { border-radius: 0 25px 25px 0; }
+  aside .nav:nth-child(5) { background: var(--ice); }
+  aside .nav:nth-child(6) { background: var(--pink); }
+  aside .nav.active {
+    background: #ffe29f;
+    box-shadow: inset 0 -5px var(--orange);
+  }
+  aside .nav:focus-visible { outline-offset: -3px; }
+  main { min-width: 0; padding: 0; }
+  .section-heading {
+    position: relative;
+    min-height: 57px;
+    margin: 0 0 11px;
+    padding: 5px 0 10px 14px;
+    border-left: 13px solid var(--purple);
+    border-bottom: 8px solid var(--purple);
+    border-radius: 0 0 0 22px;
+    gap: 6px;
+  }
+  .section-heading .eyebrow { font-size: 8px; }
+  h2 { font-size: clamp(20px, 5.6vw, 24px); line-height: 1.05; }
+  .section-heading .outline {
+    flex: 0 0 auto;
+    align-self: center;
+    min-width: 82px;
+    max-width: 96px;
+    min-height: 42px;
+    padding: 6px 8px;
+    font-size: 10px;
+    line-height: 1.2;
+    border-radius: 22px 3px 3px 22px;
+  }
+  .mode-heading {
+    gap: 8px;
+    margin: 4px 0 5px;
+    font-size: 10px;
+  }
+  .mode-heading output { font-size: 17px; }
+  #modeButtons {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    margin: 0 0 8px;
+    padding: 0 0 0 5px;
+    border-left: 12px solid var(--salmon);
+    border-radius: 18px 0 0 18px;
+  }
+  #modeButtons button {
+    min-width: 0;
+    min-height: 43px;
+    padding: 5px 2px;
+    font-size: clamp(7.5px, 2.23vw, 9px);
+    line-height: 1.15;
+    letter-spacing: -.02em;
+    overflow-wrap: anywhere;
+    border-radius: 0;
+  }
+  #modeButtons button:nth-child(1),
+  #modeButtons button:nth-child(5) { border-radius: 18px 0 0 18px; }
+  #modeButtons button:nth-child(4),
+  #modeButtons button:nth-child(8) { border-radius: 0 22px 22px 0; }
+  .instrument-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .instrument { width: 100%; max-width: 440px; min-width: 0; margin: 0 auto; }
+  #dial { width: 100%; max-width: min(100%, 400px); margin: 0 auto; }
+  #rings { display: block; }
+  #tempo { border-width: 6px; }
+  #tempo .eyebrow { font-size: 8px; }
+  :is(#bpm, #tempoValue) { font-size: clamp(39px, 12vw, 53px); }
+  .tempo-buttons { gap: 7px; font-size: 10px; }
+  .tempo-buttons button { min-width: 35px; min-height: 30px; padding: 0 5px; }
+  .ramp-tempo :is(#bpm, #tempoValue) { font-size: clamp(30px, 8vw, 36px); }
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    margin: 4px 0 13px;
+    font-size: 9px;
+    letter-spacing: -.01em;
+  }
+  .legend span { white-space: nowrap; }
+  .transport {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 5px;
+    margin: 0;
+    padding: 9px 0 0 8px;
+    border-top: 9px solid var(--salmon);
+    border-left: 13px solid var(--salmon);
+    border-radius: 22px 0 0 0;
+  }
+  .transport button {
+    min-height: 56px;
+    padding: 10px 6px;
+    font-size: 13px;
+  }
+  .transport #start { border-radius: 0 0 0 21px; }
+  .transport #tap { border-radius: 0 24px 24px 0; }
+  .play-status { margin: 8px 0 10px; }
+  .play-status>span,
+  .play-status time { min-height: 42px; }
+  .pattern-counts {
+    gap: 6px;
+    margin: 12px 0 4px;
+    border-top-width: 7px;
+    padding-top: 5px;
+  }
+  .pattern-counts label>span:first-child {
+    min-height: 42px;
+    font-size: 10px;
+    padding: 8px 5px;
+  }
+  .pattern-counts .value-dial { min-height: 48px; }
+  .side-controls { display: flex; flex-direction: column; gap: 12px; }
+  .side-controls .panel { width: 100%; margin: 0; }
+  .panel {
+    min-width: 0;
+    padding: 5px 0 11px 6px;
+    margin-bottom: 14px;
+    border-left-width: 13px;
+    border-top-width: 11px;
+    border-bottom-width: 6px;
+    border-radius: 27px 0 0 20px;
+  }
+  .panel>.eyebrow, .panel>h3 { min-height: 42px; padding: 10px; }
+  .parameter-name, .field-name { min-height: 48px; font-size: 11px; }
+  .parameter-row { min-height: 48px; }
+  .parameter-buttons button { min-height: 48px; }
+  .parameter-row .value-dial, .panel .value-dial { min-height: 48px; }
+  .training-fields { grid-template-columns: minmax(0, 1fr); }
+  .lcars-info summary, .mode-help summary { border-radius: 20px 3px 3px 20px; }
+  #settings .panel label:has(input[type=checkbox]) { grid-template-columns: minmax(0, 1fr) 65px; }
+  .scale-buttons button { min-width: 48px; }
+  .cards { min-width: 0; gap: 12px; }
+  footer { margin-top: 20px; border-top-width: 11px; font-size: 9px; }
+  footer::before { top: -11px; height: 11px; }
+}
+
+/* Very narrow phones: labels stay readable instead of squeezing into 100px. */
+@media (max-width: 350px) {
+  aside nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  aside .nav:nth-child(3) { border-radius: 0; }
+  aside .nav:nth-child(even) { border-radius: 0 25px 25px 0; }
+  aside .nav { font-size: 10px; }
+  #modeButtons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #modeButtons button:nth-child(n) { border-radius: 0; font-size: 10px; }
+  #modeButtons button:nth-child(2n) { border-radius: 0 22px 22px 0; }
+  #modeButtons button:nth-child(2n+1) { border-radius: 18px 0 0 18px; }
+  .heading { margin-left: 74px; }
+  header::after { left: 74px; }
+  .elbow { width: 64px; }
+}
+
+/* Keep the essential START control within a typical iPhone portrait viewport. */
+@media (min-width: 351px) and (max-width: 640px) {
+  .app-shell > header, .elbow { height: 74px; min-height: 74px; }
+  .heading { padding-top: 9px; }
+  aside .nav { min-height: 47px; }
+  #metronome .section-heading {
+    min-height: 53px;
+    padding-top: 3px;
+    padding-bottom: 6px;
+  }
+  #metronome .section-heading h2 {
+    font-size: clamp(17px, 4.9vw, 20px);
+    white-space: nowrap;
+  }
+  #modeButtons button { min-height: 44px; }
+  #dial { max-width: min(100%, 354px); }
+}
+
+/* On phones, transport belongs in the first control bank, not below the dial. */
+@media (max-width: 640px) {
+  #metronome .instrument { display: flex; flex-direction: column; }
+  #metronome .transport { order: 1; margin: 0 0 6px; }
+  #metronome #dial, #metronome #linear { order: 2; }
+  #metronome .legend { order: 3; }
+  #metronome .play-status { order: 4; }
+  #metronome .pattern-counts { order: 5; }
+}
+
+
+/* 0.5.4 / MOBILE LCARS BRIDGE.  Design-only: no engine or state changes.
+   A real connected LCARS frame, not a grid of rounded web-app tiles. */
+@media (max-width: 640px) {
+  :root {
+    --lcars-mobile-orange: #ffae54;
+    --lcars-mobile-peach: #e89b8c;
+    --lcars-mobile-blue: #8bbde5;
+    --lcars-mobile-lilac: #a49ce6;
+  }
+  body { background: #000; }
+  .app-shell {
+    padding: max(7px, env(safe-area-inset-top)) max(9px, env(safe-area-inset-right))
+             max(26px, env(safe-area-inset-bottom)) max(9px, env(safe-area-inset-left));
+  }
+  /* Signature LCARS arch: uninterrupted header slab and an actual hollow elbow. */
+  .app-shell > header {
+    height: 82px;
+    min-height: 82px;
+    margin: 0 0 2px;
+    isolation: isolate;
+  }
+  .elbow {
+    height: 71px;
+    min-height: 71px;
+    width: 90px;
+    border-radius: 51px 0 0 0;
+    background: var(--lcars-mobile-orange);
+    top: 4px;
+  }
+  .elbow::after {
+    left: 32px;
+    top: 18px;
+    bottom: 0;
+    background: #000;
+    border-radius: 31px 0 0 0;
+  }
+  .heading { margin-left: 101px; padding-top: 10px; }
+  .heading .eyebrow { color: var(--lcars-mobile-blue); font-size: 8px; letter-spacing: .09em; }
+  h1 { font-size: clamp(20px, 6vw, 25px); line-height: 1.08; color: var(--lcars-mobile-orange); }
+  h1 span { color: var(--cream); }
+  .app-shell > header::before {
+    content: '042 / SYSTEM 001';
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 1px 10px 2px;
+    color: #000;
+    background: var(--lcars-mobile-orange);
+    font-size: 8px;
+    letter-spacing: .09em;
+    font-weight: 900;
+    border-radius: 0 12px 12px 0;
+  }
+  .app-shell > header::after {
+    left: 101px;
+    right: 0;
+    bottom: 0;
+    height: 13px;
+    border-radius: 0 12px 12px 0;
+    background: linear-gradient(to right,
+      var(--lcars-mobile-orange) 0 42%, #000 42% 44%,
+      var(--lcars-mobile-peach) 44% 70%, #000 70% 72%,
+      var(--lcars-mobile-blue) 72% 89%, #000 89% 91%,
+      var(--pink) 91%);
+  }
+  /* Navigation is mounted in a continuous, wide left LCARS rib. */
+  aside { position: relative; margin: 0 0 7px; }
+  aside nav {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, 45px);
+    gap: 4px;
+    margin: 0;
+    padding: 7px 0 10px 32px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    isolation: isolate;
+  }
+  aside nav::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 36px;
+    border-radius: 36px 0 0 36px;
+    background: linear-gradient(to bottom,
+       var(--lcars-mobile-orange) 0 13%,
+       var(--lcars-mobile-peach) 13% 67%,
+       #000 67% 70%,
+       var(--lcars-mobile-lilac) 70% 100%);
+  }
+  aside nav::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    bottom: 0;
+    right: 0;
+    height: 8px;
+    border-radius: 0 0 0 13px;
+    background: linear-gradient(to right,
+      var(--lcars-mobile-lilac) 0 55%, #000 55% 57%,
+      var(--lcars-mobile-blue) 57% 82%, #000 82% 84%,
+      var(--lcars-mobile-orange) 84%);
+    z-index: -1;
+  }
+  aside .nav {
+    z-index: 0;
+    padding: 4px 4px 4px 9px;
+    min-height: 45px;
+    border-radius: 0;
+    font-weight: 900;
+    font-size: clamp(10px, 2.62vw, 11px);
+    background: var(--lcars-mobile-lilac);
+    box-shadow: none;
+  }
+  aside .nav:nth-child(1) { background: var(--lcars-mobile-orange); }
+  aside .nav:nth-child(2) { background: var(--lcars-mobile-blue); }
+  aside .nav:nth-child(3) { background: var(--pink); }
+  aside .nav:nth-child(4) { background: var(--salmon); }
+  aside .nav:nth-child(5) { background: var(--cream); }
+  aside .nav:nth-child(6) { background: var(--lcars-mobile-lilac); }
+  aside .nav:nth-child(3), aside .nav:nth-child(6) { border-radius: 0 27px 27px 0; }
+  aside .nav.active {
+    background: #ffdb82;
+    box-shadow: inset 0 -5px #fff6bd;
+  }
+  aside .nav small {
+    font-size: 10px;
+    margin-bottom: 3px;
+    opacity: .85;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Classic elbow descends into the section title and terminates as a wide bar. */
+  .section-heading, #metronome .section-heading {
+    position: relative;
+    min-height: 61px;
+    margin: 0 0 9px;
+    padding: 5px 0 12px 19px;
+    border: 0;
+    border-left: 23px solid var(--lcars-mobile-lilac);
+    border-bottom: 12px solid var(--lcars-mobile-lilac);
+    border-radius: 0 0 0 34px;
+    isolation: isolate;
+  }
+  .section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    right: 0;
+    width: 28%;
+    height: 12px;
+    background: var(--lcars-mobile-blue);
+    border-left: 4px solid #000;
+    border-radius: 0 12px 12px 0;
+  }
+  .section-heading .eyebrow { color: var(--pink); letter-spacing: .15em; font-size: 8px; }
+  #metronome .section-heading h2 {
+    margin: 3px 0 0;
+    font-size: clamp(18px, 4.7vw, 21px);
+    color: var(--lcars-mobile-orange);
+    letter-spacing: .015em;
+    white-space: nowrap;
+  }
+  .section-heading .outline {
+    border: 0;
+    border-radius: 22px 22px 3px 22px;
+    background: var(--lcars-mobile-lilac);
+    color: #000;
+    min-width: 78px;
+    max-width: 89px;
+    font-weight: 900;
+    font-size: 9px;
+  }
+  .mode-heading {
+    margin: 0 0 4px;
+    padding: 0 2px;
+    color: var(--lcars-mobile-peach);
+    font-size: 10px;
+    letter-spacing: .08em;
+  }
+  .mode-heading output { color: var(--lcars-mobile-orange); font-size: 18px; }
+  #modeButtons {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    margin: 0 0 11px;
+    padding: 8px 0 8px 26px;
+    border: 0;
+    background: #000;
+    isolation: isolate;
+  }
+  #modeButtons::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 29px;
+    border-radius: 36px 0 0 36px;
+    background: var(--lcars-mobile-peach);
+  }
+  #modeButtons button {
+    min-height: 42px;
+    padding: 5px 2px;
+    font-size: clamp(8px, 2.05vw, 9px);
+    font-weight: 900;
+    letter-spacing: -.02em;
+    border-radius: 0;
+  }
+  #modeButtons button:nth-child(n) { border-radius: 0; }
+  #modeButtons button:nth-child(4),
+  #modeButtons button:nth-child(8) { border-radius: 0 25px 25px 0; }
+  #modeButtons button[aria-pressed=true] { box-shadow: inset 0 -5px #fff6ce; }
+  /* A single structural rail encloses the entire metronome bank.
+     Dial is smaller by design, never squeezed into a card. */
+  #metronome .instrument-layout { gap: 11px; }
+  #metronome .instrument {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 440px;
+    padding: 14px 5px 5px 17px;
+    margin: 0 auto;
+    border-left: 24px solid var(--lcars-mobile-peach);
+    border-top: 13px solid var(--lcars-mobile-peach);
+    border-bottom: 13px solid var(--lcars-mobile-lilac);
+    border-radius: 47px 0 0 40px;
+  }
+  #metronome .instrument::before {
+    content: 'SCANNING  /  24 · 0716 · 1701';
+    position: absolute;
+    top: -15px;
+    right: 0;
+    color: #070707;
+    background: var(--lcars-mobile-peach);
+    border-left: 5px solid #000;
+    border-radius: 0 12px 0 0;
+    height: 15px;
+    min-width: 57%;
+    padding: 0 7px;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-align: right;
+    line-height: 15px;
+    pointer-events: none;
+  }
+  #metronome .instrument::after {
+    content: '';
+    position: absolute;
+    height: 13px;
+    width: 56%;
+    right: 0;
+    bottom: -13px;
+    background: var(--lcars-mobile-blue);
+    border-left: 5px solid #000;
+    border-radius: 0 13px 13px 0;
+    pointer-events: none;
+  }
+  #metronome .transport {
+    order: 1;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    margin: 0 0 8px;
+    gap: 4px;
+    max-width: none;
+  }
+  #metronome .transport button { min-height: 51px; font-size: 13px; border-radius: 0; font-weight: 900; }
+  #metronome .transport #start { border-radius: 18px 0 0 18px; }
+  #metronome .transport #tap { border-radius: 0 25px 25px 0; background: var(--lcars-mobile-lilac); }
+  #metronome #dial {
+    order: 2;
+    width: 100%;
+    max-width: min(100%, 300px);
+    margin: 0 auto;
+  }
+  #metronome #linear { order: 2; min-height: 280px; }
+  #rings .track { stroke: #d89b84; stroke-width: 2.5; }
+  #rings .inner-track { stroke: var(--lcars-mobile-lilac); stroke-width: 2.5; }
+  #rings .dial-ticks { stroke: var(--lcars-mobile-blue); opacity: .8; }
+  #tempo { border: 7px solid var(--lcars-mobile-orange); background: #000; }
+  #metronome .legend {
+    order: 3;
+    width: 100%;
+    margin: 0 0 7px;
+    padding: 6px 0;
+    border-top: 4px solid var(--lcars-mobile-blue);
+    font-size: 8px;
+    gap: 5px;
+  }
+  #metronome .play-status { order: 4; margin: 0 0 7px; padding: 0; width: 100%; max-width: none; }
+  #metronome .play-status>span { background: var(--lcars-mobile-lilac); border-radius: 19px 0 0 19px; }
+  #metronome .play-status time { background: var(--lcars-mobile-orange); border-radius: 0 22px 22px 0; }
+  #metronome .pattern-counts { order: 5; width: 100%; gap: 4px; margin: 4px 0 0; padding-top: 7px; }
+  #metronome .pattern-counts label>span:first-child { min-height: 40px; }
+  /* Technical spines on all subordinate pages, not a generic card stack. */
+  .panel { border-left-width: 20px; border-top-width: 12px; border-bottom-width: 8px; border-radius: 38px 0 0 32px; }
+  footer { border-top-width: 11px; margin-top: 16px; }
+}
+/* Narrow display: keep all six routes visible and text comfortably tappable. */
+@media (max-width: 350px) {
+  aside nav { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, 45px); padding-left: 23px; }
+  aside nav::before { width: 27px; }
+  aside .nav { font-size: 8.5px; padding-left: 5px; }
+  aside .nav:nth-child(n) { border-radius: 0; }
+  aside .nav:nth-child(3), aside .nav:nth-child(6) { border-radius: 0 23px 23px 0; }
+  .heading { margin-left: 78px; }
+  .elbow { width: 68px; }
+  .elbow::after { left: 23px; }
+  .app-shell > header::after { left: 78px; }
+  #modeButtons { grid-template-columns: repeat(4,minmax(0,1fr)); padding-left: 18px; }
+  #modeButtons::before { width: 22px; }
+  #modeButtons button { font-size: 7.2px; }
+  #metronome .instrument { padding-left: 10px; border-left-width: 18px; }
+  #metronome #dial { max-width: 270px; }
+  #metronome .section-heading { padding-left: 9px; gap: 5px; }
+  #metronome .section-heading h2 { font-size: 15px; letter-spacing: -.02em; }
+  #metronome .section-heading .outline { min-width: 70px; max-width: 73px; font-size: 8px; }
+}
+
+
+/* v0.5.5 · RHYTHM PADD mobile architecture · CSS-only presentation.
+   No metronome logic changes. The outer LCARS frame is fixed on phones;
+   only the inner content panel scrolls for longer configurations. */
+@media (max-width: 640px) {
+  :root {
+    --padd-bg: #000000;
+    --padd-orange: #ff9900;
+    --padd-amber: #ffcc66;
+    --padd-peach: #ff9966;
+    --padd-lavender: #cc99cc;
+    --padd-blue: #9999ff;
+    --padd-tan: #cc6666;
+    --padd-red: #cc4444;
+  }
+  html, body { margin: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+  .app-shell {
+    display: grid;
+    grid-template-columns: 58px minmax(0,1fr);
+    grid-template-rows: 65px minmax(0,1fr) 29px;
+    column-gap: 12px;
+    row-gap: 4px;
+    box-sizing: border-box;
+    width: 100%; max-width: 460px;
+    height: 100vh; height: 100dvh;
+    min-height: 0;
+    margin: 0 auto;
+    padding: max(8px,env(safe-area-inset-top)) max(9px,env(safe-area-inset-right)) max(9px,env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));
+    overflow: hidden;
+    background: #000;
+  }
+  /* Upper starship elbow: the slit is a black carved-out *inside corner*. */
+  .app-shell > header {
+    position: relative;
+    display: block;
+    grid-column: 1 / -1; grid-row: 1;
+    box-sizing: border-box;
+    width: 100%; height: 65px; min-height: 65px;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    isolation: isolate;
+  }
+  .elbow {
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+    width: 88px; height: 63px; min-height: 0;
+    padding: 0; margin: 0; border: 0;
+    background: var(--padd-amber);
+    border-radius: 36px 0 0 0;
+  }
+  .elbow::after {
+    content: '';
+    position: absolute;
+    left: 58px; top: 24px; right: 0; bottom: 0;
+    background: #000;
+    border-radius: 22px 0 0 0;
+  }
+  .heading {
+    position: relative;
+    z-index: 1;
+    margin: 0 40px 0 99px;
+    padding: 3px 0 0;
+    min-width: 0;
+  }
+  .heading .eyebrow { display: none; }
+  .heading h1 {
+    margin: 0;
+    font-size: 0; line-height: 28px;
+    white-space: nowrap;
+  }
+  .heading h1::after {
+    content: 'RHYTHM PADD';
+    display: block;
+    font-family: Impact, 'Arial Narrow', 'Liberation Sans Narrow', sans-serif;
+    font-weight: 900;
+    font-size: clamp(17px, 5.8vw, 23px);
+    line-height: 29px;
+    letter-spacing: .035em;
+    color: var(--padd-orange);
+    text-align: left;
+  }
+  .app-shell > header::before {
+    content: '47-01';
+    position: absolute;
+    left: 0; bottom: 3px;
+    z-index: 2;
+    width: 49px;
+    color: #000;
+    background: none;
+    font: 900 11px/1 Impact,'Arial Narrow',sans-serif;
+    text-align: right;
+    letter-spacing: 0;
+    border-radius: 0;
+    padding: 0 5px 0 0;
+  }
+  .app-shell > header::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: auto; left: auto; right: 0;
+    width: clamp(31px, 10vw, 51px);
+    height: 24px;
+    background: var(--padd-orange);
+    border-radius: 0 14px 14px 0;
+  }
+  /* Permanent instrument fascia / six real routes. */
+  aside {
+    display: flex;
+    flex-direction: column;
+    grid-column: 1; grid-row: 2;
+    position: relative;
+    width: 58px;
+    min-width: 0; min-height: 0;
+    margin: 0; padding: 0;
+    gap: 5px;
+  }
+  aside nav {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 0; margin: 0;
+    gap: 5px;
+    border: none;
+    border-radius: 0;
+    background: #000;
+    isolation: auto;
+  }
+  aside nav::before, aside nav::after { content: none; display: none; }
+  aside .nav {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    width: 100%; min-width: 0;
+    flex: 0 0 auto;
+    height: clamp(49px, 6.7dvh, 60px);
+    min-height: 49px;
+    margin: 0;
+    padding: 4px 4px 8px 2px;
+    border: 0;
+    border-radius: 0 !important;
+    box-shadow: none;
+    overflow: hidden;
+    font-size: 0 !important;
+    color: #000;
+    line-height: 1;
+    text-align: right;
+    touch-action: manipulation;
+  }
+  aside .nav small { display: none; }
+  aside .nav::after {
+    content: attr(data-short);
+    display: block;
+    position: relative;
+    font: 900 clamp(8px,2.35vw,10px)/1.1 'Arial Narrow','Liberation Sans Narrow',Arial,sans-serif;
+    letter-spacing: -.035em;
+    text-align: right;
+    color: #000;
+    white-space: nowrap;
+  }
+  aside .nav:nth-child(1) { background: #ffffff; }
+  aside .nav:nth-child(2) { background: var(--padd-lavender); }
+  aside .nav:nth-child(3) { background: var(--padd-peach); }
+  aside .nav:nth-child(4) { background: var(--padd-blue); }
+  aside .nav:nth-child(5) { background: var(--padd-tan); }
+  aside .nav:nth-child(6) { background: var(--padd-amber); }
+  aside .nav.active { background: #fff !important; box-shadow: inset -5px 0 var(--padd-orange) !important; }
+  aside .nav:focus-visible { outline: 3px solid #fff; outline-offset: 1px; }
+  /* Color spine stretches to fill unused height. */
+  aside .rail {
+    display: flex;
+    position: relative;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 42px;
+    margin: 0;
+    border-radius: 0;
+    padding: 5px 4px 7px;
+    background: var(--padd-amber);
+    align-items: flex-end;
+    justify-content: flex-end;
+    text-align: right;
+    color: #000;
+    font-size: 0;
+  }
+  aside .rail::after {
+    content: '09-442';
+    font: 900 10px/1 Impact,'Arial Narrow',sans-serif;
+    color: #000;
+  }
+  aside .rail-end {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    position: relative;
+    width: 100%;
+    height: clamp(47px,9dvh,78px);
+    flex: 0 0 auto;
+    border-radius: 0;
+    background: var(--padd-orange);
+    padding: 0 4px 9px;
+  }
+  aside .rail-end::before {
+    content: 'SYS-OK';
+    font: 900 9px/1 Impact,'Arial Narrow',sans-serif;
+    color: #000;
+  }
+  aside .rail-end::after { content: none; }
+  /* Bottom U-clamp band, pinned with the side rail while content scrolls. */
+  .app-shell::after {
+    content: '';
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+    height: 29px;
+    background: linear-gradient(to bottom,
+      var(--padd-tan) 0 4px, #000 4px 7px,
+      var(--padd-tan) 7px 100%);
+    border-radius: 0 0 0 23px;
+    position: relative;
+    overflow: hidden;
+    background-image: linear-gradient(to right,
+       var(--padd-tan) 0 23%, #000 23% 25%,
+       var(--padd-tan) 25% 68%, #000 68% 70%,
+       var(--padd-amber) 70% 82%, #000 82% 84%,
+       var(--padd-orange) 84% 100%);
+    -webkit-mask-image: radial-gradient(ellipse 28px 20px at 86px 0, transparent 42%,black 46%);
+    mask-image: radial-gradient(ellipse 28px 20px at 86px 0, transparent 42%,black 46%);
+  }
+  /* Only the content well scrolls, so the frame remains visible. */
+  main {
+    display: block;
+    grid-column: 2; grid-row: 2;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    padding: 0 2px 8px 0;
+    margin: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    background: #000;
+  }
+  main::-webkit-scrollbar { display: none; }
+  .page { min-width: 0; }
+  /* PADD information bank, not a second unrelated LCARS frame. */
+  .section-heading, #metronome .section-heading {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    min-height: 36px;
+    margin: 0 0 8px;
+    padding: 0 0 5px;
+    border: 0;
+    border-bottom: 2px solid var(--padd-amber);
+    border-radius: 0;
+    gap: 4px;
+  }
+  .section-heading::after { content: none; }
+  .section-heading .eyebrow { display: none; }
+  .section-heading h2, #metronome .section-heading h2 {
+    margin: 0;
+    font-family: Impact,'Arial Narrow',sans-serif;
+    font-size: clamp(15px, 4.6vw, 18px);
+    color: var(--padd-amber);
+    letter-spacing: .02em;
+    white-space: normal;
+    line-height: 1.1;
+  }
+  .section-heading .outline {
+    min-width: 0;
+    max-width: 100px;
+    min-height: 31px;
+    align-self: flex-end;
+    padding: 4px 7px;
+    font-size: 9px;
+    border-radius: 0 17px 17px 0;
+    color: #000;
+    background: var(--padd-blue);
+  }
+  #metronome .mode-heading {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 4px;
+    padding: 0;
+    color: var(--padd-peach);
+    font-size: 9px;
+    line-height: 1.3;
+  }
+  #metronome .mode-heading output { font: 900 13px/1 Impact,'Arial Narrow',sans-serif; color: var(--padd-amber); }
+  #modeButtons {
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 3px;
+    margin: 0 0 8px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: #000;
+  }
+  #modeButtons::before { content: none; }
+  #modeButtons button {
+    min-height: 44px;
+    padding: 5px 2px;
+    font: 900 clamp(7px,2.03vw,9px)/1.15 'Arial Narrow',Arial,sans-serif;
+    white-space: normal;
+    letter-spacing: -.045em;
+    overflow-wrap: anywhere;
+    background: var(--padd-lavender);
+    border: none;
+    border-radius: 0 !important;
+    box-shadow: none;
+  }
+  #modeButtons button:nth-child(4n+1) { border-radius: 19px 0 0 19px !important; }
+  #modeButtons button:nth-child(4n) { border-radius: 0 19px 19px 0 !important; }
+  #modeButtons button[aria-pressed=true] { background: var(--padd-orange); box-shadow: inset 0 -4px var(--padd-amber) !important; }
+  /* The dial is the hero, enclosed by telemetry, not generic cards. */
+  #metronome .instrument-layout { display:grid; grid-template-columns:minmax(0,1fr);gap:10px; }
+  #metronome .instrument {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 8px 0 0;
+    border: 0;
+    border-radius: 0;
+    gap: 0;
+  }
+  #metronome .instrument::before {
+    content: '';
+    position: absolute;
+    right: 0; top: 8px;
+    width: 7px; height: 218px;
+    min-width: 0; max-width: none; padding: 0; border: 0;
+    background: var(--padd-amber);
+    border-radius: 7px;
+    z-index: 0;
+    pointer-events: none;
+  }
+  #metronome .instrument::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 0;
+    width: 30%; height: 7px;
+    min-width: 0; max-width: none; padding: 0; border: 0;
+    background: linear-gradient(to right, var(--padd-lavender) 0 42%, #000 42% 47%,var(--padd-blue) 47% 72%,#000 72% 77%,var(--padd-tan) 77%);
+    pointer-events: none;
+  }
+  #metronome #dial {
+    order: 1;
+    position: relative;
+    width: min(100%, 236px);
+    max-width: 236px;
+    margin: 6px auto 0;
+    padding: 0;
+  }
+  #rings .track { stroke: #b28dbb; stroke-width: 4; }
+  #rings .inner-track { stroke: var(--padd-blue); stroke-width: 4; }
+  #rings .dial-ticks { stroke: var(--padd-tan); }
+  #tempo { border: 3px solid var(--padd-orange); background: #000; outline: 2px solid #000; }
+  #tempo .eyebrow { color: var(--padd-lavender); font-size: 7px; }
+  :is(#bpm,#tempoValue) { font: 400 clamp(30px,9vw,46px)/1 Impact,'Arial Narrow',sans-serif; color:var(--padd-orange); }
+  .tempo-buttons { gap: 2px; }
+  .tempo-buttons button { min-width: 25px; font-size: 18px; }
+  #metronome #linear { order: 1; min-height: 0; max-width:100%; overflow-x:auto; padding-top:20px; }
+  #metronome .legend {
+    order: 2;
+    width: 100%;
+    margin: 0 0 6px;
+    padding: 2px 0 4px;
+    border-top: 0;
+    border-bottom: 5px solid var(--padd-tan);
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 8px;
+  }
+  #metronome .play-status {
+    order: 3;
+    width: 100%;
+    display: flex;
+    gap: 4px;
+    margin: 0 0 8px;
+    padding: 0;
+  }
+  #metronome .play-status > span, #metronome .play-status time {
+    min-height: 30px;
+    padding: 5px 7px;
+    border-radius: 0;
+    font-size: 10px;
+  }
+  #metronome .play-status > span { background: var(--padd-lavender); border-radius: 16px 0 0 16px; }
+  #metronome .play-status time { background: var(--padd-amber); color:#000; border-radius:0 15px 15px 0; font-size: 13px; }
+  #metronome .pattern-counts {
+    order: 4;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+    margin: 0 0 8px;
+    padding: 0;
+    border: 0;
+    gap: 5px;
+  }
+  #metronome .pattern-counts label>span:first-child { background: var(--padd-amber); min-height: 29px; padding: 5px; font-size: 9px; }
+  #metronome .pattern-counts label:nth-child(2)>span:first-child { background: var(--padd-orange); }
+  #metronome .pattern-counts .value-dial { min-height: 35px; font-size: 19px; }
+  #metronome .pattern-counts #meterNote { font-size: 10px; min-height: 0; padding: 4px 7px; }
+  #metronome .transport {
+    order: 5;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 0 0 10px;
+    width: 100%;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+  }
+  #metronome .transport button {
+    border-radius: 999px !important;
+    min-height: 55px;
+    padding: 8px 5px;
+    font: 900 12px/1 Impact,'Arial Narrow',sans-serif;
+    letter-spacing: -.01em;
+    color: #000;
+  }
+  #metronome .transport #start { grid-column: 2; grid-row: 1; background: var(--padd-red); }
+  #metronome .transport #tap { grid-column: 1; grid-row: 1; background: var(--padd-peach); }
+  .side-controls { display:flex;flex-direction:column;gap:8px; }
+  .side-controls .panel { margin:0; }
+  /* Remaining real settings: dense segmented instrumentation. */
+  .panel {
+    min-width: 0;
+    padding: 6px 4px 10px 9px;
+    margin-bottom: 12px;
+    border-left: 12px solid var(--padd-lavender);
+    border-top: 7px solid var(--padd-lavender);
+    border-bottom: 0;
+    border-radius: 25px 0 0 0;
+    background: #000;
+  }
+  .panel>.eyebrow, .panel>h3 { color: var(--padd-orange); }
+  .panel label { max-width: 100%; }
+  .cards { min-width:0; gap:9px; }
+  .preset-actions button,.lcars-info summary,.mode-help summary { border-radius: 20px 0 0 20px; }
+  #settings .panel label:has(input[type=checkbox]) { grid-template-columns:minmax(0,1fr) 58px; }
+  footer { padding: 5px 0 0; border-top-width:6px; margin: 14px 0 2px; font-size:8px; }
+  footer::before { display:none; }
+  #notice { max-width:calc(100% - 20px); bottom:max(34px,env(safe-area-inset-bottom)); z-index:10; }
+}
+/* Short phones show the same controls; scroll only inside the control well. */
+@media (max-width: 350px) {
+  .app-shell { grid-template-columns: 50px minmax(0,1fr); column-gap:9px; padding-left:6px; padding-right:6px; }
+  aside { width:50px; }
+  aside .nav::after { font-size:8px; }
+  .elbow { width:77px; }
+  .elbow::after { left:50px; }
+  .heading { margin-left:86px; margin-right:35px; }
+  .app-shell > header::after { width:25px; }
+  .heading h1::after { font-size:17px; }
+  #modeButtons button { font-size:7px; min-height: 39px; }
+  #metronome #dial { max-width: 207px; }
+  #metronome .instrument::before { height: 198px; }
+}
+
+/* ==============================================
+   v0.5.6 RHYTHM PADD: mobile LCARS finish pass.
+   Desktop/tablet styles above are intentionally unchanged.
+   ============================================== */
+@media (max-width:640px) {
+  /* A continuous, segmented starship rail, not an empty header. */
+  .app-shell > header::after {
+    z-index:0;
+    left:99px; right:0; top:0;
+    width:auto; height:24px;
+    border-radius:0 14px 14px 0;
+    background:linear-gradient(to right,
+      var(--padd-amber) 0 8%, #000 8% 10%,
+      var(--padd-orange) 10% 79%, #000 79% 81%,
+      var(--padd-orange) 81% 100%);
+  }
+  .app-shell > header .heading {padding-top:27px; margin-right:0;}
+  .app-shell > header .heading h1::after {line-height:27px;}
+  /* Curved annular blocks replace the old disconnected dot markers. */
+  #rings .point.beat-arc {
+    stroke-linejoin:round;
+    stroke-width:2;
+  }
+  #rings .point.beat-arc.state0 {stroke-width:3;}
+  #rings .point.beat-arc.playing {stroke-width:4;}
+  #rings g[role=button]:focus-visible .beat-arc {stroke:#fff;stroke-width:5;}
+  /* Segmented controls: rounded external caps, flush inner edges. */
+  #diary .diary-categories, #analytics .analytics-filters,
+  #analytics .chart-modes {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    column-gap:3px;row-gap:4px;
+    border-left:11px solid var(--padd-tan);
+    border-radius:20px 0 0 20px;
+    padding:0 0 0 3px;
+    margin:6px 0 12px;
+    min-width:0;
+  }
+  #diary .diary-categories button,
+  #analytics .analytics-filters button,
+  #analytics .chart-modes button {
+    min-width:0;
+    flex:auto;
+    min-height:34px;
+    height:auto;
+    margin:0;
+    padding:6px 5px;
+    font-size:clamp(8px,2.3vw,10px);
+    line-height:1.12;
+    letter-spacing:0;
+    border:0;
+    border-radius:0;
+    overflow-wrap:anywhere;
+    text-align:center;
+  }
+  #diary .diary-categories button:nth-child(2n+1),
+  #analytics .analytics-filters button:nth-child(2n+1),
+  #analytics .chart-modes button:nth-child(2n+1) {border-radius:17px 0 0 17px;}
+  #diary .diary-categories button:nth-child(2n),
+  #analytics .analytics-filters button:nth-child(2n),
+  #analytics .chart-modes button:nth-child(2n) {border-radius:0 17px 17px 0;}
+  #diary .diary-categories button:last-child:nth-child(odd),
+  #analytics .analytics-filters button:last-child:nth-child(odd),
+  #analytics .chart-modes button:last-child:nth-child(odd) {
+    grid-column:1/-1;border-radius:17px;
+  }
+  #diary .log-actions {
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    gap:4px; margin-top:11px;
+  }
+  #diary .log-actions button {
+    flex:initial;min-width:0;min-height:38px;padding:7px 4px;
+    font-size:10px;border-radius:0 !important;
+  }
+  #diary .log-actions button:first-child {border-radius:20px 0 0 20px !important;}
+  #diary .log-actions button:last-child {border-radius:0 20px 20px 0 !important;background:var(--padd-tan);}
+  /* Mirror existing independent two-action pairs without affecting transport. */
+  #diaryEditor .preset-actions:has(>button:nth-child(2):last-child) {display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+  #diaryEditor .preset-actions:has(>button:nth-child(2):last-child) button:first-child {border-radius:20px 0 0 20px;}
+  #diaryEditor .preset-actions:has(>button:nth-child(2):last-child) button:last-child {border-radius:0 20px 20px 0;}
+  #analyticsContent .xy-wrap {
+    width:100%; max-width:100%;min-width:0;
+    overflow:hidden;
+    padding:0;margin:8px 0;
+    border-radius:0 0 17px 0;
+  }
+  #analyticsContent .xy-plot, #diary .xy-plot {
+    display:block;width:100%;min-width:0;max-width:100%;height:auto;
+    aspect-ratio:auto;
+  }
+  #diary .xy-wrap {max-width:100%;overflow:hidden;}
+  #analyticsContent .axis-label, #diary .axis-label {font-size:13px;}
+  #analyticsContent .chart-legend,#diary .chart-legend {display:flex;gap:5px;flex-wrap:wrap;}
+  #analyticsContent .chart-legend span,#diary .chart-legend span {font-size:9px;padding:3px 5px;}
+  #analyticsContent .session-choices {display:flex;overflow-x:auto;max-width:100%;scroll-snap-type:x proximity;}
+  #analyticsContent .session-choices button {min-height:36px;flex:0 0 130px;padding:6px;font-size:9px;scroll-snap-align:start;}
+  /* Dates are square status cells with a small, optional month mark. */
+  #analyticsContent .practice-calendar {
+    display:grid;grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:4px;padding:1px;margin:9px 0;
+    max-width:100%;overflow-x:hidden;overflow-y:auto;
+  }
+  #analyticsContent .calendar-day {
+    position:relative; width:100%; min-width:0;
+    aspect-ratio:1 / 1;
+    min-height:0; height:auto;
+    display:flex;align-items:center;justify-content:center;
+    padding:0 1px;
+    border-radius:9px;
+    font:800 clamp(9px,2.7vw,12px)/1 Impact,'Arial Narrow',sans-serif;
+    background:rgb(255 204 153 / var(--level));
+    box-shadow:inset 0 0 0 1px rgb(255 204 153 / .25);
+  }
+  #analyticsContent .calendar-day[data-month]::after {
+    content:attr(data-month);
+    position:absolute;bottom:2px;right:3px;
+    font:700 7px/1 Impact,'Arial Narrow',sans-serif;
+    color:var(--padd-orange);
+  }
+  #analyticsContent .calendar-day[aria-pressed=true] {
+    outline:2px solid #fff;outline-offset:-2px;
+    box-shadow:inset 0 0 0 3px var(--padd-orange);
+    background:var(--padd-amber);color:#000;
+  }
+  /* Anchor headings to the actual content panel, not the phone viewport. */
+  #analytics .panel>h3, #diary .panel>h3 {
+    display:block;max-width:100%;
+    padding:3px 14px 5px 0;
+    margin:0 0 10px;
+    text-align:right;
+    font-size:clamp(10px,3vw,13px);
+    line-height:1.2;
+    overflow-wrap:anywhere;
+  }
+  #analyticsContent .stat-bar>span {text-align:right;padding:6px 8px;}
+  #analyticsContent .history-table {max-width:100%;table-layout:fixed;overflow-wrap:anywhere;font-size:9px;}
+  #analyticsContent .history-table th,#analyticsContent .history-table td {padding:5px 2px;}
+}
+@media (max-width:350px){
+  .app-shell>header::after{left:86px;}
+  #diary .diary-categories button,
+  #analytics .analytics-filters button,
+  #analytics .chart-modes button {font-size:8px;min-height:32px;}
+}

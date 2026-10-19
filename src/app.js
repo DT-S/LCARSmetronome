@@ -39,13 +39,22 @@ function tempoReadout(event=null){
 }
 function trainingChanged(){tempoReadout();changed();}
 const names=['double accent','accent','normal','silent'];
+// A shallow annular block per beat: the active SVG path remains the pointer target.
+// Subdivide angle by the total number of steps so 1...20 never overlap.
+export function beatArcPath(radius,index,total){
+  const angle=index/total*Math.PI*2-Math.PI/2;
+  const half=Math.min(.205, Math.PI/total*.74);
+  const outer=radius+17,inner=radius-17;
+  const xy=(r,a)=>`${(250+r*Math.cos(a)).toFixed(3)} ${(250+r*Math.sin(a)).toFixed(3)}`;
+  return `M ${xy(outer,angle-half)} A ${outer} ${outer} 0 0 1 ${xy(outer,angle+half)} L ${xy(inner,angle+half)} A ${inner} ${inner} 0 0 0 ${xy(inner,angle-half)} Z`;
+}
 function renderPatterns(){
   let svg='<circle class="track" cx="250" cy="250" r="212"/><circle class="track inner-track" cx="250" cy="250" r="149"/>';
   svg+='<g class="dial-ticks" aria-hidden="true">'+radialTicks().map(t=>`<line x1="${t.x1}" y1="${t.y1}" x2="${t.x2}" y2="${t.y2}"/>`).join('')+'</g>';
   for(const [channel,key,r] of [[0,'outer',212],[1,'inner',149]]){
     svg+=`<circle class="hit-ring" data-ring="${channel}" cx="250" cy="250" r="${r}"/>`;
     state[key].forEach((s,i)=>{const a=i/state[key].length*Math.PI*2-Math.PI/2,x=250+Math.cos(a)*r,y=250+Math.sin(a)*r;
-      svg+=`<g data-channel="${channel}" data-index="${i}" tabindex="0" role="button" aria-label="${key} ${i+1}: ${names[s]}"><circle data-ring="${channel}" class="point state${s}" cx="${x}" cy="${y}" r="${state[key].length>15?17:20}"/><text class="node-label" x="${x}" y="${y}">${s===3?'–':i+1}</text></g>`;
+      svg+=`<g data-channel="${channel}" data-index="${i}" tabindex="0" role="button" aria-label="${key} ${i+1}: ${names[s]}"><path data-ring="${channel}" class="point beat-arc state${s}" d="${beatArcPath(r,i,state[key].length)}"/><text class="node-label" x="${x}" y="${y}">${s===3?'–':i+1}</text></g>`;
     });
   }
   $('#rings').innerHTML=svg;
@@ -111,7 +120,7 @@ $('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hid
 
 for(const k of ['master','uiVolume'])$('#'+k).oninput=e=>{state[k]=Number(e.target.value);changed();};
 for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};
-$$('[data-tab]').forEach(b=>b.onclick=()=>{$$('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);$$('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();});
+$$('[data-tab]').forEach(b=>b.onclick=()=>{$$('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);$$('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();if(matchMedia('(max-width: 640px)').matches)$('main').scrollTop=0;});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};
 $('#export').onclick=()=>{download(`lcars-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(state,null,2));notify('Backup exported.');};
 $('#import').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>25e6)throw Error('Backup is too large.');const next=validate(JSON.parse(await f.text()));if(soundUI.isBusy()||restoring||starting)throw Error('Wait for the current import to finish.');if(!confirm('Replace settings, presets, practice entries and custom sounds with this backup?'))return;stop();restoring=true;e.target.disabled=true;await unlock();await audio.loading;const prepared=await audio.prepareCustom(next.customSounds);for(const key of audio.buffers.keys())if(key.startsWith('user-'))audio.buffers.delete(key);for(const [key,buffer] of prepared)audio.buffers.set(key,buffer);state=next;activePreset='';diaryUI.closeEditor();render();changed();notify('Backup restored.');}catch(err){notify('Import rejected: '+err.message,'invalidsound');}finally{restoring=false;e.target.disabled=false;e.target.value='';}};

@@ -50,3 +50,7 @@
 
 **P1 wird erst nach Gerätebildern und Tests als abgeschlossen markiert; ein grüner Node-Workflow allein ist keine visuelle Abnahme.**
 \n## P1b-Umsetzung / noch offene Risiken\n- Nur Viewports ab 641 CSS-px laden neue Layoutregeln. Smartphone unter 641px nutzt unveränderte bewährte v0.5.15-Stile.\n- Responsive LCARS-Shell mit fixem Header/Side Nav/Footer, scrollbarem Inhalt; Metronom-Ring und Audio-Kanäle werden nicht mehr wie alte Desktop-Karten dargestellt.\n- Neuer Stylesheet-Link wird im Service Worker vorgecached; Runtime / Datenmodell unverändert.\n- Die in `style.css` historisch verschachtelten Layoutblöcke sind noch **nicht** entfernt. Nach Browser- und Geräteabnahme schrittweise konsolidieren; nicht fälschlich P1 komplett abschließen.\n
+## P1b: Erste Browserresultate
+
+[Chromium CI-Run](https://github.com/DT-S/LCARSmetronome/actions/runs/39334206528) erfolgreich; Metronome-/Audio-Screenshots für 390/768/1024/1440/1920 px erzeugt und geprüft. Desktop-Audio-Matrix: beide Kanalpanels stehen nebeneinander. Tablet-Portrait: gemeinsames PADD-Fascia, ringförmiges Instrument und untere Statusleiste ohne Layoutabsturz.  
+**Nicht abgeschlossen:** Desktop- und Tablet-Bedienung aller übrigen Seiten, Browserzoom/Interface-Scale, Feintuning der Tablet-Navigation und CSS-Konsolidierung. Nächster Teil: P1c, anschließend P1d.

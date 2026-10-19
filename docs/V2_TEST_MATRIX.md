@@ -43,3 +43,7 @@
 
 ## Mindestabnahme (Release Gate)
 **Alle Node-/CI-Tests** bestanden **und** manuell kontrolliert auf (1) iPhone Safari PWA, (2) Tablet Safari oder vergleichbar, (3) Arch Linux Firefox, (4) Chromium. Größere Layout-/Gesture-Bugs = kein Merge nach `main`.
+
+## Letzter automatisierter Browser-Smoke-Nachweis
+
+[Erfolgreicher V2-Lauf](https://github.com/DT-S/LCARSmetronome/actions/runs/39334206528), Commit `e943fe7`. Chromium Headless: 390×844, 768×1024, 1024×768, 1440×900, 1920×1080; Start/Circular/Linear/Audio/Pan geprüft; 10 PNGs als Workflow-Artefakt abgelegt. Dies ist **keine** reale iOS-Safari-/Tablet-Hardwareabnahme.

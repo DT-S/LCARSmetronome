@@ -19,3 +19,15 @@ export function mobileFrameHeight(viewportHeight, scale) {
   if (!Number.isFinite(scale) || scale <= 0) throw new RangeError('Invalid scale');
   return viewportHeight / scale;
 }
+
+/**
+ * `screen.height` is deliberately excluded: iOS reports physical screen areas
+ * that a standalone PWA cannot lay out into (status and home-indicator zones).
+ * Never use a larger dimension than the visible layout/visual viewport.
+ */
+export function visibleViewportHeight(innerHeight, visualViewportHeight, documentHeight) {
+  const candidates=[innerHeight, visualViewportHeight, documentHeight]
+    .filter(v=>Number.isFinite(v)&&v>0);
+  if(!candidates.length) throw new RangeError('No visible viewport dimensions');
+  return Math.min(...candidates);
+}

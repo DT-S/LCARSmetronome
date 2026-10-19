@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {linearRowSizes,mobileFrameHeight} from '../src/linear-layout.js';
+import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from '../src/linear-layout.js';
 
 test('3 vs 5 and 3 vs 7 remain single, full-width rows on iPhone',()=>{
   assert.deepEqual(linearRowSizes(3,275),[3]);
@@ -24,4 +24,14 @@ test('viewport compensation preserves rendered height at every supported scale',
   }
   assert.throws(()=>mobileFrameHeight(844,0));
   assert.throws(()=>linearRowSizes(0,270));
+});
+
+test('iOS standalone viewport is limited by actual visible region, not screen.height',()=>{
+  // 844px screen includes system UI, but the PWA may only expose 760px.
+  assert.equal(visibleViewportHeight(760,760,760),760);
+  assert.equal(visibleViewportHeight(844,760,844),760);
+  assert.equal(visibleViewportHeight(844,null,810),810);
+  assert.equal(visibleViewportHeight(844,844,844),844);
+  assert.equal(mobileFrameHeight(visibleViewportHeight(844,760,844),.9)*.9,760);
+  assert.throws(()=>visibleViewportHeight(0,null,0));
 });

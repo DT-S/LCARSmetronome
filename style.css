@@ -715,7 +715,12 @@
     max-width: calc(460px * var(--mobile-zoom-inverse,1));
     min-height: 0;
     margin: 0 auto;
-    padding: max(8px,env(safe-area-inset-top)) max(9px,env(safe-area-inset-right)) max(9px,env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));
+    /* CSS zoom must not shrink the physical iPhone notch/home safe areas.
+       Compensating with the inverse leaves native iOS insets unzoomed. */
+    padding: max(8px,calc(env(safe-area-inset-top) * var(--mobile-zoom-inverse,1)))
+             max(9px,calc(env(safe-area-inset-right) * var(--mobile-zoom-inverse,1)))
+             max(9px,calc(env(safe-area-inset-bottom) * var(--mobile-zoom-inverse,1)))
+             max(9px,calc(env(safe-area-inset-left) * var(--mobile-zoom-inverse,1)));
     overflow: hidden;
     background: #000;
   }

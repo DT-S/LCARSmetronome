@@ -1,5 +1,5 @@
 import {installFeedback,UI_SCALES,defaultInterfaceScale} from './interface.js';
-import {linearRowSizes,mobileFrameHeight} from './linear-layout.js';
+import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from './linear-layout.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {customSoundUI} from './custom-sounds.js';
 import {createDiaryUI} from './diary-ui.js';
@@ -96,17 +96,16 @@ function layoutLinearPatterns(){
 function refreshMobileFrame(){
   const shell=document.querySelector('.app-shell');
   if(!matchMedia('(max-width: 640px)').matches){shell.style.removeProperty('height');return;}
-  // Safari may discard `calc(100dvh * var(--mobile-zoom-inverse))` after CSS zoom;
-  // a measured pixel length prevents the 10% black band below the bottom elbow.
+  // `screen.height` also covers iOS system areas outside the PWA viewport.
+  // Never stretch the grid there: the third (footer) row would be clipped.
+  // Measure the smaller, actually available viewport instead.
   const vv=window.visualViewport;
-  // Prefer the full document viewport in iOS standalone mode; `visualViewport`
-  // can describe a smaller portion while its browser chrome is animating.
-  const standalone=matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
-  const screenExtent=standalone ? (window.innerHeight>=window.innerWidth
-    ? Math.max(screen.width,screen.height) : Math.min(screen.width,screen.height)) : 0;
-  const height=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,
-    (vv?.height||0)+(vv?.offsetTop||0),screenExtent);
-  if(height>0)shell.style.height=`${mobileFrameHeight(height,state.uiScale)}px`;
+  const height=visibleViewportHeight(
+    window.innerHeight,
+    vv ? vv.height + Math.max(0,vv.offsetTop||0) : null,
+    document.documentElement.clientHeight
+  );
+  shell.style.height=`${mobileFrameHeight(height,state.uiScale)}px`;
 }
 window.addEventListener('resize',()=>{refreshMobileFrame();layoutLinearPatterns();},{passive:true});
 window.visualViewport?.addEventListener('resize',()=>{refreshMobileFrame();layoutLinearPatterns();},{passive:true});

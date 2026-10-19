@@ -1,3 +1,11 @@
+# LCARS METRONOME v0.5.12 - iOS safe-area framing hotfix
+
+- iPhone full-screen PWA: measure only the usable layout/visual viewport; never use `screen.height` to size the frame.
+- Keep top/bottom safe-area padding at its intended native size even when the interface is zoomed to 90%.
+- Preserve the circular and dynamic linear beat rendering; adds regression tests for the visible viewport, and import wiring.
+
+---
+
 # LCARS METRONOME — Version 0.5.11
 
 ## Hotfix: restore beat rendering

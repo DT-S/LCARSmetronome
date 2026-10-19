@@ -1,5 +1,6 @@
 import {installFeedback,installSegmentCorners,UI_SCALES,defaultInterfaceScale} from './interface.js';
 import {PAN_PRESETS,setChannelPan} from './pan-control.js';
+import {installPrecisionSlider,formatPan,formatVolume} from './precision-slider.js';
 import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from './linear-layout.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {customSoundUI} from './custom-sounds.js';
@@ -141,6 +142,8 @@ function renderMixer(){
     }
     const panButtons=[...panGroup.querySelectorAll('button')];
     setChannelPan(c,c.pan,panRange,panButtons);
+    const panPrecision=installPrecisionSlider(panRange,{format:formatPan});
+    installPrecisionSlider(panel.querySelector('input[data-field="volume"]'),{format:formatVolume});
     panel.querySelectorAll('input').forEach(el=>el.oninput=()=>{
       if(el.dataset.field==='pan')setChannelPan(c,el.value,panRange,panButtons);
       else c[el.dataset.field]=Number(el.value);
@@ -148,6 +151,7 @@ function renderMixer(){
     });
     panButtons.forEach(button=>button.onclick=()=>{
       setChannelPan(c,button.dataset.pan,panRange,panButtons);
+      panPrecision.sync();
       changed();
     });
     panel.querySelectorAll('button[data-field]').forEach(el=>el.onclick=()=>{state.channels[i][el.dataset.field]=!state.channels[i][el.dataset.field];el.setAttribute('aria-pressed',state.channels[i][el.dataset.field]);el.classList.toggle('toggled',state.channels[i][el.dataset.field]);changed();});
@@ -184,7 +188,7 @@ $('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>
 let taps=[];$('#tap').onclick=()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;};
 $('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();};
 
-for(const k of ['master','uiVolume'])$('#'+k).oninput=e=>{state[k]=Number(e.target.value);changed();};
+for(const k of ['master','uiVolume']){const input=$('#'+k);input.oninput=e=>{state[k]=Number(e.target.value);changed();};installPrecisionSlider(input,{format:formatVolume});}
 for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};
 $$('[data-tab]').forEach(b=>b.onclick=()=>{$$('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);$$('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();$('main').scrollTop=0;});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};

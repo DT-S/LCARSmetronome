@@ -711,7 +711,8 @@
     row-gap: 4px;
     box-sizing: border-box;
     width: 100%; max-width: 460px;
-    height: 100vh; height: 100dvh;
+    height: 100vh; height: calc(100dvh * var(--mobile-zoom-inverse,1));
+    max-width: calc(460px * var(--mobile-zoom-inverse,1));
     min-height: 0;
     margin: 0 auto;
     padding: max(8px,env(safe-area-inset-top)) max(9px,env(safe-area-inset-right)) max(9px,env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));

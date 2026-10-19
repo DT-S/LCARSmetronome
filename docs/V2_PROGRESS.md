@@ -72,3 +72,8 @@
 - Unit-Tests für Werteberechnung und Formatierung bestanden. [Chromium-Lauf 39338298760](https://github.com/DT-S/LCARSmetronome/actions/runs/39338298760) bestanden: 9/9 Auflösungen und echte simulierte Touch-Drag-Ereignisse. Gleiche 40px-Bewegung: grob +0,68, fein bei 125px Abstand +0,18.
 - Nach Sichtprüfung sitzt die orange Wertblase nun näher am Regler und erhält eine Zuordnungslinie; überarbeitete Variante muss separat erneut durch CI.
 - **P3 noch nicht hardware-abgenommen:** iPhone Safari, Tablet Touch, Maus/Firefox und VoiceOver/Screenreader stehen offen. P4–P6 sind unverändert ausstehend.
+
+## P3: Nutzerinteraktion, letzter Chromium-Nachweis
+- [Browserlauf 39338667688](https://github.com/DT-S/LCARSmetronome/actions/runs/39338667688) war nach Feinpositionierung der Wertblase erfolgreich (9/9 Layout-Ansichten und Touch-Differenzierung: grob 0,68 / fein 0,18).
+- Sichtkontrolle: Die Pan-Wertblase gehört optisch zum aktiven Pan-Fader und verdeckt nicht mehr die Mitte des Volume-Sliders darüber.
+- Zusätzliche Keyboard-/Mouse-/Pointer-Cancel-Regressionschecks eingebaut; die Ausführung des **folgenden** CI-Runs steht noch aus.

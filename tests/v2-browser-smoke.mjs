@@ -85,6 +85,26 @@ try{
    assert.equal(await page.locator('#mixer input.precision-slider').count(),4);
    assert.equal(await page.locator('#audio input.precision-slider').count(),6);
    assert.equal(await page.locator('#audio .precision-readout').count(),6);
+   // A native range remains keyboard-accessible and its percent stays true.
+   const volume=page.locator('#mixer input[data-field="volume"]').first();
+   await volume.focus();
+   const before=Number(await volume.inputValue());
+   await page.keyboard.press('ArrowRight');
+   assert.ok(Number(await volume.inputValue())>before,`${label}: keyboard range input broken`);
+   assert.match(await volume.getAttribute('aria-valuetext'),/^[0-9]+%$/);
+   await page.keyboard.press('ArrowLeft');
+   assert.equal(Number(await volume.inputValue()),before,`${label}: keyboard undo did not restore volume`);
+   if(label==='desktop'){
+    const bounds=await volume.boundingBox();
+    await page.mouse.move(bounds.x+bounds.width*.5,bounds.y+bounds.height*.5);
+    await page.mouse.down();
+    assert.equal(await volume.locator('xpath=..').evaluate(el=>el.classList.contains('precision-active')),true,
+     'native mouse drag does not show the precision readout');
+    await page.mouse.move(bounds.x+bounds.width*.65,bounds.y+bounds.height*.5);
+    await page.mouse.up();
+    assert.equal(await volume.locator('xpath=..').evaluate(el=>el.classList.contains('precision-active')),false,
+     'native mouse drag left readout visible');
+   }
    await page.screenshot({path:path.join(screenshots,`${label}-audio.png`)});
    // P1c: navigate all secondary pages and verify that interactive content
    // remains reachable in the scrollable well, even on portrait tablets.
@@ -184,6 +204,12 @@ try{
      `fine gesture did not reduce sensitivity: coarse=${coarse}, fine=${fine}`);
    await center.click();
    assert.equal(await pan.inputValue(),'0');
+   // An OS gesture cancellation must also hide the readout without a click.
+   await touch('touchStart',[[x,y]]);
+   assert.ok(await pan.locator('xpath=..').evaluate(label=>label.classList.contains('precision-active')));
+   await touch('touchCancel',[]);
+   assert.ok(!await pan.locator('xpath=..').evaluate(label=>label.classList.contains('precision-active')),
+     'pointercancel left readout visible');
    assert.deepEqual(errors,[]);
    console.log(`PASS P3 touch precision, coarse=${coarse}, fine=${fine}`);
   }catch(error){fail++;console.error('FAIL P3 touch precision:',error);

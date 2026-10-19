@@ -76,6 +76,56 @@ try{
    await page.locator('#mixer .pan-scale').first().locator('button').nth(1).click();
    assert.equal(await page.locator('#mixer input[data-field="pan"]').first().inputValue(),'0');
    await page.screenshot({path:path.join(screenshots,`${label}-audio.png`)});
+   // P1c: navigate all secondary pages and verify that interactive content
+   // remains reachable in the scrollable well, even on portrait tablets.
+   for(const tab of ['presets','diary','analytics','settings']){
+    await page.locator(`[data-tab="${tab}"]`).click();
+    const view=page.locator(`#${tab}`);
+    assert.equal(await view.isVisible(),true,`${label}: ${tab} failed to open`);
+    const shell=await page.evaluate(id=>{
+      const main=document.querySelector('main'),section=document.getElementById(id);
+      const a=main.getBoundingClientRect(),r=section.getBoundingClientRect();
+      return {left:r.left,right:r.right,mainLeft:a.left,mainRight:a.right,width:r.width,
+        scrollHeight:main.scrollHeight,clientHeight:main.clientHeight};
+    },tab);
+    assert.ok(shell.width>125 && shell.left>=shell.mainLeft-3 && shell.right<=shell.mainRight+3,
+      `${label}: ${tab} overflows the main content well: ${JSON.stringify(shell)}`);
+    await page.screenshot({path:path.join(screenshots,`${label}-${tab}.png`)});
+    if(tab==='presets'){
+     assert.ok(await page.locator('#presetForm input#presetName').isVisible());
+     assert.ok(await page.locator('#presetForm button').count()>0);
+    }
+    if(tab==='diary'){
+     assert.ok(await page.locator('#diaryControls .diary-field').count()>0);
+     await page.locator('#manualEntry').click();
+     assert.ok(await page.locator('#diaryEditor .diary-form').isVisible(),`${label}: diary editor missing`);
+     if(label==='desktop'||label==='tablet-portrait')await page.screenshot({path:path.join(screenshots,`${label}-diary-editor.png`)});
+     await page.locator('#diaryEditor .preset-actions button').last().click();
+     assert.ok(!await page.locator('#diaryEditor').isVisible(),`${label}: diary cancel failed`);
+    }
+    if(tab==='analytics'){
+     assert.ok(await page.locator('#analyticsContent .analytics-filters').count()>=2);
+     assert.ok(await page.locator('#analyticsContent .stat-grid').count()===1);
+    }
+    if(tab==='settings'){
+     const scaleButtons=page.locator('#scaleButtons button');
+     assert.equal(await scaleButtons.count(),5,`${label}: UI scale controls`);
+     const scaleSamples=width===390?[.7,1.1,.9]:[.7,1.1,1];
+     for(const scale of scaleSamples){
+      await scaleButtons.locator(`[data-ui-scale="${scale}"]`).click();
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      const bounds=await page.evaluate(()=>{
+       const rect=document.querySelector('.app-shell').getBoundingClientRect();
+       const view=document.querySelector('main').getBoundingClientRect();
+       return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,
+        mainWidth:view.width,screenW:innerWidth,screenH:innerHeight};
+      });
+      assert.ok(bounds.left>=-3&&bounds.right<=bounds.screenW+4&&bounds.top>=-3&&bounds.bottom<=bounds.screenH+4,
+       `${label}: UI scale ${scale} clips fixed LCARS frame: ${JSON.stringify(bounds)}`);
+      assert.ok(bounds.mainWidth>120,`${label}: UI scale ${scale} makes content too narrow`);
+     }
+    }
+   }
    assert.deepEqual(errors,[],`${label}: errors or missing assets`);
    console.log(`PASS ${label} (${width}x${height})`);
   }catch(error){

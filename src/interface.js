@@ -5,7 +5,7 @@ export const defaultInterfaceScale = isCompactViewport => isCompactViewport ? .9
 // curve. Use actual layout rows, not nth-child assumptions (custom sounds,
 // category counts, flex wrapping and mobile zoom all change the row lengths).
 const SEGMENT_GROUP_SELECTOR=[
- '.sound-choices','.mixer-buttons','.scale-buttons','.parameter-buttons',
+ '.sound-choices','.mixer-buttons','.pan-scale','.scale-buttons','.parameter-buttons',
  '.sound-previews','.preset-actions','.diary-categories',
  '.analytics-filters','.chart-modes'
 ].join(',');

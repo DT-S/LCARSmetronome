@@ -1379,3 +1379,30 @@
 .app-shell :is(#metronome,#audio,#presets,#diary,#analytics,#settings) .lcars-segmented > button[data-lcars-corners] {
   border-radius: var(--lcars-segment-radius,0) !important;
 }
+
+/* v0.5.15: true panorama presets. The slider still supports every value;
+   only exact -1/0/+1 positions show a selected preset. */
+#mixer .pan-scale {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 5px;
+}
+#mixer .pan-scale button {
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 5px;
+  border: 0;
+  border-radius: 0;
+  background: var(--cream);
+  color: #000;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: .02em;
+}
+#mixer .pan-scale button:first-child { border-radius: 20px 0 0 20px; }
+#mixer .pan-scale button:last-child { border-radius: 0 20px 20px 0; }
+#mixer .pan-scale button[aria-pressed=true] {
+  background: var(--orange);
+  box-shadow: inset 0 -4px #fff0d9;
+}

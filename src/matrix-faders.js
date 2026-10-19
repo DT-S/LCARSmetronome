@@ -197,7 +197,7 @@ export function buildMatrixFaders(index,channel,{onChange}){
    const text=matrixFormat(kind,value),fraction=matrixFraction(kind,value);
    input.setAttribute('aria-valuetext',text);
    view.readout.textContent=text;
-   if(kind==='pan')view.coords.textContent=`OFFSET ${value>=0?'+':''}${String(Math.round(value*100)).padStart(value<0?4:3,'0')}`;
+   if(kind==='pan'){const n=Math.round(value*100);view.coords.textContent=`OFFSET ${n<0?'-':'+'}${String(Math.abs(n)).padStart(3,'0')}`;}
    view.needle.style.left=`${fraction*100}%`;
    view.vernierLaser.style.left=`${fraction*100}%`;
    const activeIndex=Math.min(MATRIX_SEGMENTS-1,Math.floor(fraction*MATRIX_SEGMENTS));

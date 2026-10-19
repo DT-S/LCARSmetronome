@@ -43,3 +43,7 @@
 - Erste manuelle Sichtung dieser Chromium-Screenshots: Header/Fascia/Footer sichtbar und konsistent, Metronom auf Tablet sinnvoll skaliert, Audio Matrix auf Desktop zweispaltig. Tablet-Seitennavigation recht eng, hier folgt Feintuning.
 - **Offen:** Safari auf echtem iPhone/iPad, Firefox auf Arch Linux, volle Seiten Presets/Diary/Stats/System, 70–110%-Zoom, sehr schmale/extrem breite Fenster, Scroll/Focus, visuelle Endabnahme. Browser-Screenshots allein sind kein Release-Gate.
 
+
+## P1c: Zweiteilige responsiv gestaltete Seiten (Implementierung)
+- `v2-layout.css`: Preset-Formular und Karten; Diary-Session-Setup/Editor/History; Stats-Filters/Plots/Kalender; System-Karten/Skalierung; Tablet-Navigation mit Kurzlabels. Ohne geänderten Audio- oder Speicher-Code.
+- Noch offen: automatisierte Browserprüfung **aller sechs** Seiten inkl. Zoom und echte Geräteabnahme. Erst nach Resultaten Status aktualisieren.

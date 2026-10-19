@@ -452,6 +452,252 @@
   }
   #analyticsContent .xy-wrap,#diary .xy-wrap {max-width:100%;overflow-x:auto;}
   .app-shell > main footer {margin:22px 0 0;min-width:0;}
+
+  /* P1c: a consistent responsive grammar on every secondary page.
+     Never spread historic "desktop cards" across the new PADD content well. */
+  #presets #presetForm {
+    display:grid;
+    grid-template-columns:minmax(140px,.8fr) minmax(175px,1.6fr) minmax(150px,.75fr);
+    align-items:stretch;
+    gap:6px;
+    width:100%;
+    margin:0 0 15px;
+  }
+  #presets #presetForm .field-name,
+  #presets #presetForm input,
+  #presets #presetForm button {
+    min-width:0;
+    width:100%;
+    min-height:54px;
+    height:auto;
+    margin:0;
+  }
+  #presets #presetForm input {
+    padding:9px 13px;
+    font-size:15px;
+  }
+  #presets #presetForm button {border-radius:0 26px 26px 0;}
+  #presets #presetList.cards {
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,335px),1fr));
+    align-items:start;
+  }
+  #presets #presetList .panel {min-width:0;}
+  #presets #presetList .preset-data {overflow-wrap:anywhere;}
+  #presets #presetList .preset-actions {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:5px;
+  }
+  #presets #presetList .preset-actions button {min-width:0;white-space:normal;}
+  /* Diary: editing and session history use the available well without
+     changing the field DOM or the existing IndexedDB persistence. */
+  #diary #diaryControls {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
+    gap:8px 14px;
+    align-items:start;
+    min-width:0;
+  }
+  #diary #diaryControls > button.full {width:100%;margin:0;min-width:0;}
+  #diary #diaryControls > .diary-field {margin:0;}
+  #diary #diaryControls > h3 {
+    grid-column:1/-1;
+    margin:12px 0 0;
+    font-size:14px;
+    color:var(--padd-orange);
+    border-bottom:3px solid var(--padd-tan);
+  }
+  #diary #diaryControls .diary-categories {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,115px),1fr));
+    gap:5px;
+    border-left:10px solid var(--padd-lavender);
+    padding-left:5px;
+    margin:0;
+    min-width:0;
+  }
+  #diary #diaryControls .diary-categories button {
+    min-width:0;
+    min-height:45px;
+    flex:none;
+    overflow-wrap:anywhere;
+    border-radius:0;
+  }
+  #diary #diaryControls .category-form {
+    display:flex;
+    gap:5px;
+    align-self:start;
+    margin:0;
+    min-width:0;
+  }
+  #diary #diaryControls .category-form input {
+    min-width:0;
+    flex:1;
+    font-size:14px;
+  }
+  #diary #diaryControls .category-form button {min-width:105px;max-width:45%;font-size:10px;}
+  #diary .diary-actions {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+    margin:10px 0 16px;
+    min-width:0;
+  }
+  #diary .diary-actions button {min-width:0;}
+  #diary #diaryList.cards {
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));
+    gap:13px;
+    align-items:start;
+  }
+  #diary #diaryList .log-entry {min-width:0;}
+  #diary #diaryList .session-data {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:5px;
+  }
+  #diary #diaryList .session-data .stat-tile {min-width:0;overflow-wrap:anywhere;}
+  #diary #diaryList .log-actions {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:5px;
+  }
+  #diary #diaryEditor {
+    min-width:0;
+    margin:0 0 15px;
+  }
+  #diary #diaryEditor .diary-form {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px 14px;
+  }
+  #diary #diaryEditor .diary-form > .diary-field,
+  #diary #diaryEditor .diary-form input,
+  #diary #diaryEditor .diary-form textarea {min-width:0;}
+  #diary #diaryEditor .diary-form > .diary-field:has(textarea),
+  #diary #diaryEditor .diary-form > .preset-actions,
+  #diary #diaryEditor .diary-form > .system-field {grid-column:1/-1;}
+  /* Stats: full-width filters and charts; lower analytics blocks can be
+     paired on genuinely wide screens without inventing fake data. */
+  #analytics #analyticsContent {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:15px;
+    min-width:0;
+  }
+  #analyticsContent > * {min-width:0;}
+  #analyticsContent > .panel,
+  #analyticsContent > .cards {margin:0;}
+  #analyticsContent .analytics-filters,
+  #analyticsContent .chart-modes {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,132px),1fr));
+    gap:5px;
+    padding-left:5px;
+    margin:8px 0 12px;
+    border-left:10px solid var(--padd-tan);
+    border-radius:20px 0 0 20px;
+    min-width:0;
+  }
+  #analyticsContent .analytics-filters button,
+  #analyticsContent .chart-modes button {
+    min-width:0;
+    min-height:43px;
+    padding:7px 6px;
+    border-radius:0;
+    font-size:clamp(10px,.95vw,12px);
+    white-space:normal;
+    overflow-wrap:anywhere;
+  }
+  #analyticsContent .stat-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,135px),1fr));
+    gap:8px;
+  }
+  #analyticsContent .stat-tile {min-width:0;overflow-wrap:anywhere;}
+  #analyticsContent .chart-legend {flex-wrap:wrap;gap:5px;}
+  #analyticsContent .chart-legend span {min-width:0;padding:7px 10px;font-size:11px;}
+  #analyticsContent .xy-wrap,#diary .xy-wrap {
+    width:100%;max-width:100%;
+    min-width:0;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  #analyticsContent .xy-plot,#diary .xy-plot {
+    display:block;
+    width:100%;max-width:100%;
+    height:auto;
+  }
+  #analyticsContent .practice-calendar {
+    display:grid;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:4px;
+    min-width:0;max-width:100%;
+    overflow:visible;
+  }
+  #analyticsContent .calendar-day {
+    min-width:0;
+    padding:3px;
+    font-variant-numeric:tabular-nums;
+  }
+  #analyticsContent .history-table,
+  #diary #diaryEditor .history-table {
+    width:100%;max-width:100%;
+    table-layout:fixed;
+    overflow-wrap:anywhere;
+  }
+  #analyticsContent .history-table td,
+  #analyticsContent .history-table th {font-size:clamp(10px,.9vw,13px);}
+  #settings > .cards {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,335px),1fr));
+    gap:14px;
+    min-width:0;
+    align-items:start;
+  }
+  #settings > .cards > .panel {min-width:0;}
+  #settings > .cards > .interface-panel {grid-column:1/-1;}
+  #settings #scaleButtons {
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:5px;
+    width:100%;
+    min-width:0;
+  }
+  #settings #scaleButtons button {
+    min-width:0;
+    min-height:50px;
+    padding:5px 2px;
+    font-size:clamp(10px,.9vw,13px);
+  }
+  @media (min-width:1180px) {
+    #analytics #analyticsContent {
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+    #analyticsContent > .panel:first-child,
+    #analyticsContent > .stat-grid,
+    #analyticsContent > .system-field,
+    #analyticsContent > .panel:has(.xy-wrap),
+    #analyticsContent > .panel:has(.history-table) {
+      grid-column:1/-1;
+    }
+    #analyticsContent > .cards {
+      grid-column:auto;
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+    }
+  }
+  @media (max-width:1050px) {
+    #presets #presetForm {
+      grid-template-columns:minmax(0,1fr);
+      gap:6px;
+    }
+    #presets #presetForm button {border-radius:0 0 23px 23px;}
+    #diary #diaryControls {grid-template-columns:minmax(0,1fr);}
+    #diary #diaryControls > h3 {grid-column:1;}
+    #diary #diaryControls .category-form {width:100%;}
+    #diary #diaryList.cards {grid-template-columns:minmax(0,1fr);}
+    #diary #diaryEditor .diary-form {grid-template-columns:minmax(0,1fr);}
+  }
+
   @media (min-width:1140px) {
     #metronome .instrument-layout {
       grid-template-columns:minmax(380px,1.55fr) minmax(320px,.95fr);
@@ -470,9 +716,17 @@
     --v2-gutter:12px;
   }
   .app-shell > aside nav .nav {
-    font-size:10px;
+    font-size:0;
     min-height:49px;
-    padding:6px 5px;
+    padding:6px 7px;
+  }
+  /* Abbreviate only the visual text, keeping the full native label for
+     assistive technologies. This fixes cramped tablet navigation. */
+  .app-shell > aside nav .nav::after {
+    content:attr(data-short);
+    font:900 clamp(11px,1.8vw,14px)/1.1 Arial,sans-serif;
+    color:inherit;
+    letter-spacing:0;
   }
   #metronome .instrument-layout {grid-template-columns:minmax(0,1fr);}
   #metronome .side-controls {max-width:720px;margin:0 auto;width:100%;}

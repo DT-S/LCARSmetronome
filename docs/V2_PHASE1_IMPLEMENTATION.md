@@ -54,3 +54,8 @@
 
 [Chromium CI-Run](https://github.com/DT-S/LCARSmetronome/actions/runs/39334206528) erfolgreich; Metronome-/Audio-Screenshots für 390/768/1024/1440/1920 px erzeugt und geprüft. Desktop-Audio-Matrix: beide Kanalpanels stehen nebeneinander. Tablet-Portrait: gemeinsames PADD-Fascia, ringförmiges Instrument und untere Statusleiste ohne Layoutabsturz.  
 **Nicht abgeschlossen:** Desktop- und Tablet-Bedienung aller übrigen Seiten, Browserzoom/Interface-Scale, Feintuning der Tablet-Navigation und CSS-Konsolidierung. Nächster Teil: P1c, anschließend P1d.
+
+## P1c: Detailraster aller Seiten
+- Responsive Preset-, Diary-, Stats- und System-Layouts ergänzt.
+- Kleinere Tablet-Fascia zeigt dieselben kurzen Bezeichner wie das iPhone, semantische Beschriftungen bleiben intakt.
+- Grafiken bleiben Datenvisualisierungen und bekommen keine synthetischen Werte; erweiterte Browserprüfungen folgen.

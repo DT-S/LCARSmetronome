@@ -1357,3 +1357,13 @@
   #linear .pattern-line .step:last-child { border-radius:0 19px 19px 0; }
   #linear .pattern-line .step:only-child { border-radius:19px; }
 }
+
+/* iOS standalone safe-area fix: keep the decorative fascia inside the
+   visible viewport even when WebKit clips overflow to a zoomed padding box.
+   The actual page content still scrolls only inside main. */
+@media (max-width: 640px) {
+  .app-shell { overflow: visible; }
+  /* The earlier mobile header sets top:0. Reset it, otherwise it overrides
+     the intended bottom offset and cuts 47-01 against the top edge. */
+  .app-shell > header::before { top: auto; bottom: 3px; }
+}

@@ -47,3 +47,6 @@
 ## Letzter automatisierter Browser-Smoke-Nachweis
 
 [Erfolgreicher V2-Lauf](https://github.com/DT-S/LCARSmetronome/actions/runs/39334206528), Commit `e943fe7`. Chromium Headless: 390×844, 768×1024, 1024×768, 1440×900, 1920×1080; Start/Circular/Linear/Audio/Pan geprüft; 10 PNGs als Workflow-Artefakt abgelegt. Dies ist **keine** reale iOS-Safari-/Tablet-Hardwareabnahme.
+
+## Erweiterte Chromium-Abdeckung (P1d)
+Der erste vollständige Lauf `39336109612` bestand alle 5 bisherigen Ziele, inklusive aller Tabs/Diary-Editor/UI-Scale 70/110 %. Zur Breakpoint-Prüfung wurden vier weitere Ziele ergänzt: 320×740, 641×820, 900×600 und 1280×800. Abnahme dieser zusätzlichen Breiten steht bis zum CI-Nachweis aus.

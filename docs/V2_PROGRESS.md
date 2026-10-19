@@ -49,3 +49,5 @@
 - Noch offen: automatisierte Browserprüfung **aller sechs** Seiten inkl. Zoom und echte Geräteabnahme. Erst nach Resultaten Status aktualisieren.
 
 - **Skalierungsregression gefunden:** Der erste Volltest deckte bei `0.7` Desktop-/Tablet-Zoom rechts abgeschnittene Rahmen auf. Doppelte Breitenkompensation in `v2-layout.css` entfernt; Browser-Neutest ausstehend. Der erste Fehltest zuvor war nur ein falsch geschachtelter Playwright-Selektor, bereits korrigiert.
+
+- [Chromium CI-Erfolg: Lauf 39336109612](https://github.com/DT-S/LCARSmetronome/actions/runs/39336109612): 5/5 Auflösungen, sechs Tabs, Diary-Editor, L/C/R-Panorama, Interface-Skalen 70 % und 110 %. Zoomfehler der vorigen Tests behoben. Vier zusätzliche Grenzauflösungen sind als P1d-Regression eingerichtet und noch nicht abgenommen.

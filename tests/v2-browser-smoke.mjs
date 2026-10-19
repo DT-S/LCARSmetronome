@@ -26,9 +26,13 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin=`http://127.0.0.1:${server.address().port}`;
 const browser=await chromium.launch({headless:true});
 const targets=[
+ {width:320,height:740,label:'phone-narrow'},
  {width:390,height:844,label:'iphone-compact'},
+ {width:641,height:820,label:'compact-tablet-boundary'},
  {width:768,height:1024,label:'tablet-portrait'},
+ {width:900,height:600,label:'tablet-short-landscape'},
  {width:1024,height:768,label:'tablet-landscape'},
+ {width:1280,height:800,label:'desktop-small'},
  {width:1440,height:900,label:'desktop'},
  {width:1920,height:1080,label:'desktop-wide'}
 ];

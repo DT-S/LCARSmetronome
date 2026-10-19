@@ -1,3 +1,9 @@
+## v0.5.10 · Full-height iPhone PADD + adaptive linear sequencer
+
+- Safari-compatible viewport measurement compensates CSS zoom, so the mobile LCARS frame fills the physical visible height.
+- Linear View fits 3, 5, 7 or more beats on one evenly spaced row when legible; larger counts are balanced across multiple full-width rows.
+- Desktop and iPad layouts, playback logic and saved interface-size preferences remain unchanged.
+
 # LCARS METRONOME — Version 0.5.9
 
 ## v0.5.9 · Mobile interface scaling and full-height frame

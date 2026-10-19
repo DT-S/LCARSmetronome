@@ -44,6 +44,8 @@
 - **Fertig wenn:** alle Seiten bei 320, 375, 390, 430, 600, 768, 834, 1024, 1280, 1440 und 1920 CSS-px vernünftig und ohne horizontales Scrollen nutzbar sind; sichtbare PADD-Bänder nicht abgeschnitten.
 
 ### P2 – Alle Ansichten an dasselbe Designsystem anbinden
+
+**Stand:** Erster responsiver Layout-Pass für alle sechs Seiten plus Neun-Viewport-Browser-Smoke erfolgreich; die vollständige reale Geräteabnahme steht noch aus.
 - [ ] Metronome: Circular und Linear sinnvoll skalieren, Zahlentastatur, Mode-Matrix, Training und Practice Clock konsistent platzieren.
 - [ ] Audio Matrix: zwei Kanalbereiche abhängig vom Platz gestapelt/neben­einander; Pan, Volume, Mute, Solo und Soundauswahl vollständig bedienbar; nur freie Gruppenecken rund.
 - [ ] Presets, Diary, Stats, Settings: konsistente Panels, responsive Tabellen/Plots/Formulare, keine abgeschnittenen Zahlen oder unsichtbaren Actions.

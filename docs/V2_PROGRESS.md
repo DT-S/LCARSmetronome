@@ -6,7 +6,7 @@
 | Architektur-/Implementierungsinventur | ERLEDIGT | `ARCHITECTURE.md`, `src/app.js`, `src/interface.js`, `src/linear-layout.js`, `src/number-control.js`, `src/tempo-control.js`, CSS v0.5.15 gesichtet |
 | Roadmap, Design, QA | ERLEDIGT | Diese V2-Dokumente |
 | Test-Sicherheitsnetz + CI | ERLEDIGT | [Erster GitHub-Actions-Lauf erfolgreich](https://github.com/DT-S/LCARSmetronome/actions/runs/39332554154); `tests/module-integrity.test.js` prüft Import-/PWA-Integrität |
-| P1 Universelles Layout | IN ARBEIT | Neues `v2-layout.css` für >640px, Shell/Navigation/Footer/erste Inhaltsraster; Browser- und Nutzerabnahme offen |
+| P1 Universelles Layout | BROWSER-QA ERFOLGREICH; GERÄTE OFFEN | Shell, P1c Detailraster, Navigation und Zoom für 9 Viewports erfolgreich; CSS-Konsolidierung und echte iPhone/iPad/Firefox-Tests offen |
 | P2 Alle Seiten | OFFEN | Metronome, Audio, Presets, Diary, Stats, System |
 | P3 Präzisions-Fader | OFFEN | Zoom-Bubble + feiner Touch-Drag |
 | P4 Zahlenleiter | OFFEN | BPM + Parameter |
@@ -53,3 +53,14 @@
 - [Chromium CI-Erfolg: Lauf 39336109612](https://github.com/DT-S/LCARSmetronome/actions/runs/39336109612): 5/5 Auflösungen, sechs Tabs, Diary-Editor, L/C/R-Panorama, Interface-Skalen 70 % und 110 %. Zoomfehler der vorigen Tests behoben. Vier zusätzliche Grenzauflösungen sind als P1d-Regression eingerichtet und noch nicht abgenommen.
 
 - Screenshot-Sichtung nach 9/9 grünem Chromium-Lauf ergab eine Navigationsschwäche: bei Tablet/Desktop blieb die alte Main-Scrollposition erhalten. `src/app.js` setzt jetzt bei **jedem** Tabwechsel `main.scrollTop=0`; Browser-Regressionstest und SW-Cache-Update ergänzt. Erneute CI-Abnahme ausstehend.
+
+## P1c/P1d – Letzter erfolgreicher Browser-Nachweis (19.10.2026)
+
+- **[GitHub Actions: 39336610055](https://github.com/DT-S/LCARSmetronome/actions/runs/39336610055) – SUCCESS**, beide Jobs `node-regressions` und `browser-smoke`.
+- **9/9 Headless-Chromium-Viewports:** 320×740, 390×844, 641×820, 768×1024, 900×600, 1024×768, 1280×800, 1440×900, 1920×1080.
+- Jeder Viewport: Start, Circular/Linear, Audio Matrix mit Center/Right-Panorama, Presets, Diary und dessen Editor/Cancel, Stats, System, Interface-Skalen 70 %/110 %, und nach Tab-Wechsel wieder am Seitenanfang.
+- Alle Screenshots im Workflow-Artefakt `rhythm-padd-v2-layout-screenshots` (Aufbewahrung 7 Tage).
+- **Sichtprüfung:** Für Tablet/PC sind die Hauptbereiche plausibel angeordnet, beide Audiokanäle auf breitem Desktop nebeneinander. Der 641-px-Grenzfall und kurzhohes 900×600-Landscape sind funktional, ein angeschnittener unterer Inhalt ist wegen des gezielt scrollbaren `main` zulässig.
+- **Noch offen:** iOS Safari/echte iPhone/iPad-PWA, Arch-Firefox, Keyboard-Fokus/Accessibility, reale Audio-Latenz und volle Diagramme mit vielen Sessions. Diese Punkte sind keine bestandenen Tests.
+
+**P1c = Layout-Implementierung + grundlegende Browser-QA erledigt; P1 Gesamtphase = weiterhin offen** (CSS-Konsolidierung und reale Geräteabnahme). Kein Merge nach `main` ohne Freigabe.

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {MATRIX_SEGMENTS,MATRIX_TICKS,matrixClamp,matrixValue,matrixFraction,matrixFineValue,matrixFormat} from '../src/matrix-faders.js';
 
 test('source-derived segmented control has 20 bands and 35 fine ticks',()=>{
@@ -32,4 +33,13 @@ test('embedded display is accurate, no floating PAN badge',()=>{
  assert.equal(matrixFormat('pan',.18),'R 18%');
  assert.equal(matrixFormat('pan',-.99),'L 99%');
  assert.equal(matrixFormat('pan',0),'CENTER');
+});
+
+test('Voyager UI ships no scanline mask, animated SYS nodes or fake telemetry',()=>{
+ const css=readFileSync(new URL('../v2-matrix.css',import.meta.url),'utf8');
+ const js=readFileSync(new URL('../src/matrix-faders.js',import.meta.url),'utf8');
+ assert.doesNotMatch(css,/\.padd-frame::after|\.sidebar-node|nodeBlink/);
+ assert.doesNotMatch(js,/telemetryStream|Math\.random\(|createOscillator\(/);
+ assert.match(css,/prefers-reduced-motion: reduce/);
+ assert.match(js,/matrix-pan-micro/);
 });

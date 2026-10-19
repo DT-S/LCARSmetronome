@@ -63,6 +63,8 @@
 - [ ] `pointercancel`, Multi-Touch, Scroll-Konflikte, Fokus, Tastatur, Accessibility, `prefers-reduced-motion` und Re-Render während der Geste absichern.
 - **Fertig wenn:** grobes Verschieben und exakte Feineinstellung auf iPhone und iPad zuverlässig funktionieren und weder Audioaussetzer noch Phantomklicks verursachen.
 
+**Nachtrag P3b:** Voyager-inspirierte segmentierte Audio-Matrix mit funktionsfähigem Scrubbing, animierter Nadel, 35-Tick-Vernier und zusätzlichen Schrittbuttons. [Automatisierte Prüfung erfolgreich](https://github.com/DT-S/LCARSmetronome/actions/runs/39343815394), reale Gerätefreigabe ausstehend.
+
 ### P4 – Zahlenleiter für Tempo und Parameter
 - [ ] Gemeinsame visuelle Gestenanzeige für BPM, Beats, Subdivisions, Count-in und ausgewählte Trainingsparameter.
 - [ ] Bei einer echten Geste: vertikale LCARS-Führung, gestrichelte rote/korallfarbene Leitschiene, horizontale Stufen und markierte aktuelle Position. Neben statt unter dem Finger.

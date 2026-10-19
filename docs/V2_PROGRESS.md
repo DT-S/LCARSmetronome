@@ -93,3 +93,14 @@
 - Unit checks in `tests/matrix-faders.test.js`; full Chromium and device verification pending.
 
 - P3b Feinschliff gemäß zweitem Beispiel: Panorama-Schnellschritte ±5 %, zusätzliche FINE ADJ ±1 %, echtes OFFSET-Readout (aus Pan, kein Fake), schlanke Pointer-/Verniernadeln. Browser-Neutest ausstehend.
+
+## Voyager Audio Matrix – geprüfter Integrationsstand (20.10.2026)
+
+- Quelle: der vom Nutzer bereitgestellte **zweite** Voyager-HTML/CSS/JS-Prototyp; entsprechend bestehendem App-Datenmodell und Audioengine adaptiert, nicht als getrennte Demo eingefügt.
+- Neue UI: 20 bewegliche Bandsegmente je Fader, 35-Tick-Vernierskalen, dynamische wave-peak/wave-near Akzente, Laser-Nadeln mit kurzen Übergängen, bei aktiver Bedienung eine dezente Vernier-Lichtbewegung und Lock-/Readout-Wechsel.
+- Panorama: grobes absolutes Scrubbing, relatives Mikro-Scrubbing in 1%-Schritten, Quick ±5%, Fine Adj ±1%, eingebettetes echtes Offset, LEFT/CENTER/RIGHT exakt -1/0/+1.
+- Lautstärke: grobes Scrubbing, relatives 1%-Vernier, ±1% Buttons, echtes Volume (0–100%) pro Kanal. Master/UI behalten bewusst die bisherige Präzisionssteuerung.
+- Kein `padd-frame::after`-Scanline-Overlay, **keine** animierten drei `sidebar-node`-Balken, keine täuschenden zufälligen Telemetriezahlen oder zusätzlicher Audiosynthesizer. Kein CDN/externes Font laden; offlinefähiges Precache aktualisiert.
+- [Finaler V2-Lauf 39343815394](https://github.com/DT-S/LCARSmetronome/actions/runs/39343815394): **SUCCESS**, Node-Regression und 9-Viewport-Chromium-Suite inklusive Maus, Tastatur, Click-Presets und simulierter Touch-Scrub-Gesten.
+- UI-Screenshots als kurzlebiges GitHub-Actions-Artefakt `rhythm-padd-v2-layout-screenshots`.
+- **Offen:** tatsächliche Safari-PWA auf iPhone, weitere Tablet-Geräte, Arch Firefox, Audio-Kopfhörerprüfung und endgültige visuelle Freigabe durch den Nutzer. `main` nicht geändert.

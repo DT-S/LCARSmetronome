@@ -85,6 +85,8 @@ try{
    assert.equal(await page.locator('#mixer .matrix-module').count(),4);
    assert.equal(await page.locator('#mixer .matrix-segment').count(),80);
    assert.equal(await page.locator('#mixer .matrix-tick').count(),140);
+   assert.equal(await page.locator('#mixer .matrix-pan-micro').count(),2);
+   assert.equal(await page.locator('#mixer .matrix-pan-coords').count(),2);
    assert.equal(await page.locator('#mixer .matrix-readout').count(),4);
    assert.equal(await page.locator('#mixer .matrix-native').count(),4);
    assert.equal(await page.locator('#audio .precision-readout').count(),2);
@@ -216,7 +218,9 @@ try{
    await touch('touchCancel',[]);
    assert.equal(await housing.evaluate(el=>el.classList.contains('matrix-active')),false,'cancel lock stuck');
    await page.locator('#mixer .matrix-pan .matrix-step-up').first().click();
-   assert.equal(await pan.inputValue(),'0.01');
+   assert.equal(await pan.inputValue(),'0.05');
+   await page.locator('#mixer .matrix-pan .matrix-micro-left').first().click();
+   assert.equal(await pan.inputValue(),'0.04');
    await center.click();
    assert.equal(await pan.inputValue(),'0');
    assert.deepEqual(errors,[]);

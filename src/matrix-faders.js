@@ -103,7 +103,13 @@ export function buildMatrixFaders(index,channel,{onChange}){
   const segments=elem('div','matrix-segments');
   const segmentNodes=makeSegments(segments);
   const needle=elem('span','matrix-needle');segments.append(needle);
-  coarse.append(segments);
+  if(isPan){
+   coarse.classList.add('matrix-pan-coarse');
+   const quickLeft=elem('button','matrix-quick matrix-quick-left','−');
+   const quickRight=elem('button','matrix-quick matrix-quick-right','+');
+   quickLeft.type=quickRight.type='button';
+   coarse.append(quickLeft,segments,quickRight);
+  }else coarse.append(segments);
   const fineRow=elem('div','matrix-fine-row');
   const fineMinus=elem('button','matrix-step matrix-step-down',isPan?'L <':'< FINE');
   const finePlus=elem('button','matrix-step matrix-step-up',isPan?'> R':'FINE >');
@@ -116,6 +122,16 @@ export function buildMatrixFaders(index,channel,{onChange}){
   vernier.append(ticks,vernierLaser);
   fineRow.append(fineMinus,vernier,finePlus);
   housing.append(titleBar,coarse,fineRow);
+  let fineMicro=null;
+  if(isPan){
+   fineMicro=elem('div','matrix-pan-micro');
+   const minus=elem('button','matrix-micro-step matrix-micro-left','FINE ADJ L');
+   const plus=elem('button','matrix-micro-step matrix-micro-right','FINE ADJ R');
+   minus.type=plus.type='button';
+   const coords=elem('output','matrix-pan-coords','OFFSET +000');
+   fineMicro.append(minus,coords,plus);
+   housing.append(fineMicro);
+  }
   const nativeLabel=elem('label','matrix-accessible-label');
   const input=elem('input','matrix-native');
   input.type='range';input.min=isPan?'-1':'0';input.max='1';input.step='.01';
@@ -126,10 +142,16 @@ export function buildMatrixFaders(index,channel,{onChange}){
   module.append(label,housing);
   root.append(module);
   native[kind]=input;
-  views[kind]={module,housing,readout,needle,vernierLaser,segments:segmentNodes,ticks:tickNodes,coarse,vernier};
+  views[kind]={module,housing,readout,needle,vernierLaser,segments:segmentNodes,ticks:tickNodes,coarse,vernier,coords:fineMicro?.querySelector('output')};
   const set=v=>onChange(kind,matrixClamp(Math.round(v*100)/100,isPan?-1:0,1));
-  for(const [button,step] of [[fineMinus,-.01],[finePlus,.01]])
+  for(const [button,step] of [[fineMinus,isPan?-.05:-.01],[finePlus,isPan?.05:.01]])
    bindStep(button,step,delta=>set(Number(native[kind].value)+delta));
+  if(isPan){
+   bindStep(coarse.querySelector('.matrix-quick-left'),-.05,delta=>set(Number(input.value)+delta));
+   bindStep(coarse.querySelector('.matrix-quick-right'),.05,delta=>set(Number(input.value)+delta));
+   bindStep(fineMicro.querySelector('.matrix-micro-left'),-.01,delta=>set(Number(input.value)+delta));
+   bindStep(fineMicro.querySelector('.matrix-micro-right'),.01,delta=>set(Number(input.value)+delta));
+  }
   function bindScrub(surface,fine){
    let pointer=null;
    const stop=event=>{
@@ -175,6 +197,7 @@ export function buildMatrixFaders(index,channel,{onChange}){
    const text=matrixFormat(kind,value),fraction=matrixFraction(kind,value);
    input.setAttribute('aria-valuetext',text);
    view.readout.textContent=text;
+   if(kind==='pan')view.coords.textContent=`OFFSET ${value>=0?'+':''}${String(Math.round(value*100)).padStart(value<0?4:3,'0')}`;
    view.needle.style.left=`${fraction*100}%`;
    view.vernierLaser.style.left=`${fraction*100}%`;
    const activeIndex=Math.min(MATRIX_SEGMENTS-1,Math.floor(fraction*MATRIX_SEGMENTS));

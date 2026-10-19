@@ -91,3 +91,5 @@
 - **Preserved:** Both AudioEngine stereo channels, accurate per-channel `-1/0/+1` L/C/R presets, Mute/Solo, custom sound bank, backup/storage, UI audio settings, and existing native range keyboard semantics.
 - Previous floating precision widgets remain in use only for Master/UI volumes, not Channel 1/2 Pan and Volume.
 - Unit checks in `tests/matrix-faders.test.js`; full Chromium and device verification pending.
+
+- P3b Feinschliff gemäß zweitem Beispiel: Panorama-Schnellschritte ±5 %, zusätzliche FINE ADJ ±1 %, echtes OFFSET-Readout (aus Pan, kein Fake), schlanke Pointer-/Verniernadeln. Browser-Neutest ausstehend.

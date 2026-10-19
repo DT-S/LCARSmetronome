@@ -1,3 +1,14 @@
+# LCARS METRONOME — Version 0.5.7
+
+## v0.5.7 · Mobile headline + precise mode corners
+
+- `RHYTHM PADD` is now a real mobile HTML title with a stable Arial font, rather than an Impact pseudo-element that could display broken glyphs in iPhone Safari. The original desktop heading stays intact.
+- The mobile 2×4 operating mode grid now rounds only **one corner per outermost button**: top-left (STANDARD), top-right (GAP CLICK), bottom-left (RANDOM GAP) and bottom-right (TEMPO RAMP). All touching corners remain square.
+- iPhone-sized Chromium layout checks at 320, 375, 390 and 430 CSS pixels verified title geometry and all 32 corner radii. Desktop and iPad display unchanged. 85 existing Node tests passed.
+- Audio, storage, timing and mode behavior remain unchanged. Service-worker cache updated to v5.7.0 for installed PWAs. Real iPhone Safari still needs user verification.
+
+---
+
 # LCARS METRONOME — Version 0.5.6
 
 ## v0.5.6 · Mobile LCARS polish

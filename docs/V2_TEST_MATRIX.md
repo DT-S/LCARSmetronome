@@ -63,3 +63,10 @@ Der erste vollständige Lauf `39336109612` bestand alle 5 bisherigen Ziele, inkl
 - **Noch offen:** iOS Safari/echte iPhone/iPad-PWA, Arch-Firefox, Keyboard-Fokus/Accessibility, reale Audio-Latenz und volle Diagramme mit vielen Sessions. Diese Punkte sind keine bestandenen Tests.
 
 **P1c = Layout-Implementierung + grundlegende Browser-QA erledigt; P1 Gesamtphase = weiterhin offen** (CSS-Konsolidierung und reale Geräteabnahme). Kein Merge nach `main` ohne Freigabe.
+
+## P3 – Automatisierte Abschlussprüfung
+- [GitHub Actions 39338925485](https://github.com/DT-S/LCARSmetronome/actions/runs/39338925485): **SUCCESS**, beide Jobs (`node-regressions`, `browser-smoke`) bestanden.
+- 9 Browser-Viewports von 320×740 bis 1920×1080; native Tastatureingabe an Volume-Slidern und Maus-Down/Up bei Desktop; echtes simuliertes Touch-Dragging inkl. `touchCancel` in mobilem Chromium.
+- Präzisionsbeweis (gleiche 40 CSS px): grob Panorama `+0.68`, fein bei 125 px Fingerabstand `+0.18`. L/C/R-Center synchronisiert weiterhin exakt.
+- Keine Änderungen an Scheduler, Sounderzeugung, Storage-Datenformat oder Backup-Kompatibilität.
+- **Hardware-Release-Gate weiter offen:** Safari iPhone-PWA, iPad/Tablet, Arch Firefox und tatsächliche Audio-Hörprüfung.

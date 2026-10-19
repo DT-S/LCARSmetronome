@@ -54,7 +54,7 @@
 
 ### P3 – Präzisions-Fader mit Touch-/Maus-Feedback
 
-**Status:** erster funktionaler P3-Pass implementiert und Chromium-Touch-Test grün; tatsächliche iPhone-/Tablet-Abnahme noch offen.
+**Status:** P3 technisch implementiert; Node-/Chromium-Browserprüfung inklusive Touch-Feinsteuerung, Maus, Tastatur und Abbruch erfolgreich ([Testlauf](https://github.com/DT-S/LCARSmetronome/actions/runs/39338925485)). Echte iPhone-/Tablet-/Firefox-Abnahme bleibt offen.
 - [ ] Wiederverwendbare UI-Hilfe für Volume, Pan, Master und Interface-Volume.
 - [ ] Drag-Beginn: dezente Vergrößerung/Hervorhebung und gut lesbare **Wertblase oberhalb** des Fingers/Cursors.
 - [ ] Pan als `L 0–100 %` / `CENTER` / `R 0–100 %`, links = -1, rechts = +1; Lautstärke `0–100 %`.

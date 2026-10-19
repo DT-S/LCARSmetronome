@@ -8,7 +8,7 @@
 | Test-Sicherheitsnetz + CI | ERLEDIGT | [Erster GitHub-Actions-Lauf erfolgreich](https://github.com/DT-S/LCARSmetronome/actions/runs/39332554154); `tests/module-integrity.test.js` prüft Import-/PWA-Integrität |
 | P1 Universelles Layout | BROWSER-QA ERFOLGREICH; GERÄTE OFFEN | Shell, P1c Detailraster, Navigation und Zoom für 9 Viewports erfolgreich; CSS-Konsolidierung und echte iPhone/iPad/Firefox-Tests offen |
 | P2 Alle Seiten | OFFEN | Metronome, Audio, Presets, Diary, Stats, System |
-| P3 Präzisions-Fader | OFFEN | Zoom-Bubble + feiner Touch-Drag |
+| P3 Präzisions-Fader | IMPLEMENTIERT + CI GRÜN, HARDWARE OFFEN | [9-Viewport + Touch-/Mouse-/Keyboard-Test](https://github.com/DT-S/LCARSmetronome/actions/runs/39338925485); iOS-/Firefox-Abnahme ausstehend |
 | P4 Zahlenleiter | OFFEN | BPM + Parameter |
 | P5 Linear-Drag | OFFEN | stabile Pointer-Capture |
 | P6 Motion / Plots | OFFEN | dezente Transitions |
@@ -77,3 +77,10 @@
 - [Browserlauf 39338667688](https://github.com/DT-S/LCARSmetronome/actions/runs/39338667688) war nach Feinpositionierung der Wertblase erfolgreich (9/9 Layout-Ansichten und Touch-Differenzierung: grob 0,68 / fein 0,18).
 - Sichtkontrolle: Die Pan-Wertblase gehört optisch zum aktiven Pan-Fader und verdeckt nicht mehr die Mitte des Volume-Sliders darüber.
 - Zusätzliche Keyboard-/Mouse-/Pointer-Cancel-Regressionschecks eingebaut; die Ausführung des **folgenden** CI-Runs steht noch aus.
+
+## P3 – Automatisierte Abschlussprüfung
+- [GitHub Actions 39338925485](https://github.com/DT-S/LCARSmetronome/actions/runs/39338925485): **SUCCESS**, beide Jobs (`node-regressions`, `browser-smoke`) bestanden.
+- 9 Browser-Viewports von 320×740 bis 1920×1080; native Tastatureingabe an Volume-Slidern und Maus-Down/Up bei Desktop; echtes simuliertes Touch-Dragging inkl. `touchCancel` in mobilem Chromium.
+- Präzisionsbeweis (gleiche 40 CSS px): grob Panorama `+0.68`, fein bei 125 px Fingerabstand `+0.18`. L/C/R-Center synchronisiert weiterhin exakt.
+- Keine Änderungen an Scheduler, Sounderzeugung, Storage-Datenformat oder Backup-Kompatibilität.
+- **Hardware-Release-Gate weiter offen:** Safari iPhone-PWA, iPad/Tablet, Arch Firefox und tatsächliche Audio-Hörprüfung.

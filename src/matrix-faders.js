@@ -1,0 +1,198 @@
+// Starfleet-style segmented / Vernier faders adapted from the supplied
+// Voyager Edition example. The actual source of truth is still the
+// existing channel object and its accessible native range input.
+// No demo audio synthesis, fake telemetry ticker or navigation replacement.
+export const MATRIX_SEGMENTS=20;
+export const MATRIX_TICKS=35;
+
+export function matrixClamp(value,min,max){
+ return Math.max(min,Math.min(max,value));
+}
+export function matrixValue(kind,normalized){
+ if(!Number.isFinite(normalized))throw RangeError('Invalid segment position');
+ const n=matrixClamp(normalized,0,1);
+ return Math.round((kind==='pan'?2*n-1:n)*100)/100;
+}
+export function matrixFraction(kind,value){
+ const n=Number(value);
+ return matrixClamp(kind==='pan'?(n+1)/2:n,0,1);
+}
+export function matrixFineValue(value,deltaPixels,kind,pxPerStep=3){
+ if(!Number.isFinite(value)||!Number.isFinite(deltaPixels)||pxPerStep<=0)throw RangeError('Invalid Vernier drag');
+ const min=kind==='pan'?-1:0,max=1;
+ return matrixClamp(Math.round((value+Math.round(deltaPixels/pxPerStep)/100)*100)/100,min,max);
+}
+export function matrixFormat(kind,value){
+ const n=Math.round(Number(value)*100);
+ if(kind==='pan')return n===0?'CENTER':n<0?`L ${-n}%`:`R ${n}%`;
+ return `${String(matrixClamp(n,0,100)).padStart(3,'0')}%`;
+}
+const palette=['#994c33','#b3593b','#cc6644','#e67e33','#ff9900',
+ '#ffaa22','#ffbb44','#ffcc66','#ffdd88','#ffeeaa',
+ '#ffeeaa','#ffdd88','#ffcc66','#99bbff','#77aaff',
+ '#5588dd','#4477cc','#3366bb','#2b55a3','#224488'];
+
+const elem=(tag,cls='',text)=>{
+ const node=document.createElement(tag);if(cls)node.className=cls;
+ if(text!==undefined)node.textContent=text;
+ return node;
+};
+
+function makeSegments(root){
+ const result=[];
+ for(let i=0;i<MATRIX_SEGMENTS;i++){
+  const segment=elem('span','matrix-segment');
+  segment.style.setProperty('--segment-color',palette[i]);
+  root.append(segment);result.push(segment);
+ }
+ return result;
+}
+function makeTicks(root){
+ const result=[];
+ for(let i=0;i<MATRIX_TICKS;i++){
+  const tick=elem('span','matrix-tick');
+  if(i%5===0)tick.classList.add('major');
+  root.append(tick);result.push(tick);
+ }
+ return result;
+}
+function bindStep(button,step,perform){
+ let timer=null,interval=null,handledPointer=false;
+ const clear=()=>{clearTimeout(timer);clearInterval(interval);timer=null;interval=null;};
+ button.addEventListener('pointerdown',event=>{
+  if(event.button!==0||event.isPrimary===false)return;
+  handledPointer=true;
+  perform(step);
+  button.setPointerCapture?.(event.pointerId);
+  timer=setTimeout(()=>{interval=setInterval(()=>perform(step),90);},340);
+ });
+ button.addEventListener('pointerup',clear);
+ button.addEventListener('pointercancel',clear);
+ button.addEventListener('lostpointercapture',clear);
+ button.addEventListener('pointerleave',clear);
+ button.addEventListener('click',event=>{
+  // Pointerdown already applied the step; native keyboard activation does not.
+  if(event.detail===0)perform(step);
+  else if(!handledPointer)perform(step);
+  handledPointer=false;
+ });
+ return button;
+}
+
+/**
+ * Creates both LCARS control instruments inside an existing channel panel.
+ * onChange(kind,value) MUST modify the existing app state, then call sync().
+ */
+export function buildMatrixFaders(index,channel,{onChange}){
+ const root=elem('div','matrix-faders');
+ const native={};const views={};
+ for(const kind of ['volume','pan']){
+  const isPan=kind==='pan';
+  const module=elem('div',`matrix-module matrix-${kind}`);
+  module.dataset.matrixKind=kind;
+  const label=elem('div','matrix-label');
+  label.append(elem('span','matrix-code',isPan?'AZIM-02':'GAIN-01'),elem('strong','',isPan?'PAN':'VOLUME'));
+  const housing=elem('div','matrix-housing');
+  const titleBar=elem('div','matrix-titlebar');
+  const title=elem('span','matrix-caption');
+  title.append(elem('span','matrix-beacon'),document.createTextNode('PRECISION CONTROL'));
+  const readout=elem('output','matrix-readout');
+  titleBar.append(title,readout);
+  const coarse=elem('div','matrix-coarse');
+  coarse.setAttribute('aria-label',`Channel ${index+1} ${isPan?'pan':'volume'} segmented scrub`);
+  const segments=elem('div','matrix-segments');
+  const segmentNodes=makeSegments(segments);
+  const needle=elem('span','matrix-needle');segments.append(needle);
+  coarse.append(segments);
+  const fineRow=elem('div','matrix-fine-row');
+  const fineMinus=elem('button','matrix-step matrix-step-down',isPan?'L <':'< FINE');
+  const finePlus=elem('button','matrix-step matrix-step-up',isPan?'> R':'FINE >');
+  for(const button of [fineMinus,finePlus])button.type='button';
+  const vernier=elem('div','matrix-vernier');
+  vernier.setAttribute('aria-label',`Channel ${index+1} ${isPan?'pan':'volume'} fine scrub`);
+  const ticks=elem('div','matrix-ticks');
+  const tickNodes=makeTicks(ticks);
+  const vernierLaser=elem('span','matrix-vernier-laser');
+  vernier.append(ticks,vernierLaser);
+  fineRow.append(fineMinus,vernier,finePlus);
+  housing.append(titleBar,coarse,fineRow);
+  const nativeLabel=elem('label','matrix-accessible-label');
+  const input=elem('input','matrix-native');
+  input.type='range';input.min=isPan?'-1':'0';input.max='1';input.step='.01';
+  input.value=String(channel[kind]);input.dataset.field=kind;
+  input.setAttribute('aria-label',`Channel ${index+1} ${kind}`);
+  nativeLabel.append(input);
+  housing.append(nativeLabel);
+  module.append(label,housing);
+  root.append(module);
+  native[kind]=input;
+  views[kind]={module,housing,readout,needle,vernierLaser,segments:segmentNodes,ticks:tickNodes,coarse,vernier};
+  const set=v=>onChange(kind,matrixClamp(Math.round(v*100)/100,isPan?-1:0,1));
+  for(const [button,step] of [[fineMinus,-.01],[finePlus,.01]])
+   bindStep(button,step,delta=>set(Number(native[kind].value)+delta));
+  function bindScrub(surface,fine){
+   let pointer=null;
+   const stop=event=>{
+    if(!pointer||event.pointerId!==pointer.id)return;
+    pointer=null;
+    housing.classList.remove('matrix-active');
+    if(surface.hasPointerCapture(event.pointerId))surface.releasePointerCapture(event.pointerId);
+   };
+   surface.addEventListener('pointerdown',event=>{
+    if(event.button!==0||event.isPrimary===false||pointer)return;
+    const rect=surface.getBoundingClientRect();
+    if(rect.width<=0)return;
+    event.preventDefault();
+    pointer={id:event.pointerId,x:event.clientX,startX:event.clientX,
+      startValue:Number(native[kind].value)};
+    surface.setPointerCapture(event.pointerId);
+    housing.classList.add('matrix-active');
+    input.focus({preventScroll:true});
+    if(!fine)set(matrixValue(kind,(event.clientX-rect.left)/rect.width));
+   });
+   surface.addEventListener('pointermove',event=>{
+    if(!pointer||event.pointerId!==pointer.id)return;
+    event.preventDefault();
+    if(fine)set(matrixFineValue(pointer.startValue,event.clientX-pointer.startX,kind));
+    else {
+     const rect=surface.getBoundingClientRect();
+     set(matrixValue(kind,(event.clientX-rect.left)/rect.width));
+    }
+   });
+   surface.addEventListener('pointerup',stop);
+   surface.addEventListener('pointercancel',stop);
+   surface.addEventListener('lostpointercapture',()=>{
+    pointer=null;housing.classList.remove('matrix-active');
+   });
+  }
+  bindScrub(coarse,false);
+  bindScrub(vernier,true);
+ }
+ function sync(){
+  for(const kind of ['volume','pan']){
+   const view=views[kind],input=native[kind],value=channel[kind];
+   input.value=String(value);
+   const text=matrixFormat(kind,value),fraction=matrixFraction(kind,value);
+   input.setAttribute('aria-valuetext',text);
+   view.readout.textContent=text;
+   view.needle.style.left=`${fraction*100}%`;
+   view.vernierLaser.style.left=`${fraction*100}%`;
+   const activeIndex=Math.min(MATRIX_SEGMENTS-1,Math.floor(fraction*MATRIX_SEGMENTS));
+   view.segments.forEach((segment,i)=>{
+    const lit=kind==='volume'?value>0&&i<=activeIndex:
+      value>=0?i>=10&&i<=activeIndex:i<=9&&i>=activeIndex;
+    segment.classList.toggle('lit',lit);
+    segment.classList.toggle('wave-peak',i===activeIndex&&(kind==='pan'||value>0));
+    segment.classList.toggle('wave-near',Math.abs(i-activeIndex)===1);
+   });
+   view.ticks.forEach((tick,i)=>{
+    const distance=Math.abs(i/(MATRIX_TICKS-1)-fraction);
+    tick.classList.toggle('peak',distance<.03);
+    tick.classList.toggle('near',distance>=.03&&distance<.09);
+    tick.classList.toggle('medium',distance>=.09&&distance<.16);
+   });
+  }
+ }
+ sync();
+ return {root,inputs:native,views,sync};
+}

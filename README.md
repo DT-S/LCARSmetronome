@@ -1,3 +1,9 @@
+> **Rhythm PADD 2.0 – Entwicklungsbranch**  
+> Diese Branch-Version ist noch **kein fertiges V2-Release**. Die bisherige stabile Version 0.5.15 bleibt auf `main`.  
+> [Roadmap](docs/V2_ROADMAP.md) · [Designsystem](docs/V2_DESIGN_SYSTEM.md) · [QA-Matrix](docs/V2_TEST_MATRIX.md) · [Fortschritt](docs/V2_PROGRESS.md)
+
+---
+
 # LCARS METRONOME v0.5.12 - iOS safe-area framing hotfix
 
 - iPhone full-screen PWA: measure only the usable layout/visual viewport; never use `screen.height` to size the frame.

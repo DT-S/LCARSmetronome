@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {activationSound,installFeedback,UI_SCALES} from '../src/interface.js';
+import {activationSound,installFeedback,UI_SCALES,defaultInterfaceScale} from '../src/interface.js';
 import {fresh,validate,presetSettings,loadPreset} from '../src/model.js';
 function control({tab,mode,active=false,pressed=false,tag='BUTTON'}={}){const classes=new Set(active?['active']:[]);return {dataset:{tab,mode},tagName:tag,classList:{contains:s=>classes.has(s),add:s=>classes.add(s),remove:s=>classes.delete(s)},getAttribute:k=>k==='aria-pressed'?String(pressed):null,closest:()=>null,contains:()=>false,querySelector:()=>null};}
 function fixture(options={}){const c=control(options);c.closest=s=>s==='.sound-choices'?null:c;const handlers={},calls=[],state=fresh();const root={addEventListener(n,f){(handlers[n]??=[]).push(f);}};installFeedback(root,{unlock:async()=>{},audio:{loading:Promise.resolve(),ui:(name,s)=>{if(s.uiEnabled)calls.push(name);}},state:()=>state});const fire=(name,extra={})=>{for(const f of handlers[name]||[])f({target:c,button:0,pointerId:1,pointerType:'touch',clientX:1,clientY:1,...extra});};return {c,calls,fire,state};}
@@ -11,3 +11,5 @@ test('release or scrolling cancels a delayed hover',async()=>{for(const event of
 test('hover preference applies to touch and does not disable click feedback',async()=>{const f=fixture();f.state.hoverEnabled=false;f.fire('pointerdown');await settle();f.fire('pointerup');f.fire('click');await settle();assert.deepEqual(f.calls,['buttonpress']);});
 test('disabled buttons produce no touch or click sound',async()=>{const f=fixture();f.c.disabled=true;f.fire('pointerdown');f.fire('click');await settle();assert.deepEqual(f.calls,[]);});
 test('scale restores, migrates old backups and survives preset changes',()=>{const s=fresh();s.uiScale=.8;s.presets=[{name:'P',settings:presetSettings({...s,uiScale:1})}];assert.equal(validate(JSON.parse(JSON.stringify(s))).uiScale,.8);assert.equal(loadPreset(s,s.presets[0]).uiScale,.8);delete s.uiScale;assert.equal(validate(s).uiScale,1);assert.throws(()=>validate({...s,uiScale:.01}));assert.deepEqual(UI_SCALES,[.7,.8,.9,1,1.1]);});
+
+test('90% is the initial compact-phone scale, desktop remains 100%',()=>{assert.equal(defaultInterfaceScale(true),.9);assert.equal(defaultInterfaceScale(false),1);});

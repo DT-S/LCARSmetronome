@@ -1,4 +1,4 @@
-import {installFeedback,UI_SCALES} from './interface.js';
+import {installFeedback,UI_SCALES,defaultInterfaceScale} from './interface.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {customSoundUI} from './custom-sounds.js';
 import {createDiaryUI} from './diary-ui.js';
@@ -12,6 +12,8 @@ import {Scheduler} from './scheduler.js';
 import {read,write,download} from './storage.js';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const audio=new AudioEngine();let state=fresh(),linear=false,saveTimer,saveChain=Promise.resolve(),wakeLock,noticeTimer,starting=false,restoring=false,activePreset='';
+// The first launch uses 90% on phones; existing saved user preferences still win.
+state.uiScale=defaultInterfaceScale(matchMedia('(max-width:640px)').matches);
 const scheduler=new Scheduler(audio,(message,endTime)=>{stop(message,endTime);notify(message,'Warningsound');});
 const diaryUI=createDiaryUI(()=>state,save,notify);
 const soundUI=customSoundUI({state:()=>state,audio,unlock,changed,render,notify,running:()=>scheduler.running||starting||restoring});
@@ -68,7 +70,11 @@ function renderPatterns(){
   }
 }
 function applyScale(){
- document.querySelector('.app-shell').style.zoom=state.uiScale;
+ const shell=document.querySelector('.app-shell');
+ shell.style.zoom=state.uiScale;
+ // CSS zoom normally shrinks the PADD itself; compensate its logical height
+ // so the fixed LCARS frame still covers the full visual viewport.
+ shell.style.setProperty('--mobile-zoom-inverse',String(1/state.uiScale));
  document.querySelectorAll('[data-ui-scale]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.uiScale)===state.uiScale));
  $('#scaleReadout').textContent=Math.round(state.uiScale*100)+'%';
 }

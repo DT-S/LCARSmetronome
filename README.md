@@ -1,3 +1,14 @@
+# LCARS METRONOME — Version 0.5.9
+
+## v0.5.9 · Mobile interface scaling and full-height frame
+
+- Fresh iPhone/mobile sessions default to **90%** interface scale. Previously saved manual choices remain unchanged.
+- The LCARS PADD compensates for CSS `zoom` so its outer rail and bottom band fill the full `100dvh` safe viewport instead of leaving a black gap.
+- The width cap also accounts for zoom on wider phones. Desktop and iPad retain the original 100% default/layout.
+- Audio engine, rhythm, storage schema and export formats are unchanged.
+
+---
+
 # LCARS METRONOME — Version 0.5.8
 
 ## v0.5.8 · iPhone header title positioning

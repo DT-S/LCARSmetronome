@@ -1,4 +1,5 @@
 export const UI_SCALES=[.7,.8,.9,1,1.1];
+export const defaultInterfaceScale = isCompactViewport => isCompactViewport ? .9 : 1;
 export function activationSound(control){
  if(control.dataset.tab)return control.classList.contains('active')?'buttonpress':'switchingmenus';
  if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'switchingmenus';

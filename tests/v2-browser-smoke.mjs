@@ -79,6 +79,12 @@ try{
    assert.equal(await page.locator('#mixer input[data-field="pan"]').first().inputValue(),'1');
    await page.locator('#mixer .pan-scale').first().locator('button').nth(1).click();
    assert.equal(await page.locator('#mixer input[data-field="pan"]').first().inputValue(),'0');
+   // New P3 controls must retain native range inputs and readable values.
+   const panInput=page.locator('#mixer input[data-field="pan"]').first();
+   assert.equal(await panInput.getAttribute('aria-valuetext'),'CENTER');
+   assert.equal(await page.locator('#mixer input.precision-slider').count(),4);
+   assert.equal(await page.locator('#audio input.precision-slider').count(),6);
+   assert.equal(await page.locator('#audio .precision-readout').count(),6);
    await page.screenshot({path:path.join(screenshots,`${label}-audio.png`)});
    // P1c: navigate all secondary pages and verify that interactive content
    // remains reachable in the scrollable well, even on portrait tablets.
@@ -138,6 +144,53 @@ try{
    fail++;
    console.error(`FAIL ${label} (${width}x${height}):`,error);
    await page.screenshot({path:path.join(screenshots,`${label}-FAILED.png`)}).catch(()=>{});
+  }finally{await page.close();}
+ }
+ // Real Chromium synthetic touch gestures (not just calling a helper).
+ // A 40px move near the rail must be coarser than the same move after the
+ // finger shifts away vertically; each must update the channel's range.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844},
+    hasTouch:true,isMobile:true,reducedMotion:'reduce'});
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  try {
+   await page.goto(origin,{waitUntil:'networkidle'});
+   await page.waitForSelector('#mixer .pan-scale button',{timeout:15000}).catch(async()=>{
+    await page.locator('[data-tab="audio"]').click();
+    await page.waitForSelector('#mixer .pan-scale button');
+   });
+   await page.locator('[data-tab="audio"]').click();
+   const pan=page.locator('#mixer input[data-field="pan"]').first();
+   const center=page.locator('#mixer .pan-scale').first().locator('button').nth(1);
+   const rect=await pan.boundingBox();
+   assert.ok(rect&&rect.width>=80,'P3 touch pan slider not measurable');
+   const x=rect.x+rect.width/2,y=rect.y+rect.height/2,session=await page.context().newCDPSession(page);
+   const touch=async(type,points)=>session.send('Input.dispatchTouchEvent',{
+    type,touchPoints:points.map(([px,py])=>({x:px,y:py}))});
+   async function gesture(distance){
+    await center.click();
+    await touch('touchStart',[[x,y]]);
+    assert.ok(await pan.locator('xpath=..').evaluate(label=>label.classList.contains('precision-active')),
+      'touch start did not activate precision readout');
+    await touch('touchMove',[[x+40,y-distance]]);
+    const value=Number(await pan.inputValue());
+    assert.ok(await pan.getAttribute('aria-valuetext'),'precision value text missing');
+    if(distance>0)await page.screenshot({path:path.join(screenshots,'touch-pan-precision-active.png')});
+    await touch('touchEnd',[]);
+    assert.ok(!await pan.locator('xpath=..').evaluate(label=>label.classList.contains('precision-active')),
+      'touch end left precision overlay active');
+    return value;
+   }
+   const coarse=await gesture(0),fine=await gesture(125);
+   assert.ok(coarse>.1&&fine>0&&fine<coarse*.65,
+     `fine gesture did not reduce sensitivity: coarse=${coarse}, fine=${fine}`);
+   await center.click();
+   assert.equal(await pan.inputValue(),'0');
+   assert.deepEqual(errors,[]);
+   console.log(`PASS P3 touch precision, coarse=${coarse}, fine=${fine}`);
+  }catch(error){fail++;console.error('FAIL P3 touch precision:',error);
+   await page.screenshot({path:path.join(screenshots,'touch-pan-FAILED.png')}).catch(()=>{});
   }finally{await page.close();}
  }
 }finally{

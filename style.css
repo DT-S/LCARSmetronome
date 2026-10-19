@@ -1372,3 +1372,10 @@
      the intended bottom offset and cuts 47-01 against the top edge. */
   .app-shell > header::before { top: auto; bottom: 3px; }
 }
+ 
+/* v0.5.13: dynamic segmented-control corners. The layout pass assigns only
+   the four exposed corners; all joins within a group stay square. Keep this
+   more specific than legacy mobile nth-child / !important declarations. */
+.app-shell :is(#metronome,#audio,#presets,#diary,#analytics,#settings) .lcars-segmented > button[data-lcars-corners] {
+  border-radius: var(--lcars-segment-radius,0) !important;
+}

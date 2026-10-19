@@ -1,5 +1,58 @@
 export const UI_SCALES=[.7,.8,.9,1,1.1];
 export const defaultInterfaceScale = isCompactViewport => isCompactViewport ? .9 : 1;
+
+// A segmented LCARS control is a single visual unit: only its exposed corners
+// curve. Use actual layout rows, not nth-child assumptions (custom sounds,
+// category counts, flex wrapping and mobile zoom all change the row lengths).
+const SEGMENT_GROUP_SELECTOR=[
+ '.sound-choices','.mixer-buttons','.scale-buttons','.parameter-buttons',
+ '.sound-previews','.preset-actions','.diary-categories',
+ '.analytics-filters','.chart-modes'
+].join(',');
+
+export function segmentCornerRadii(rects){
+ const visible=rects.map((rect,index)=>({rect,index})).filter(({rect})=>rect.width>0&&rect.height>0);
+ const radii=rects.map(()=>null);
+ if(!visible.length)return radii;
+ const tops=visible.map(({rect})=>rect.top);
+ const topY=Math.min(...tops),bottomY=Math.max(...tops);
+ const topRow=visible.filter(({rect})=>Math.abs(rect.top-topY)<2);
+ const bottomRow=visible.filter(({rect})=>Math.abs(rect.top-bottomY)<2);
+ const leftmost=row=>row.reduce((a,b)=>b.rect.left<a.rect.left?b:a).index;
+ const rightmost=row=>row.reduce((a,b)=>b.rect.right>a.rect.right?b:a).index;
+ const tl=leftmost(topRow),tr=rightmost(topRow),bl=leftmost(bottomRow),br=rightmost(bottomRow);
+ for(const {rect,index} of visible){
+  const r=Math.min(24,Math.floor(rect.height/2))+'px';
+  radii[index]=[index===tl?r:'0',index===tr?r:'0',index===br?r:'0',index===bl?r:'0'].join(' ');
+ }
+ return radii;
+}
+
+export function installSegmentCorners(root){
+ let scheduled=false;
+ const refresh=()=>{
+  scheduled=false;
+  for(const group of root.querySelectorAll(SEGMENT_GROUP_SELECTOR)){
+   const buttons=[...group.children].filter(el=>el.tagName==='BUTTON');
+   const radii=segmentCornerRadii(buttons.map(el=>el.getBoundingClientRect()));
+   for(let i=0;i<buttons.length;i++){
+    if(radii[i]===null)continue; // hidden page, recalculate when it opens
+    buttons[i].style.setProperty('--lcars-segment-radius',radii[i]);
+    buttons[i].setAttribute('data-lcars-corners','');
+   }
+   group.classList.add('lcars-segmented');
+  }
+ };
+ const schedule=()=>{if(!scheduled){scheduled=true;requestAnimationFrame(refresh);}};
+ const observer=new MutationObserver(schedule);
+ // The app rerenders its option groups; hidden changes when switching pages.
+ // Class/style changes made above are excluded, so they cannot create a loop.
+ observer.observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+ window.addEventListener('resize',schedule);
+ schedule();
+ return ()=>{observer.disconnect();window.removeEventListener('resize',schedule);};
+}
+
 export function activationSound(control){
  if(control.dataset.tab)return control.classList.contains('active')?'buttonpress':'switchingmenus';
  if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'switchingmenus';

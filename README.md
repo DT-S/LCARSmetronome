@@ -1,3 +1,13 @@
+# LCARS METRONOME — Version 0.5.8
+
+## v0.5.8 · iPhone header title positioning
+
+- Anchored RHYTHM PADD directly below the top LCARS rail in the black header area.
+- Removed the hidden 28px desktop text line that pushed the mobile title behind the content panel.
+- No other visual or functional changes; previously corrected operating-mode corner radii are preserved.
+
+---
+
 # LCARS METRONOME — Version 0.5.7
 
 ## v0.5.7 · Mobile headline + precise mode corners

@@ -1,6 +1,7 @@
 import {installFeedback,installSegmentCorners,UI_SCALES,defaultInterfaceScale} from './interface.js';
 import {PAN_PRESETS,setChannelPan} from './pan-control.js';
-import {installPrecisionSlider,formatPan,formatVolume} from './precision-slider.js';
+import {installPrecisionSlider,formatVolume} from './precision-slider.js';
+import {buildMatrixFaders} from './matrix-faders.js';
 import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from './linear-layout.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {customSoundUI} from './custom-sounds.js';
@@ -133,28 +134,51 @@ function render(){applyScale();for(const k of ['bpm','beats','subdivisions','cou
 function renderMixer(){
   $('#mixer').replaceChildren();state.channels.forEach((c,i)=>{
     const panel=document.createElement('div');panel.className='panel';
-    panel.innerHTML=`<span class="eyebrow">CHANNEL 0${i+1}</span><h3>${i?'INNER CHANNEL':'OUTER CHANNEL'}</h3><label><span class="field-name">VOLUME</span> <input aria-label="Channel ${i+1} volume" data-field="volume" type="range" min="0" max="1" step=".01" value="${c.volume}"></label><label><span class="field-name">PAN</span> <input aria-label="Channel ${i+1} pan" data-field="pan" type="range" min="-1" max="1" step=".01" value="${c.pan}"></label><div class="pan-scale" role="group" aria-label="Channel ${i+1} panorama presets"></div><div class="mixer-buttons"><button data-field="mute" aria-pressed="${c.mute}" class="outline ${c.mute?'toggled':''}">MUTE</button><button data-field="solo" aria-pressed="${c.solo}" class="outline ${c.solo?'toggled':''}">SOLO</button></div>`;
-    const panRange=panel.querySelector('input[data-field="pan"]');
-    const panGroup=panel.querySelector('.pan-scale');
+    panel.classList.add('matrix-channel');
+    panel.innerHTML=`<span class="eyebrow">CHANNEL 0${i+1}</span><h3>${i?'INNER CHANNEL':'OUTER CHANNEL'}</h3>`;
+    let panButtons=[];
+    // The source demo only supplies the look/interaction, not a new audio bus.
+    const matrix=buildMatrixFaders(i,c,{onChange:(kind,value)=>{
+      if(kind==='pan')setChannelPan(c,value,matrix.inputs.pan,panButtons);
+      else c.volume=value;
+      matrix.sync();changed();
+    }});
+    panel.append(matrix.root);
+    const panGroup=document.createElement('div');
+    panGroup.className='pan-scale';panGroup.setAttribute('role','group');
+    panGroup.setAttribute('aria-label',`Channel ${i+1} panorama presets`);
     for(const {label,value} of PAN_PRESETS){
       const button=document.createElement('button');button.type='button';
       button.dataset.pan=String(value);button.textContent=label;panGroup.append(button);
     }
-    const panButtons=[...panGroup.querySelectorAll('button')];
-    setChannelPan(c,c.pan,panRange,panButtons);
-    const panPrecision=installPrecisionSlider(panRange,{format:formatPan});
-    installPrecisionSlider(panel.querySelector('input[data-field="volume"]'),{format:formatVolume});
-    panel.querySelectorAll('input').forEach(el=>el.oninput=()=>{
-      if(el.dataset.field==='pan')setChannelPan(c,el.value,panRange,panButtons);
-      else c[el.dataset.field]=Number(el.value);
-      changed();
-    });
+    panButtons=[...panGroup.querySelectorAll('button')];
+    setChannelPan(c,c.pan,matrix.inputs.pan,panButtons);
+    for(const kind of ['volume','pan']){
+      const input=matrix.inputs[kind];
+      input.addEventListener('input',()=>{
+        if(kind==='pan')setChannelPan(c,input.value,input,panButtons);
+        else c.volume=Number(input.value);
+        matrix.sync();changed();
+      });
+    }
     panButtons.forEach(button=>button.onclick=()=>{
-      setChannelPan(c,button.dataset.pan,panRange,panButtons);
-      panPrecision.sync();
-      changed();
+      setChannelPan(c,button.dataset.pan,matrix.inputs.pan,panButtons);
+      matrix.sync();changed();
     });
-    panel.querySelectorAll('button[data-field]').forEach(el=>el.onclick=()=>{state.channels[i][el.dataset.field]=!state.channels[i][el.dataset.field];el.setAttribute('aria-pressed',state.channels[i][el.dataset.field]);el.classList.toggle('toggled',state.channels[i][el.dataset.field]);changed();});
+    panel.append(panGroup);
+    const muteSolo=document.createElement('div');muteSolo.className='mixer-buttons';
+    for(const field of ['mute','solo']){
+      const button=document.createElement('button');button.type='button';
+      button.dataset.field=field;button.textContent=field.toUpperCase();
+      button.className='outline'+(c[field]?' toggled':'');
+      button.setAttribute('aria-pressed',String(c[field]));
+      button.onclick=()=>{
+        c[field]=!c[field];button.setAttribute('aria-pressed',String(c[field]));
+        button.classList.toggle('toggled',c[field]);changed();
+      };
+      muteSolo.append(button);
+    }
+    panel.append(muteSolo);
     ['DOUBLE ACCENT','ACCENT','NORMAL'].forEach((title,clickState)=>{
       const row=document.createElement('div');row.className='accent-sound-row';const label=document.createElement('h4');label.textContent=title;row.append(label);
       const group=document.createElement('div');group.className='sound-choices';group.setAttribute('role','group');group.setAttribute('aria-label',`Channel ${i+1} ${title}`);

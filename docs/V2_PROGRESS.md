@@ -84,3 +84,10 @@
 - Präzisionsbeweis (gleiche 40 CSS px): grob Panorama `+0.68`, fein bei 125 px Fingerabstand `+0.18`. L/C/R-Center synchronisiert weiterhin exakt.
 - Keine Änderungen an Scheduler, Sounderzeugung, Storage-Datenformat oder Backup-Kompatibilität.
 - **Hardware-Release-Gate weiter offen:** Safari iPhone-PWA, iPad/Tablet, Arch Firefox und tatsächliche Audio-Hörprüfung.
+
+## P3b – Voyager-Matrix (20.10.2026)
+- User-supplied second HTML/CSS/JS example reviewed. Segmented bar with needle and wave transition, 35-tick harmonic Vernier, click-and-hold ±1% steps, L/C/R presets and embedded numeric display integrated as `src/matrix-faders.js` and scoped `v2-matrix.css`.
+- **Explicit exclusions:** No scanline overlay, no moving three-node SYS-bar, no fake random telemetry ticker, no second sound synthesizer, no external CDN/Google font imports.
+- **Preserved:** Both AudioEngine stereo channels, accurate per-channel `-1/0/+1` L/C/R presets, Mute/Solo, custom sound bank, backup/storage, UI audio settings, and existing native range keyboard semantics.
+- Previous floating precision widgets remain in use only for Master/UI volumes, not Channel 1/2 Pan and Volume.
+- Unit checks in `tests/matrix-faders.test.js`; full Chromium and device verification pending.

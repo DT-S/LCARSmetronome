@@ -1192,7 +1192,7 @@
      absolute positioning removes that line from the mobile title layout. */
   .app-shell > header .heading {
     position:absolute;
-    top:29px;
+    top:33px;
     left:99px;
     right:0;
     height:27px;

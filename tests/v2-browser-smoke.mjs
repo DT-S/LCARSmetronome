@@ -86,6 +86,8 @@ try{
     await page.locator(`[data-tab="${tab}"]`).click();
     const view=page.locator(`#${tab}`);
     assert.equal(await view.isVisible(),true,`${label}: ${tab} failed to open`);
+    const scrollPosition=await page.locator('main').evaluate(el=>el.scrollTop);
+    assert.ok(scrollPosition<=1,`${label}: ${tab} retained previous page scroll position ${scrollPosition}`);
     const shell=await page.evaluate(id=>{
       const main=document.querySelector('main'),section=document.getElementById(id);
       const a=main.getBoundingClientRect(),r=section.getBoundingClientRect();

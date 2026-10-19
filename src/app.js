@@ -64,17 +64,60 @@ function renderPatterns(){
     container.replaceChildren();
     for(const [channel,key,label] of [[0,'outer','OUTER PATTERN'],[1,'inner','INNER PATTERN']]){
       const title=document.createElement('h3');title.textContent=label;container.append(title);
-      const row=document.createElement('div');row.className='pattern-row';
+      const row=document.createElement('div');row.className='pattern-row';row.dataset.channel=String(channel);
       state[key].forEach((s,i)=>{const b=document.createElement('button');b.className=`step state${s}`;b.dataset.channel=channel;b.dataset.index=i;b.textContent=i+1;b.setAttribute('aria-label',`${label} ${i+1}: ${names[s]}`);b.onclick=()=>cycle(channel,i);row.append(b);});container.append(row);
     }
   }
+  layoutLinearPatterns();
 }
+function layoutLinearPatterns(){
+  const mobile=matchMedia('(max-width: 640px)').matches;
+  for(const row of document.querySelectorAll('#linear .pattern-row')){
+    const buttons=[...row.querySelectorAll('button.step')];
+    if(!buttons.length)continue;
+    // Desktop retains its existing flex layout without mobile-only wrappers.
+    if(!mobile){if(row.firstElementChild?.classList.contains('pattern-line'))row.replaceChildren(...buttons);continue;}
+    const well=document.querySelector('#metronome .instrument');
+    const width=document.querySelector('#linear').clientWidth || well?.clientWidth || document.querySelector('main').clientWidth;
+    const groups=linearRowSizes(buttons.length,width);
+    const previous=[...row.children].map(el=>el.classList.contains('pattern-line')?el.childElementCount:1);
+    if(previous.length===groups.length && previous.every((n,i)=>n===groups[i]))continue;
+    const lines=[];
+    let at=0;
+    for(const size of groups){
+      const line=document.createElement('div');line.className='pattern-line';
+      line.style.setProperty('--step-columns',String(size));
+      line.append(...buttons.slice(at,at+size));lines.push(line);at+=size;
+    }
+    row.replaceChildren(...lines);
+  }
+}
+function refreshMobileFrame(){
+  const shell=document.querySelector('.app-shell');
+  if(!matchMedia('(max-width: 640px)').matches){shell.style.removeProperty('height');return;}
+  // Safari may discard `calc(100dvh * var(--mobile-zoom-inverse))` after CSS zoom;
+  // a measured pixel length prevents the 10% black band below the bottom elbow.
+  const vv=window.visualViewport;
+  // Prefer the full document viewport in iOS standalone mode; `visualViewport`
+  // can describe a smaller portion while its browser chrome is animating.
+  const standalone=matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+  const screenExtent=standalone ? (window.innerHeight>=window.innerWidth
+    ? Math.max(screen.width,screen.height) : Math.min(screen.width,screen.height)) : 0;
+  const height=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0,
+    (vv?.height||0)+(vv?.offsetTop||0),screenExtent);
+  if(height>0)shell.style.height=`${mobileFrameHeight(height,state.uiScale)}px`;
+}
+window.addEventListener('resize',()=>{refreshMobileFrame();layoutLinearPatterns();},{passive:true});
+window.visualViewport?.addEventListener('resize',()=>{refreshMobileFrame();layoutLinearPatterns();},{passive:true});
+window.addEventListener('pageshow',refreshMobileFrame);
 function applyScale(){
  const shell=document.querySelector('.app-shell');
  shell.style.zoom=state.uiScale;
  // CSS zoom normally shrinks the PADD itself; compensate its logical height
  // so the fixed LCARS frame still covers the full visual viewport.
  shell.style.setProperty('--mobile-zoom-inverse',String(1/state.uiScale));
+ refreshMobileFrame();
+ layoutLinearPatterns();
  document.querySelectorAll('[data-ui-scale]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.uiScale)===state.uiScale));
  $('#scaleReadout').textContent=Math.round(state.uiScale*100)+'%';
 }
@@ -122,7 +165,7 @@ for(const [k,min,max] of [['beats',1,20],['subdivisions',1,20],['countIn',0,8],[
 for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id));
 $('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>number('bpm',state.bpm+1,20,400);
 let taps=[];$('#tap').onclick=()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;};
-$('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';};
+$('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();};
 
 for(const k of ['master','uiVolume'])$('#'+k).oninput=e=>{state[k]=Number(e.target.value);changed();};
 for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};

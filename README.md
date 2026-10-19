@@ -1,3 +1,14 @@
+# LCARS METRONOME — Version 0.5.11
+
+## Hotfix: restore beat rendering
+
+- Fix missing `linearRowSizes` and `mobileFrameHeight` imports in `src/app.js` that stopped the entire metronome render on startup in v0.5.10.
+- Add a regression test for main-entry import wiring, plus a Chromium smoke check of both Circular and Linear modes.
+- Update offline cache to v5.11.0 to ensure installed PWAs load the corrected app.js.
+- No changes to audio, persisted user data, or previously approved design.
+
+---
+
 ## v0.5.10 · Full-height iPhone PADD + adaptive linear sequencer
 
 - Safari-compatible viewport measurement compensates CSS zoom, so the mobile LCARS frame fills the physical visible height.

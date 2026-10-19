@@ -24,8 +24,9 @@
 - [x] Branch aus dem letzten geprüften `main`-Stand erstellen.
 - [x] Architektur, Mobile-CSS, Gesten, PWA-Service-Worker und Tests prüfen.
 - [x] V2-Roadmap, Designspezifikation und Geräte-Testmatrix schreiben.
-- [ ] Import-/SW-Precache-Integrität als Regressionstest absichern.
-- [ ] Automatische Node-Testläufe bei Push/PR aktivieren und CI-Ergebnis prüfen.
+- [x] Import-/SW-Precache-Integrität als Regressionstest absichern (Code eingebaut; Ausführung durch CI noch zu bestätigen).
+- [x] GitHub-Actions-Workflow für Node-Testläufe bei Push/PR einrichten.
+- [ ] Ergebnis der ersten CI-Ausführung prüfen.
 - [ ] Aktuelle Oberfläche für Vergleich dokumentieren: iPhone Portrait (Circular/Linear), iPad Portrait/Landscape, Desktop.
 - **Fertig wenn:** keine unkontrollierten Runtime-Änderungen, Dokumentation im Branch, Test-Sicherheitsnetz verfügbar.
 

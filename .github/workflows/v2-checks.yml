@@ -1,0 +1,26 @@
+name: Rhythm PADD V2 checks
+
+on:
+  push:
+    branches:
+      - develop/v2-rhythm-padd
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  node-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout V2 source
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run tests (no external npm dependencies)
+        run: npm test

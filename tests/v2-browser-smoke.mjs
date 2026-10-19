@@ -112,7 +112,7 @@ try{
      assert.equal(await scaleButtons.count(),5,`${label}: UI scale controls`);
      const scaleSamples=width===390?[.7,1.1,.9]:[.7,1.1,1];
      for(const scale of scaleSamples){
-      await scaleButtons.locator(`[data-ui-scale="${scale}"]`).click();
+      await page.locator(`#scaleButtons button[data-ui-scale="${scale}"]`).click({timeout:8000});
       await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       const bounds=await page.evaluate(()=>{
        const rect=document.querySelector('.app-shell').getBoundingClientRect();

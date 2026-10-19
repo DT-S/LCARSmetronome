@@ -18,7 +18,8 @@
 .precision-readout {
   position:absolute;
   z-index:25;
-  top:-3px;
+  /* Float just above the real thumb, not up over the preceding fader. */
+  top:calc(50% - 7px);
   left:50%;
   transform:translate(-50%,-80%) scale(.88);
   opacity:0;
@@ -37,6 +38,16 @@
   font:900 14px/1.35 'Arial Narrow',Arial,sans-serif;
   letter-spacing:.065em;
   transition:opacity .14s ease,transform .14s ease,visibility .14s;
+}
+/* A short targeting stem ties the readout to its active fader. */
+.precision-readout::after {
+  content:'';
+  position:absolute;
+  left:calc(50% - 2px);
+  bottom:-9px;
+  width:4px;height:9px;
+  background:var(--padd-orange,#ff9900);
+  border-radius:0 0 3px 3px;
 }
 .precision-slider-label.precision-active .precision-readout {
   visibility:visible;

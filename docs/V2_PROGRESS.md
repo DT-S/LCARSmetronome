@@ -64,3 +64,11 @@
 - **Noch offen:** iOS Safari/echte iPhone/iPad-PWA, Arch-Firefox, Keyboard-Fokus/Accessibility, reale Audio-Latenz und volle Diagramme mit vielen Sessions. Diese Punkte sind keine bestandenen Tests.
 
 **P1c = Layout-Implementierung + grundlegende Browser-QA erledigt; P1 Gesamtphase = weiterhin offen** (CSS-Konsolidierung und reale Geräteabnahme). Kein Merge nach `main` ohne Freigabe.
+
+## P3 – LCARS Precision Faders (erster funktionaler Ausbau)
+- Wiederverwendbares Modul `src/precision-slider.js`, eigene `v2-precision.css`. Verbunden mit Outer/Inner Panorama und Volume sowie Master-/Interface-Volume. Native Range-Inputs bleiben sichtbar und per Tastatur/Maus bedienbar.
+- Touch-/Pen-Drag setzt den Wert anhand der berührten Reglerposition, anschließend verändert vertikale Entfernung die Empfindlichkeit. Optische Wertblase und vergrößerter Regler werden beim Loslassen und bei `pointercancel` geschlossen.
+- Panorama-Beschriftung ist `L xx%` / `CENTER` / `R xx%`, Volume `xx%`; die bestehenden L/C/R-Presets bleiben exakt `-1/0/+1`.
+- Unit-Tests für Werteberechnung und Formatierung bestanden. [Chromium-Lauf 39338298760](https://github.com/DT-S/LCARSmetronome/actions/runs/39338298760) bestanden: 9/9 Auflösungen und echte simulierte Touch-Drag-Ereignisse. Gleiche 40px-Bewegung: grob +0,68, fein bei 125px Abstand +0,18.
+- Nach Sichtprüfung sitzt die orange Wertblase nun näher am Regler und erhält eine Zuordnungslinie; überarbeitete Variante muss separat erneut durch CI.
+- **P3 noch nicht hardware-abgenommen:** iPhone Safari, Tablet Touch, Maus/Firefox und VoiceOver/Screenreader stehen offen. P4–P6 sind unverändert ausstehend.

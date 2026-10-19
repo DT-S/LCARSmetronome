@@ -156,11 +156,8 @@ try{
   page.on('pageerror',error=>errors.push(error.message));
   try {
    await page.goto(origin,{waitUntil:'networkidle'});
-   await page.waitForSelector('#mixer .pan-scale button',{timeout:15000}).catch(async()=>{
-    await page.locator('[data-tab="audio"]').click();
-    await page.waitForSelector('#mixer .pan-scale button');
-   });
    await page.locator('[data-tab="audio"]').click();
+   await page.waitForSelector('#mixer .pan-scale button',{timeout:15000});
    const pan=page.locator('#mixer input[data-field="pan"]').first();
    const center=page.locator('#mixer .pan-scale').first().locator('button').nth(1);
    const rect=await pan.boundingBox();

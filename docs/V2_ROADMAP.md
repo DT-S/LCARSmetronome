@@ -26,11 +26,13 @@
 - [x] V2-Roadmap, Designspezifikation und Geräte-Testmatrix schreiben.
 - [x] Import-/SW-Precache-Integrität als Regressionstest absichern (Code eingebaut; Ausführung durch CI noch zu bestätigen).
 - [x] GitHub-Actions-Workflow für Node-Testläufe bei Push/PR einrichten.
-- [ ] Ergebnis der ersten CI-Ausführung prüfen.
+- [x] Ergebnis der ersten CI-Ausführung prüfen: [GitHub Actions / Erfolg](https://github.com/DT-S/LCARSmetronome/actions/runs/39332554154).
 - [ ] Aktuelle Oberfläche für Vergleich dokumentieren: iPhone Portrait (Circular/Linear), iPad Portrait/Landscape, Desktop.
 - **Fertig wenn:** keine unkontrollierten Runtime-Änderungen, Dokumentation im Branch, Test-Sicherheitsnetz verfügbar.
 
 ### P1 – Ein gemeinsames responsives LCARS-Fundament
+
+**Konkrete Umsetzung:** [P1-Implementierungspaket](V2_PHASE1_IMPLEMENTATION.md).
 - [ ] Globale Farb-, Abstand-, Typografie-, Rahmen-, Animations- und Touchgrößen-Tokens aus dem iPhone-PADD ableiten. Keine optisch zweite Desktop-Variante.
 - [ ] CSS in nachvollziehbare Basis-/Layout-/Component-/Motion-Schichten überführen. Alte verstreute Media-Query-Überschreibungen schrittweise ersetzen, nicht weitere Blindfixes anhängen.
 - [ ] Header, obere Schienen, linke Navigation, unteres Band und Safe-Area auf **allen** Viewports erhalten.

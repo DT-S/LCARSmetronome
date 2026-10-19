@@ -5,8 +5,8 @@
 | Branch `develop/v2-rhythm-padd` aus v0.5.15 | ERLEDIGT | Basis-Commit `17ae97c` |
 | Architektur-/Implementierungsinventur | ERLEDIGT | `ARCHITECTURE.md`, `src/app.js`, `src/interface.js`, `src/linear-layout.js`, `src/number-control.js`, `src/tempo-control.js`, CSS v0.5.15 gesichtet |
 | Roadmap, Design, QA | ERLEDIGT | Diese V2-Dokumente |
-| Test-Sicherheitsnetz + CI | IMPLEMENTIERT, CI-STATUS OFFEN | `tests/module-integrity.test.js` und `.github/workflows/v2-checks.yml`; Lauf auf GitHub prüfen |
-| P1 Universelles Layout | OFFEN | zuerst Shell / Breakpoints |
+| Test-Sicherheitsnetz + CI | ERLEDIGT | [Erster GitHub-Actions-Lauf erfolgreich](https://github.com/DT-S/LCARSmetronome/actions/runs/39332554154); `tests/module-integrity.test.js` prüft Import-/PWA-Integrität |
+| P1 Universelles Layout | VORBEREITET | [Implementierungspaket](V2_PHASE1_IMPLEMENTATION.md); visuelle Änderung noch nicht begonnen |
 | P2 Alle Seiten | OFFEN | Metronome, Audio, Presets, Diary, Stats, System |
 | P3 Präzisions-Fader | OFFEN | Zoom-Bubble + feiner Touch-Drag |
 | P4 Zahlenleiter | OFFEN | BPM + Parameter |
@@ -27,3 +27,8 @@
 - Import-/Service-Worker-Graph wird im Node-Test-Runner geprüft, bevor ein PWA-Update veröffentlicht wird.
 - GitHub Actions führt `npm test` bei Push auf den V2-Branch und bei PRs nach `main` aus.
 - Browser- und Geräteprüfung stehen weiter aus; ein CI-Status kann diese nicht ersetzen.
+
+## Erster verifizierter CI-Nachweis
+- Workflow: [Rhythm PADD V2 checks / Run 39332554154](https://github.com/DT-S/LCARSmetronome/actions/runs/39332554154).
+- Status: `completed`, Conclusion: `success`; Checkout, Node.js 22, `npm test` erfolgreich.
+- Dieser Nachweis umfasst **Node-Tests**, keine realen Safari-/Firefox-/Tablet-Screenshots.

@@ -1,6 +1,6 @@
 > **Rhythm PADD 2.0 – Entwicklungsbranch**  
 > Diese Branch-Version ist noch **kein fertiges V2-Release**. Die bisherige stabile Version 0.5.15 bleibt auf `main`.  
-> [Roadmap](docs/V2_ROADMAP.md) · [Designsystem](docs/V2_DESIGN_SYSTEM.md) · [QA-Matrix](docs/V2_TEST_MATRIX.md) · [Fortschritt](docs/V2_PROGRESS.md)
+> [Roadmap](docs/V2_ROADMAP.md) · [Designsystem](docs/V2_DESIGN_SYSTEM.md) · [QA-Matrix](docs/V2_TEST_MATRIX.md) · [Fortschritt](docs/V2_PROGRESS.md) · [Phase 1](docs/V2_PHASE1_IMPLEMENTATION.md)
 
 ---
 

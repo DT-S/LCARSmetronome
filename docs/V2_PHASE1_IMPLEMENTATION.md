@@ -1,0 +1,51 @@
+# P1 – Das iPhone-PADD wird zum universellen Layout
+
+**Ziel:** Ein einziges visuelles Rhythm-PADD für mobile, Tablet und Desktop. Nicht das Phone „aufblasen“, sondern seine LCARS-Bausteine adaptiv komponieren.
+
+**Status:** Analyse und Umsetzungsschnitt festgelegt. CSS-Implementierung und visuelle Geräteabnahme stehen aus.
+
+## Wo die bestehende Architektur geändert wird
+
+- `style.css` enthält mehrere Generationen CSS; die maßgeblichen iPhone-Shell-Regeln beginnen aktuell im Block `/* v0.5.5 · RHYTHM PADD mobile architecture */` bei `@media (max-width: 640px)`. Die spätere v0.5.6-Korrektur und Safe-Area-Patches haben höhere Kaskadenpriorität.
+- `index.html`: eine Shell aus `.app-shell`, Header/Elbow, `aside` (6 echte Navigationstabs), `main` und Bottom-Frame-Pseudo-Element. Strukturell bereits für alle Geräte geeignet; möglichst nicht doppeln.
+- `src/app.js`: `refreshMobileFrame()`, `applyScale()`, `layoutLinearPatterns()` nutzen aktuell 640 px als Trennlinie. Ein Element darf auf Desktop-/Tablet-Reflow nicht durch Re-Render seine laufende Pointer-Geste verlieren.
+- `src/linear-layout.js`: balancierte Zeilenverteilung ist für 1–20 Steps bereits getestet; später auf die tatsächlich verfügbare Plot-Breite erweitern.
+- `src/interface.js`: `installSegmentCorners` errechnet äußere Buttonradien anhand realer Geometrie; muss nach Reflow funktionieren.
+
+## Kleine implementierbare P1-Schritte
+
+### P1a – CSS-Audit und Design-Tokens
+1. PADD-Farbpalette global unter einem eindeutigen Satz `--padd-*` nutzbar machen; bestehende Phone-Darstellung zunächst pixelgleich erhalten.
+2. Extrahierte Shell-, Panel-, Button-, Navigations- und Typografieregeln benennen statt zusätzliche anonyme Überschreibungen anhängen.
+3. Klaren Cascade-/Datei-Plan etablieren: Basis / Shell / Komponenten / responsive Anordnung / Motion. Temporäre V2-Migrationsdatei erlaubt, alte konkurrierende Regeln nach bestandener Abnahme entfernen.
+4. Kein musikalisches JS anfassen. CI muss grün bleiben.
+
+### P1b – Shell (Header / Sidebar / Footer)
+1. Mobile Header, Elbow und Segmentband auf breitere Viewports erweitern; Größen proportional/adaptiv, nicht stumpf vervielfachen.
+2. Side Nav flexibles Breitenprofil (compact ≈58px, medium ≈92px, wide ≈130–170px), alle 6 Tabs gut erkennbar.
+3. Footerband am unteren Rand des **sichtbaren** Viewports; Safe-Area auf iPhone; Main-Inhalt scrollbar.
+4. 320–1920 px, Zoom 70–110 %, Querformat, Tablet-Portrait und Split View: kein Cropping der Rahmen.
+5. Vor vollständiger Übernahme Desktop-Screenshot vom Nutzer gegen das iPhone-PADD vergleichen.
+
+### P1c – Seitenraster
+1. Compact: 1 Spalte, gut lesbares Ringinstrument, fortlaufende Controls.
+2. Medium: 1 Spalte für enge Tablet-Splits, 2 Spalten wo Platz.
+3. Wide: Instrument + Hilfscontrols nebeneinander; nie leere ungenutzte Großflächen oder gedehnte 8er-Notenbuttons.
+4. Audio Matrix auf Large zwei getrennte Kanäle nebeneinander nur wenn ausreichende Einzelbreite existiert.
+5. Diagramme/Tabelle in Diary+Stats vollständig erreichbar, mit erwarteter semantischer Reihenfolge im DOM.
+
+### P1d – Test und Konsolidierung
+1. CSS-Sichtprüfung in Browser bei 320, 375, 390, 430, 600, 768, 834, 1024, 1280, 1440, 1920.
+2. Circular/Linear, Einstellungen, Audio Matrix, Diary, Stats, leere Presets, lange Namen, 16 Custom Sounds.
+3. Bei Browserbildern fehlende Beschriftungen, Scroll-/Überlaufprobleme, Safe-Area und Fokus prüfen.
+4. Erst wenn V2 überall gut aussieht: veraltete Layout-Definitionen entfernen und P1 als abgeschlossen markieren.
+
+## Kritische No-Regressions
+- Kein versehentlicher Wechsel ins alte Desktop-Look.
+- Kein versehentliches Scrollen des gesamten Shells, das das obere/untere LCARS-Band verschiebt.
+- Keine Kleinstschrift auf Tablets; kein Pan-/Volume-Regler außerhalb des Viewports.
+- Das SVG `#rings`, `#tempoValue`, `#linear` und dynamisch erzeugte `.step`-Buttons müssen sicht- und bedienbar bleiben.
+- Semantik und `aria-label` der Navigation und Regler bleiben erhalten.
+- Kein neues CSS-`zoom`, das mit dem Nutzer-Interface-Scale kollidiert.
+
+**P1 wird erst nach Gerätebildern und Tests als abgeschlossen markiert; ein grüner Node-Workflow allein ist keine visuelle Abnahme.**

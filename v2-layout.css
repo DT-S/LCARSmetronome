@@ -1,0 +1,486 @@
+/*
+ * Rhythm PADD 2.0 / P1b + first P1c pass.
+ * Tablet/desktop adopt the approved iPhone LCARS PADD vocabulary.
+ * This is a temporary migration layer. Consolidate into component sheets
+ * AFTER cross-device visual approval. Do not change the 0–640px design.
+ */
+:root {
+  --padd-bg: #000;
+  --padd-orange: #ff9900;
+  --padd-amber: #ffcc66;
+  --padd-peach: #ff9966;
+  --padd-lavender: #cc99cc;
+  --padd-blue: #9999ff;
+  --padd-tan: #cc6666;
+  --padd-red: #cc4444;
+}
+@media (min-width:641px) {
+  :root { color-scheme:dark; }
+  html,body {
+    width:100%; height:100%; margin:0; overflow:hidden;
+    background:var(--padd-bg);
+  }
+  .app-shell {
+    --v2-sidebar: clamp(88px,10.5vw,166px);
+    --v2-gutter: clamp(12px,1.7vw,26px);
+    display:grid;
+    grid-template-columns:var(--v2-sidebar) minmax(0,1fr);
+    grid-template-rows:clamp(74px,8.5vh,100px) minmax(0,1fr) 30px;
+    column-gap:var(--v2-gutter);
+    row-gap:6px;
+    width:calc(100% * var(--mobile-zoom-inverse,1));
+    max-width:none;
+    height:calc(100dvh * var(--mobile-zoom-inverse,1));
+    min-height:0;
+    margin:0;
+    padding: max(10px,calc(env(safe-area-inset-top) * var(--mobile-zoom-inverse,1)))
+             max(14px,calc(env(safe-area-inset-right) * var(--mobile-zoom-inverse,1)))
+             max(10px,calc(env(safe-area-inset-bottom) * var(--mobile-zoom-inverse,1)))
+             max(14px,calc(env(safe-area-inset-left) * var(--mobile-zoom-inverse,1)));
+    overflow:hidden;
+    background:var(--padd-bg);
+  }
+  /* Same real elbow and segmented upper rail as the compact PADD. */
+  .app-shell > header {
+    position:relative;
+    display:block;
+    grid-column:1/-1;grid-row:1;
+    height:100%;min-height:0;
+    width:100%;
+    padding:0;margin:0;
+    isolation:isolate;
+    overflow:visible;
+  }
+  .app-shell > header .elbow {
+    position:absolute;
+    top:0;left:0;
+    width:calc(var(--v2-sidebar) + 29px);
+    height:100%;
+    min-height:0;
+    border:0;
+    border-radius:clamp(36px,4vw,56px) 0 0 0;
+    background:var(--padd-amber);
+  }
+  .app-shell > header .elbow::after {
+    content:'';
+    position:absolute;
+    top:clamp(19px,2.4vw,28px);
+    left:var(--v2-sidebar);
+    right:0;bottom:0;
+    border-radius:clamp(18px,2.5vw,28px) 0 0 0;
+    background:#000;
+  }
+  .app-shell > header::before {
+    content:'47-01';
+    position:absolute;left:0;bottom:4px;
+    width:calc(var(--v2-sidebar) - 8px);
+    color:#000;
+    z-index:2;
+    font:900 clamp(11px,1.1vw,15px)/1 Impact,'Arial Narrow',sans-serif;
+    text-align:right;
+    pointer-events:none;
+  }
+  .app-shell > header::after {
+    content:'';
+    position:absolute;
+    left:calc(var(--v2-sidebar) + var(--v2-gutter));
+    top:0;right:0;bottom:auto;
+    width:auto;height:clamp(18px,2.2vw,25px);
+    border-radius:0 14px 14px 0;
+    background:linear-gradient(to right,
+      var(--padd-amber) 0 10%,#000 10% 11.5%,
+      var(--padd-orange) 11.5% 79%,#000 79% 80.5%,
+      var(--padd-orange) 80.5% 100%);
+  }
+  .app-shell > header .heading {
+    position:absolute;
+    z-index:2;
+    left:calc(var(--v2-sidebar) + var(--v2-gutter));
+    right:0;
+    top:clamp(28px,3.2vw,37px);
+    margin:0;
+    padding:0;
+    min-width:0;
+  }
+  .app-shell > header .heading .eyebrow,
+  .app-shell > header .heading h1 > span:not(.mobile-title),
+  .app-shell > header .header-tail {display:none;}
+  .app-shell > header .heading h1 {
+    margin:0;padding:0;
+    font-size:0;
+    line-height:1;
+  }
+  .app-shell > header .heading h1 .mobile-title {
+    display:block;
+    font:900 clamp(22px,2.8vw,37px)/1.15 Arial,Helvetica,sans-serif;
+    color:var(--padd-orange);
+    letter-spacing:.018em;
+    white-space:nowrap;
+  }
+  /* Fascia: visible on every page and every medium/wide screen. */
+  .app-shell > aside {
+    display:flex;
+    flex-direction:column;
+    grid-column:1;grid-row:2;
+    gap:6px;
+    min-width:0;min-height:0;
+    margin:0;padding:0;
+  }
+  .app-shell > aside nav {
+    display:flex;
+    flex-direction:column;
+    flex:0 0 auto;
+    gap:5px;
+    width:100%;
+    margin:0;padding:0;
+    border:none;background:#000;
+  }
+  .app-shell > aside nav .nav {
+    display:flex;align-items:center;justify-content:flex-end;
+    text-align:right;
+    width:100%;min-width:0;
+    min-height:clamp(48px,6.2vh,69px);
+    margin:0;padding:8px 10px;
+    border:0;border-radius:0;
+    box-shadow:none;
+    line-height:1.15;
+    font:900 clamp(10px,1vw,15px)/1.15 'Arial Narrow',Arial,sans-serif;
+    letter-spacing:0;
+    color:#000;
+    overflow:hidden;
+  }
+  .app-shell > aside nav .nav small {display:none;}
+  .app-shell > aside nav .nav:nth-child(1){background:#fff;}
+  .app-shell > aside nav .nav:nth-child(2){background:var(--padd-amber);}
+  .app-shell > aside nav .nav:nth-child(3){background:var(--padd-peach);}
+  .app-shell > aside nav .nav:nth-child(4){background:var(--padd-blue);}
+  .app-shell > aside nav .nav:nth-child(5){background:var(--padd-tan);}
+  .app-shell > aside nav .nav:nth-child(6){background:var(--padd-amber);}
+  .app-shell > aside nav .nav.active {
+    background:#fff!important;
+    box-shadow:inset -6px 0 var(--padd-orange)!important;
+  }
+  .app-shell > aside nav .nav:focus-visible {
+    outline:3px solid white;outline-offset:2px;
+  }
+  .app-shell > aside .rail {
+    display:flex;
+    flex:1 1 auto;
+    position:relative;
+    width:100%;min-height:24px;
+    padding:8px 8px 11px;
+    border-radius:0;
+    align-items:flex-end;justify-content:flex-end;
+    color:#000;
+    background:var(--padd-amber);
+    font-size:0;
+  }
+  .app-shell > aside .rail > span {display:none;}
+  .app-shell > aside .rail::after {
+    content:'09-442';
+    color:#000;
+    font:900 clamp(11px,1vw,15px)/1 Impact,'Arial Narrow',sans-serif;
+  }
+  .app-shell > aside .rail-end {
+    display:flex;
+    flex:0 0 auto;
+    position:relative;
+    width:100%;height:clamp(55px,9vh,92px);
+    align-items:flex-end;justify-content:flex-end;
+    padding:8px;
+    background:var(--padd-orange);
+    border-radius:0;
+    color:#000;
+  }
+  .app-shell > aside .rail-end::before {
+    content:'SYS-OK';font:900 clamp(10px,.95vw,14px)/1 Impact,Arial,sans-serif;
+  }
+  .app-shell > aside .rail-end::after {content:none;}
+  .app-shell::after {
+    content:'';
+    display:block;
+    grid-column:1/-1;grid-row:3;
+    width:100%;height:30px;
+    border-radius:0 0 0 26px;
+    background:linear-gradient(to right,
+      var(--padd-tan) 0 24%,#000 24% 25.5%,
+      var(--padd-tan) 25.5% 69%,#000 69% 70.5%,
+      var(--padd-amber) 70.5% 82%,#000 82% 83.5%,
+      var(--padd-orange) 83.5% 100%);
+  }
+  .app-shell > main {
+    display:block;
+    grid-column:2;grid-row:2;
+    min-width:0;min-height:0;
+    height:100%;
+    margin:0;
+    padding:0 4px 14px 0;
+    overflow-x:hidden;
+    overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:var(--padd-lavender) #000;
+    overscroll-behavior:contain;
+    background:#000;
+  }
+  .app-shell > main .page {min-width:0;}
+  .app-shell > main .section-heading {
+    display:flex;justify-content:space-between;align-items:flex-end;
+    position:relative;
+    min-width:0;min-height:45px;
+    margin:0 0 12px;padding:0 0 8px;
+    border:0;border-bottom:3px solid var(--padd-amber);
+    border-radius:0;
+    gap:10px;
+  }
+  .app-shell > main .section-heading::after {content:none;}
+  .app-shell > main .section-heading .eyebrow {display:none;}
+  .app-shell > main .section-heading h2 {
+    margin:0;padding:0;
+    font:900 clamp(19px,1.9vw,28px)/1.1 Impact,'Arial Narrow',sans-serif;
+    color:var(--padd-amber);
+    letter-spacing:.025em;
+  }
+  .app-shell > main .section-heading .outline {
+    min-height:38px;
+    padding:8px 13px;
+    border:0;border-radius:0 19px 19px 0;
+    background:var(--padd-blue);color:#000;
+    font-size:11px;
+  }
+  /* LCARS operating modes retain the iPhone's 2-by-4 matrix language. */
+  #metronome .mode-heading {
+    margin:0 0 6px;
+    color:var(--padd-peach);
+    font-size:11px;
+    font-weight:900;
+  }
+  #metronome .mode-heading output {color:var(--padd-orange);}
+  #modeButtons {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:4px;
+    margin:0 0 18px;
+    padding:0;border:0;border-radius:0;background:#000;
+  }
+  #modeButtons::before {content:none;}
+  #modeButtons button {
+    min-width:0;
+    min-height:clamp(42px,4.6vh,55px);
+    padding:7px 5px;
+    flex:initial;
+    background:var(--padd-lavender);
+    color:#000;
+    border:0;border-radius:0!important;
+    font:900 clamp(10px,.9vw,13px)/1.1 Arial,sans-serif;
+    white-space:normal;overflow-wrap:anywhere;
+    letter-spacing:0;
+  }
+  #modeButtons button:first-child{border-top-left-radius:23px!important;}
+  #modeButtons button:nth-child(4){border-top-right-radius:23px!important;}
+  #modeButtons button:nth-last-child(4){border-bottom-left-radius:23px!important;}
+  #modeButtons button:last-child{border-bottom-right-radius:23px!important;}
+  #modeButtons button[aria-pressed=true] {
+    background:var(--padd-orange);
+    box-shadow:inset 0 -4px var(--padd-amber);
+  }
+  .app-shell .panel {
+    min-width:0;
+    padding:8px 6px 12px 12px;
+    margin:0 0 14px;
+    border-left:13px solid var(--panel-accent,var(--padd-lavender));
+    border-top:8px solid var(--panel-accent,var(--padd-lavender));
+    border-bottom:0;
+    border-radius:27px 0 0 0;
+    background:#000;
+  }
+  .app-shell .panel>.eyebrow,
+  .app-shell .panel>h3 {
+    min-height:44px;
+    margin:0 0 7px;
+    padding:9px 15px;
+    color:#000;
+    background:var(--panel-accent,var(--padd-lavender));
+    border-radius:0 25px 25px 0;
+    text-align:right;
+    font-size:clamp(12px,1.05vw,15px);
+    font-weight:900;
+  }
+  .app-shell .panel>.eyebrow {color:var(--padd-orange);}
+  .app-shell .cards {
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,350px),1fr));
+    gap:16px;
+    min-width:0;
+  }
+  .app-shell .cards .panel {margin:0;}
+  .app-shell .panel label {min-width:0;max-width:100%;}
+  .app-shell .panel .field-name,
+  .app-shell .parameter-name {font-size:clamp(10px,.9vw,12px);}
+  .app-shell .lcars-info summary,.app-shell .mode-help summary {
+    border-radius:22px 0 0 22px;
+    background:var(--padd-lavender);
+  }
+  /* An instrument, not a stretched phone: the ring stays proportionate. */
+  #metronome .instrument-layout {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:20px;
+    align-items:start;
+  }
+  #metronome .instrument {
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    width:100%;max-width:680px;min-width:0;
+    margin:0 auto;
+    padding:0;
+    gap:0;
+  }
+  #metronome #dial {
+    order:1;
+    width:100%;
+    max-width:min(100%,500px);
+    min-width:0;
+    margin:2px auto 8px;
+  }
+  #metronome #linear {order:1;min-width:0;max-width:100%;padding-top:8px;}
+  #metronome #linear .pattern-row {min-width:0;}
+  #metronome .legend {
+    order:2;
+    width:100%;
+    margin:2px 0 9px;
+    padding:6px 0;
+    border-top:4px solid var(--padd-blue);
+    gap:10px;
+  }
+  #metronome .play-status {
+    order:3;
+    width:100%;max-width:none;
+    margin:0 0 9px;padding:0;
+    gap:5px;
+  }
+  #metronome .pattern-counts {
+    order:4;
+    margin:0 0 10px;padding:5px 0 0;
+    width:100%;
+    gap:6px;
+    border-top:4px solid var(--padd-tan);
+  }
+  #metronome .transport {
+    order:5;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    width:100%;max-width:none;
+    margin:0 0 14px;padding:0;
+    border:0;border-radius:0;
+    gap:6px;
+  }
+  #metronome .transport button {
+    min-height:54px;
+    padding:9px 7px;
+    border-radius:999px!important;
+    font:900 clamp(12px,1vw,16px)/1 Impact,Arial,sans-serif;
+    color:#000;
+  }
+  #metronome .transport #start {
+    grid-column:2;grid-row:1;
+    background:var(--padd-red);
+  }
+  #metronome .transport #tap {
+    grid-column:1;grid-row:1;
+    background:var(--padd-peach);
+  }
+  #rings .track {stroke:var(--padd-peach);}
+  #rings .inner-track {stroke:var(--padd-lavender);}
+  #rings .dial-ticks {stroke:var(--padd-blue);}
+  #tempo {border-color:var(--padd-orange);}
+  #metronome .side-controls {
+    display:flex;flex-direction:column;
+    gap:10px;min-width:0;
+  }
+  #metronome .side-controls>.panel {margin:0;}
+  /* Sound matrix: labels cap the rows, instrument groups form 4-column units. */
+  #mixer.cards {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:22px;
+    margin:0 0 16px;
+  }
+  #mixer .panel>h3 {
+    background:var(--cream);
+    border-radius:0;
+  }
+  #mixer .panel>label {max-width:none;}
+  #mixer .panel>label .field-name {
+    background:var(--ice);
+    flex:0 0 clamp(85px,10vw,140px);
+  }
+  #mixer .accent-sound-row {
+    display:grid;grid-template-columns:minmax(0,1fr);
+    gap:6px;align-items:stretch;
+    margin:9px 0 0;padding:0;
+    border:0;
+  }
+  #mixer .accent-sound-row h4 {
+    display:flex;align-items:center;justify-content:flex-end;
+    padding:10px 15px;
+    min-height:45px;
+    border-radius:23px 0 0 23px;
+    color:#000;
+    font-size:clamp(11px,1vw,14px);
+  }
+  #mixer .sound-choices {
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:5px;
+    min-width:0;
+  }
+  #mixer .sound-choices button {
+    min-width:0;
+    min-height:48px;
+    padding:9px 5px;
+    flex:initial;
+    font-size:clamp(10px,.85vw,13px);
+    overflow-wrap:anywhere;
+  }
+  #mixer .mixer-buttons {
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;
+  }
+  #mixer .mixer-buttons button {min-width:0;min-height:48px;}
+  #mixer .pan-scale {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    min-width:0;
+  }
+  #analyticsContent .xy-wrap,#diary .xy-wrap {max-width:100%;overflow-x:auto;}
+  .app-shell > main footer {margin:22px 0 0;min-width:0;}
+  @media (min-width:1140px) {
+    #metronome .instrument-layout {
+      grid-template-columns:minmax(380px,1.55fr) minmax(320px,.95fr);
+      gap:clamp(20px,2.5vw,42px);
+    }
+    #metronome .instrument {max-width:none;}
+    #metronome .side-controls {padding-top:0;}
+  }
+  @media (min-width:1350px) {
+    #mixer.cards {grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+}
+@media (min-width:641px) and (max-width:900px) {
+  .app-shell {
+    --v2-sidebar:clamp(80px,11vw,100px);
+    --v2-gutter:12px;
+  }
+  .app-shell > aside nav .nav {
+    font-size:10px;
+    min-height:49px;
+    padding:6px 5px;
+  }
+  #metronome .instrument-layout {grid-template-columns:minmax(0,1fr);}
+  #metronome .side-controls {max-width:720px;margin:0 auto;width:100%;}
+  .app-shell > main .section-heading h2 {font-size:19px;}
+}
+@media (min-width:641px) and (max-height:620px) {
+  .app-shell {grid-template-rows:66px minmax(0,1fr) 24px;row-gap:4px;}
+  .app-shell > aside nav .nav {min-height:38px;padding:5px;}
+  .app-shell > aside .rail-end {height:42px;}
+  .app-shell::after {height:24px;}
+}

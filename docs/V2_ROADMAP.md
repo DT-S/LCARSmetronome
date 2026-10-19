@@ -32,6 +32,8 @@
 
 ### P1 – Ein gemeinsames responsives LCARS-Fundament
 
+**Status:** P1b-Implementierung des großen LCARS-PADD in `v2-layout.css` begonnen; visuelle Abnahme, P1a-Konsolidierung und P1c/P1d noch offen.
+
 **Konkrete Umsetzung:** [P1-Implementierungspaket](V2_PHASE1_IMPLEMENTATION.md).
 - [ ] Globale Farb-, Abstand-, Typografie-, Rahmen-, Animations- und Touchgrößen-Tokens aus dem iPhone-PADD ableiten. Keine optisch zweite Desktop-Variante.
 - [ ] CSS in nachvollziehbare Basis-/Layout-/Component-/Motion-Schichten überführen. Alte verstreute Media-Query-Überschreibungen schrittweise ersetzen, nicht weitere Blindfixes anhängen.

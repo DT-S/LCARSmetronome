@@ -6,7 +6,7 @@
 | Architektur-/Implementierungsinventur | ERLEDIGT | `ARCHITECTURE.md`, `src/app.js`, `src/interface.js`, `src/linear-layout.js`, `src/number-control.js`, `src/tempo-control.js`, CSS v0.5.15 gesichtet |
 | Roadmap, Design, QA | ERLEDIGT | Diese V2-Dokumente |
 | Test-Sicherheitsnetz + CI | ERLEDIGT | [Erster GitHub-Actions-Lauf erfolgreich](https://github.com/DT-S/LCARSmetronome/actions/runs/39332554154); `tests/module-integrity.test.js` prüft Import-/PWA-Integrität |
-| P1 Universelles Layout | VORBEREITET | [Implementierungspaket](V2_PHASE1_IMPLEMENTATION.md); visuelle Änderung noch nicht begonnen |
+| P1 Universelles Layout | IN ARBEIT | Neues `v2-layout.css` für >640px, Shell/Navigation/Footer/erste Inhaltsraster; Browser- und Nutzerabnahme offen |
 | P2 Alle Seiten | OFFEN | Metronome, Audio, Presets, Diary, Stats, System |
 | P3 Präzisions-Fader | OFFEN | Zoom-Bubble + feiner Touch-Drag |
 | P4 Zahlenleiter | OFFEN | BPM + Parameter |
@@ -32,3 +32,4 @@
 - Workflow: [Rhythm PADD V2 checks / Run 39332554154](https://github.com/DT-S/LCARSmetronome/actions/runs/39332554154).
 - Status: `completed`, Conclusion: `success`; Checkout, Node.js 22, `npm test` erfolgreich.
 - Dieser Nachweis umfasst **Node-Tests**, keine realen Safari-/Firefox-/Tablet-Screenshots.
+\n- P1b Implementierung der Tablet-/Desktop-Shell und responsiver Metronom-/Audio-Container in isolierter CSS-Migrationsdatei; Phone-CSS bleibt unverändert.\n- Browser-Layout, Geräte-Gegenprobe und CSS-Konsolidierung stehen weiterhin aus.\n

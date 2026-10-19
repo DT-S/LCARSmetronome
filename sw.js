@@ -1,5 +1,5 @@
 const PREFIX='lcars-core-'+new URL(self.registration.scope).pathname+'-';
-const CACHE=PREFIX+'lcars-core-v5.7.0';
+const CACHE=PREFIX+'lcars-core-v5.8.0';
 const FILES=['./','./index.html','./style.css','./manifest.webmanifest','./assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png','./src/app.js','./src/interface.js','./src/tempo-control.js','./src/charts.js','./src/custom-sounds.js','./src/diary.js','./src/diary-ui.js','./src/model.js','./src/rhythm.js','./src/audio.js','./src/scheduler.js','./src/storage.js','./src/synth.js','./src/training-ui.js','./src/number-control.js',...['switchingmenus','hoversound','Acceptsound','invalidsound','Warningsound','buttonpress'].map(n=>`./assets/audio/ui/${n}.mp3`)];
 self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(FILES);})()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith(PREFIX)&&k!==CACHE)await caches.delete(k);await self.clients.claim();})()));

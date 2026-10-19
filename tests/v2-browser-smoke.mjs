@@ -79,32 +79,36 @@ try{
    assert.equal(await page.locator('#mixer input[data-field="pan"]').first().inputValue(),'1');
    await page.locator('#mixer .pan-scale').first().locator('button').nth(1).click();
    assert.equal(await page.locator('#mixer input[data-field="pan"]').first().inputValue(),'0');
-   // New P3 controls must retain native range inputs and readable values.
+   // Integrated Voyager module: two independent channels with accessible range values.
    const panInput=page.locator('#mixer input[data-field="pan"]').first();
    assert.equal(await panInput.getAttribute('aria-valuetext'),'CENTER');
-   assert.equal(await page.locator('#mixer input.precision-slider').count(),4);
-   assert.equal(await page.locator('#audio input.precision-slider').count(),6);
-   assert.equal(await page.locator('#audio .precision-readout').count(),6);
-   // A native range remains keyboard-accessible and its percent stays true.
+   assert.equal(await page.locator('#mixer .matrix-module').count(),4);
+   assert.equal(await page.locator('#mixer .matrix-segment').count(),80);
+   assert.equal(await page.locator('#mixer .matrix-tick').count(),140);
+   assert.equal(await page.locator('#mixer .matrix-readout').count(),4);
+   assert.equal(await page.locator('#mixer .matrix-native').count(),4);
+   assert.equal(await page.locator('#audio .precision-readout').count(),2);
    const volume=page.locator('#mixer input[data-field="volume"]').first();
    await volume.focus();
    const before=Number(await volume.inputValue());
    await page.keyboard.press('ArrowRight');
-   assert.ok(Number(await volume.inputValue())>before,`${label}: keyboard range input broken`);
-   assert.match(await volume.getAttribute('aria-valuetext'),/^[0-9]+%$/);
+   assert.ok(Number(await volume.inputValue())>before,`${label}: native keyboard range failed`);
    await page.keyboard.press('ArrowLeft');
-   assert.equal(Number(await volume.inputValue()),before,`${label}: keyboard undo did not restore volume`);
+   assert.equal(Number(await volume.inputValue()),before);
    if(label==='desktop'){
-    const bounds=await volume.boundingBox();
-    await page.mouse.move(bounds.x+bounds.width*.5,bounds.y+bounds.height*.5);
+    const track=page.locator('#mixer .matrix-volume .matrix-coarse').first(),bounds=await track.boundingBox();
+    await page.mouse.move(bounds.x+bounds.width*.3,bounds.y+bounds.height/2);
     await page.mouse.down();
-    assert.equal(await volume.locator('xpath=..').evaluate(el=>el.classList.contains('precision-active')),true,
-     'native mouse drag does not show the precision readout');
-    await page.mouse.move(bounds.x+bounds.width*.65,bounds.y+bounds.height*.5);
+    assert.equal(await track.locator('xpath=..').evaluate(el=>el.classList.contains('matrix-active')),true);
+    await page.mouse.move(bounds.x+bounds.width*.7,bounds.y+bounds.height/2);
     await page.mouse.up();
-    assert.equal(await volume.locator('xpath=..').evaluate(el=>el.classList.contains('precision-active')),false,
-     'native mouse drag left readout visible');
+    assert.equal(await track.locator('xpath=..').evaluate(el=>el.classList.contains('matrix-active')),false);
+    assert.equal(await volume.inputValue(),'0.7');
    }
+   await page.locator('#mixer .pan-scale').last().locator('button').last().click();
+   assert.equal(await page.locator('#mixer input[data-field="pan"]').last().inputValue(),'1');
+   assert.equal(await panInput.inputValue(),'0');
+   await page.locator('#mixer .pan-scale').last().locator('button').nth(1).click();
    await page.screenshot({path:path.join(screenshots,`${label}-audio.png`)});
    // P1c: navigate all secondary pages and verify that interactive content
    // remains reachable in the scrollable well, even on portrait tablets.
@@ -180,38 +184,43 @@ try{
    await page.waitForSelector('#mixer .pan-scale button',{timeout:15000});
    const pan=page.locator('#mixer input[data-field="pan"]').first();
    const center=page.locator('#mixer .pan-scale').first().locator('button').nth(1);
-   const rect=await pan.boundingBox();
-   assert.ok(rect&&rect.width>=80,'P3 touch pan slider not measurable');
-   const x=rect.x+rect.width/2,y=rect.y+rect.height/2,session=await page.context().newCDPSession(page);
+   const coarse=page.locator('#mixer .matrix-pan .matrix-coarse').first();
+   const fine=page.locator('#mixer .matrix-pan .matrix-vernier').first();
+   const housing=page.locator('#mixer .matrix-pan .matrix-housing').first();
+   const session=await page.context().newCDPSession(page);
    const touch=async(type,points)=>session.send('Input.dispatchTouchEvent',{
     type,touchPoints:points.map(([px,py])=>({x:px,y:py}))});
-   async function gesture(distance){
+   async function gesture(surface,delta,name){
     await center.click();
+    const rect=await surface.boundingBox();
+    assert.ok(rect&&rect.width>25,'LCARS segment too narrow to scrub');
+    const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
     await touch('touchStart',[[x,y]]);
-    assert.ok(await pan.locator('xpath=..').evaluate(label=>label.classList.contains('precision-active')),
-      'touch start did not activate precision readout');
-    await touch('touchMove',[[x+40,y-distance]]);
+    assert.equal(await housing.evaluate(el=>el.classList.contains('matrix-active')),true,'scrub did not activate');
+    await touch('touchMove',[[x+delta,y]]);
     const value=Number(await pan.inputValue());
-    assert.ok(await pan.getAttribute('aria-valuetext'),'precision value text missing');
-    if(distance>0)await page.screenshot({path:path.join(screenshots,'touch-pan-precision-active.png')});
+    assert.ok(await pan.getAttribute('aria-valuetext'),'missing accessible value');
+    await page.screenshot({path:path.join(screenshots,`touch-pan-${name}-active.png`)});
     await touch('touchEnd',[]);
-    assert.ok(!await pan.locator('xpath=..').evaluate(label=>label.classList.contains('precision-active')),
-      'touch end left precision overlay active');
+    assert.equal(await housing.evaluate(el=>el.classList.contains('matrix-active')),false,'scrub lock stuck');
     return value;
    }
-   const coarse=await gesture(0),fine=await gesture(125);
-   assert.ok(coarse>.1&&fine>0&&fine<coarse*.65,
-     `fine gesture did not reduce sensitivity: coarse=${coarse}, fine=${fine}`);
+   const coarseValue=await gesture(coarse,28,'coarse');
+   const fineValue=await gesture(fine,28,'vernier');
+   assert.ok(coarseValue>.1&&fineValue>.03&&fineValue<coarseValue,
+    `Vernier less precise than coarse: coarse=${coarseValue}, fine=${fineValue}`);
    await center.click();
    assert.equal(await pan.inputValue(),'0');
-   // An OS gesture cancellation must also hide the readout without a click.
+   const rect=await fine.boundingBox(),x=rect.x+rect.width/2,y=rect.y+rect.height/2;
    await touch('touchStart',[[x,y]]);
-   assert.ok(await pan.locator('xpath=..').evaluate(label=>label.classList.contains('precision-active')));
    await touch('touchCancel',[]);
-   assert.ok(!await pan.locator('xpath=..').evaluate(label=>label.classList.contains('precision-active')),
-     'pointercancel left readout visible');
+   assert.equal(await housing.evaluate(el=>el.classList.contains('matrix-active')),false,'cancel lock stuck');
+   await page.locator('#mixer .matrix-pan .matrix-step-up').first().click();
+   assert.equal(await pan.inputValue(),'0.01');
+   await center.click();
+   assert.equal(await pan.inputValue(),'0');
    assert.deepEqual(errors,[]);
-   console.log(`PASS P3 touch precision, coarse=${coarse}, fine=${fine}`);
+   console.log(`PASS Voyager touch, coarse=${coarseValue}, fine=${fineValue}`);
   }catch(error){fail++;console.error('FAIL P3 touch precision:',error);
    await page.screenshot({path:path.join(screenshots,'touch-pan-FAILED.png')}).catch(()=>{});
   }finally{await page.close();}

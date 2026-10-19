@@ -52,6 +52,9 @@ test('mixer UI wires native panorama buttons independently of mute/solo toggles'
   const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
   assert.match(app,/for\(const \{label,value\} of PAN_PRESETS\)/);
   assert.match(app,/panButtons\.forEach\(button=>button\.onclick=/);
-  assert.match(app,/if\(el\.dataset\.field==='pan'\)setChannelPan/);
+  assert.match(app,/buildMatrixFaders\(i,c,\{onChange:/);
+  assert.match(app,/setChannelPan\(c,input\.value,input,panButtons\)/);
   assert.match(css,/#mixer \.pan-scale button\[aria-pressed=true\]/);
+  const matrix=readFileSync(new URL('../v2-matrix.css',import.meta.url),'utf8');
+  assert.match(matrix,/#mixer \.matrix-segments/);
 });

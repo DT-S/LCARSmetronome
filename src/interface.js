@@ -45,9 +45,23 @@ export function installSegmentCorners(root){
  };
  const schedule=()=>{if(!scheduled){scheduled=true;requestAnimationFrame(refresh);}};
  const observer=new MutationObserver(schedule);
- // The app rerenders its option groups; hidden changes when switching pages.
- // Class/style changes made above are excluded, so they cannot create a loop.
- observer.observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+ // Only watch containers that actually rebuild segmented buttons. Observing
+ // the entire app would pick up the 60fps play-status/clock text updates and
+ // repeatedly force layout measurements while the audio scheduler is running.
+ const dynamicRoots=[
+  '#mixer','#trainingFields','#trainingActions','#diaryControls','#diaryList',
+  '#diaryEditor','#analyticsContent','#presetList','#scaleButtons','#customSoundList'
+ ];
+ for(const selector of dynamicRoots){
+  const node=root.querySelector(selector);
+  if(node)observer.observe(node,{childList:true,subtree:true});
+ }
+ // A tab opening reveals previously hidden controls; changing zoom also
+ // changes the visual grid geometry without a window resize.
+ for(const page of root.querySelectorAll('.page')){
+  observer.observe(page,{attributes:true,attributeFilter:['hidden']});
+ }
+ observer.observe(root,{attributes:true,attributeFilter:['style']});
  window.addEventListener('resize',schedule);
  schedule();
  return ()=>{observer.disconnect();window.removeEventListener('resize',schedule);};

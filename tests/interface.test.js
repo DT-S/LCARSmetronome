@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {activationSound,installFeedback,segmentCornerRadii,UI_SCALES,defaultInterfaceScale} from '../src/interface.js';
 import {fresh,validate,presetSettings,loadPreset} from '../src/model.js';
 function control({tab,mode,active=false,pressed=false,tag='BUTTON'}={}){const classes=new Set(active?['active']:[]);return {dataset:{tab,mode},tagName:tag,classList:{contains:s=>classes.has(s),add:s=>classes.add(s),remove:s=>classes.delete(s)},getAttribute:k=>k==='aria-pressed'?String(pressed):null,closest:()=>null,contains:()=>false,querySelector:()=>null};}
@@ -37,4 +38,10 @@ test('LCARS segment caps track reflow, incomplete rows and single controls',()=>
  assert.equal(narrow[5],'0 0 20px 0');
  assert.deepEqual(segmentCornerRadii([segmentRect(0,0)]),['20px 20px 20px 20px']);
  assert.deepEqual(segmentCornerRadii([{top:0,left:0,right:0,width:0,height:0}]),[null]);
+});
+
+test('segmented layout refresh is scoped to dynamic controls, not frame-updated text',()=>{
+ const source=readFileSync(new URL('../src/interface.js',import.meta.url),'utf8');
+ assert.match(source,/observer\.observe\(node,\{childList:true,subtree:true\}\)/);
+ assert.doesNotMatch(source,/observer\.observe\(root,\{childList:true,subtree:true/);
 });

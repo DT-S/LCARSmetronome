@@ -28,7 +28,9 @@
     grid-template-rows:clamp(74px,8.5vh,100px) minmax(0,1fr) 30px;
     column-gap:var(--v2-gutter);
     row-gap:6px;
-    width:calc(100% * var(--mobile-zoom-inverse,1));
+    /* CSS zoom already adjusts the percentage containing block on desktop.
+       Multiplying width by its inverse a second time overflows at 70%. */
+    width:100%;
     max-width:none;
     height:calc(100dvh * var(--mobile-zoom-inverse,1));
     min-height:0;

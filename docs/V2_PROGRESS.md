@@ -47,3 +47,5 @@
 ## P1c: Zweiteilige responsiv gestaltete Seiten (Implementierung)
 - `v2-layout.css`: Preset-Formular und Karten; Diary-Session-Setup/Editor/History; Stats-Filters/Plots/Kalender; System-Karten/Skalierung; Tablet-Navigation mit Kurzlabels. Ohne geänderten Audio- oder Speicher-Code.
 - Noch offen: automatisierte Browserprüfung **aller sechs** Seiten inkl. Zoom und echte Geräteabnahme. Erst nach Resultaten Status aktualisieren.
+
+- **Skalierungsregression gefunden:** Der erste Volltest deckte bei `0.7` Desktop-/Tablet-Zoom rechts abgeschnittene Rahmen auf. Doppelte Breitenkompensation in `v2-layout.css` entfernt; Browser-Neutest ausstehend. Der erste Fehltest zuvor war nur ein falsch geschachtelter Playwright-Selektor, bereits korrigiert.

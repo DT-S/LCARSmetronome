@@ -1,0 +1,91 @@
+// Run via: node tests/v2-browser-smoke.mjs (requires Playwright + Chromium).
+// This is a real headless-browser smoke check, separate from the fast Node suite.
+import {createServer} from 'node:http';
+import {createReadStream,existsSync,mkdirSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+
+const root=path.resolve(fileURLToPath(new URL('../',import.meta.url)));
+const screenshots=path.join(root,'artifacts','v2-smoke');
+mkdirSync(screenshots,{recursive:true});
+const mime={'.js':'text/javascript','.css':'text/css','.html':'text/html','.json':'application/json',
+ '.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.mp3':'audio/mpeg'};
+const server=createServer((req,res)=>{
+ const requestUrl=new URL(req.url,'http://localhost');
+ const rel=decodeURIComponent(requestUrl.pathname)==='/'?'index.html':decodeURIComponent(requestUrl.pathname).slice(1);
+ const full=path.resolve(root,rel);
+ if(!full.startsWith(root+path.sep)||!existsSync(full)){
+  res.writeHead(404);res.end('Not found');return;
+ }
+ res.writeHead(200,{'Content-Type':mime[path.extname(full)]||'application/octet-stream'});
+ createReadStream(full).pipe(res);
+});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const origin=`http://127.0.0.1:${server.address().port}`;
+const browser=await chromium.launch({headless:true});
+const targets=[
+ {width:390,height:844,label:'iphone-compact'},
+ {width:768,height:1024,label:'tablet-portrait'},
+ {width:1024,height:768,label:'tablet-landscape'},
+ {width:1440,height:900,label:'desktop'},
+ {width:1920,height:1080,label:'desktop-wide'}
+];
+let fail=0;
+try{
+ for(const {width,height,label} of targets){
+  const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1,reducedMotion:'reduce'});
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  page.on('response',response=>{if(response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   await page.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:20000});
+   assert.equal(await page.locator('#modeButtons button').count(),8,`${label}: operating modes`);
+   const dims=await page.evaluate(()=>{
+    const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();
+      return {left:r.left,top:r.top,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
+    return {shell:rect('.app-shell'),header:rect('.app-shell > header'),aside:rect('.app-shell > aside'),main:rect('.app-shell > main'),dial:rect('#dial'),
+      display:getComputedStyle(document.querySelector('.app-shell')).display,
+      css:getComputedStyle(document.querySelector('.app-shell > main')).overflowY,
+      mobileTitle:getComputedStyle(document.querySelector('.mobile-title')).display,
+      layoutSheet:[...document.styleSheets].some(s=>s.href?.endsWith('/v2-layout.css'))};
+   });
+   assert.equal(dims.layoutSheet,true,`${label}: missing V2 stylesheet`);
+   assert.equal(dims.display,'grid',`${label}: app-shell must be a grid`);
+   assert.ok(dims.shell.left>=-2 && dims.shell.right<=width+2,`${label}: horizontal shell clipping ${JSON.stringify(dims.shell)}`);
+   assert.ok(dims.shell.top>=-2 && dims.shell.bottom<=height+2,`${label}: vertical shell clipping ${JSON.stringify(dims.shell)}`);
+   assert.ok(dims.dial.width>120,`${label}: dial not visible`);
+   assert.ok(dims.main.width>130,`${label}: content well too narrow`);
+   assert.notEqual(dims.mobileTitle,'none',`${label}: RHYTHM PADD heading invisible`);
+   if(width>640){
+    assert.equal(dims.css,'auto',`${label}: main must scroll independently`);
+    assert.ok(dims.aside.right<=dims.main.left,`${label}: fascia overlaps content`);
+   }
+   await page.screenshot({path:path.join(screenshots,`${label}-metronome.png`)});
+   await page.locator('#view').click();
+   assert.ok(await page.locator('#linear .step').count()>0,`${label}: Linear View missing steps`);
+   await page.locator('#view').click();
+   assert.ok(await page.locator('#rings [data-index]').count()>0,`${label}: Circular View missing beats after switch`);
+   await page.locator('[data-tab="audio"]').click();
+   await page.waitForSelector('#mixer .sound-choices button');
+   assert.equal(await page.locator('#mixer .pan-scale button').count(),6,`${label}: pan presets missing`);
+   await page.locator('#mixer .pan-scale').first().locator('button').last().click();
+   assert.equal(await page.locator('#mixer input[data-field="pan"]').first().inputValue(),'1');
+   await page.locator('#mixer .pan-scale').first().locator('button').nth(1).click();
+   assert.equal(await page.locator('#mixer input[data-field="pan"]').first().inputValue(),'0');
+   await page.screenshot({path:path.join(screenshots,`${label}-audio.png`)});
+   assert.deepEqual(errors,[],`${label}: errors or missing assets`);
+   console.log(`PASS ${label} (${width}x${height})`);
+  }catch(error){
+   fail++;
+   console.error(`FAIL ${label} (${width}x${height}):`,error);
+   await page.screenshot({path:path.join(screenshots,`${label}-FAILED.png`)}).catch(()=>{});
+  }finally{await page.close();}
+ }
+}finally{
+ await browser.close();
+ await new Promise(resolve=>server.close(resolve));
+}
+if(fail)process.exitCode=1;

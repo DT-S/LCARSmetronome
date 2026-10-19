@@ -24,3 +24,28 @@ jobs:
           node-version: '22'
       - name: Run tests (no external npm dependencies)
         run: npm test
+
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout V2 source
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Test smartphone tablet and desktop rendering
+        run: node tests/v2-browser-smoke.mjs
+      - name: Keep layout screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rhythm-padd-v2-layout-screenshots
+          path: artifacts/v2-smoke/*.png
+          if-no-files-found: ignore
+          retention-days: 7

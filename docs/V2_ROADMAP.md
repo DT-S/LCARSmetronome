@@ -87,6 +87,8 @@
 - **Fertig wenn:** 3:5, 3:7, 8+, 20:20, Tap und Drag in beiden Views ohne doppelte Akzente oder Verschiebungen funktionieren.
 
 ### P6 – LCARS-Motion-System und Plotter
+
+**Status:** Transitions and factual chart probes implemented in code; Node/Chromium and real-device QA remain open.
 - [ ] Seitenwechsel: unaufdringlicher Aufbau/Slide von links nach rechts (~150–250 ms), keine navigationsblockierende Wartezeit.
 - [ ] Aktive Modi, Umschalten zwischen Circular/Linear und Statuswechsel erhalten kleine Animationen; starke Blinkeffekte vermeiden.
 - [ ] Statistik-Plots: dezente Linien-/Markierungsbewegung nur als dekorativer Akzent, **keine simulierten Messwerte**.

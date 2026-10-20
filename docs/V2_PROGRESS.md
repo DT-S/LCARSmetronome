@@ -155,3 +155,10 @@
 - 3:5, 3:7 und 20:20 erfolgreich überprüft; mobile Zeilen sind auch bei 20:20 gleichmäßig verteilt, mit unverändertem DOM-Zeilencontainer.
 - Desktop-Tastatur und Mausdrag getestet, inklusive Fokus-Erhalt bei Akzentwechsel.
 - **P5 im Code und automatisiert abgeschlossen.** Für die Produktfreigabe bleiben echter iPhone-/Tablet-Safari-, Arch-Firefox- und Audio-Gerätetest offen. Der vom Nutzer separat entdeckte kleine Bug wird absichtlich später behandelt.
+
+## P6 – State-triggered LCARS motion (implementation)
+- `src/motion.js` provides short transition acknowledgments ONLY after explicit page, Circular/Linear, mode and start/stop state changes. No animation or forced layout per audio frame.
+- Page change: 210ms left-to-right materialization; view change: 195ms gentle slide; modes and start/stop: single 220ms/230ms emphasis. Same-page tabs do not restart the transition.
+- Plotter crosshairs track **actual** user-selected recorded session points on focus/hover; readout reflects stored point label. Single plot-entry animations remain brief, and charts with >120 points skip per-point motions.
+- `prefers-reduced-motion:reduce` disables all non-essential motion, no scanlines, no pulsing SYS-bars and no invented numerical telemetry.
+- Changed frontend assets are included in the offline cache. Unit and Chromium behavior tests are still to follow. Audio/diary storage model unchanged.

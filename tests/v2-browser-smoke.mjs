@@ -251,12 +251,23 @@ try{
    await touch('touchMove',[[x,y-13]]);
    assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),true,
      'tempo drag did not reveal visual ladder');
+   assert.equal(await tempo.evaluate(el=>el.classList.contains('gesture-source-active')),true,
+     'tempo button is not visually replaced by the morph');
+   // The expanded guide should cover the ORIGINAL button center, not appear beside it.
+   const expectedTempoCenter={x:rect.x+rect.width/2,y:rect.y+rect.height/2};
+   const morph=await guide.boundingBox();
+   assert.ok(Math.abs(morph.x+morph.width/2-expectedTempoCenter.x)<3,
+     'tempo guide opens beside the button instead of beneath the finger');
+   assert.ok(Math.abs(morph.y+morph.height/2-expectedTempoCenter.y)<3,
+     'tempo guide is not vertically centered on the button');
    await touch('touchMove',[[x,y-43]]);
    assert.ok(Number(await tempo.textContent())>bpmBefore,'tempo drag no longer works');
    assert.equal(await guide.locator('.gesture-guide-rung.is-current').count(),1);
    await page.screenshot({path:path.join(screenshots,'touch-tempo-ladder-active.png')});
    await touch('touchEnd',[]);
    assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),false);
+   assert.equal(await tempo.evaluate(el=>el.classList.contains('gesture-source-active')),false,
+     'reduced-motion tempo must restore immediately after release');
    const beats=page.locator('#beats');
    const beatDial=beats.locator('xpath=..').locator('button.value-dial');
    await beatDial.scrollIntoViewIfNeeded();
@@ -266,6 +277,10 @@ try{
    await touch('touchMove',[[x,y-13]]);
    assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),true,
      'beat drag did not reveal visual ladder');
+   assert.equal(await beatDial.evaluate(el=>el.classList.contains('gesture-source-active')),true);
+   const beatBox=await guide.boundingBox();
+   assert.ok(Math.abs(beatBox.x+beatBox.width/2-(rect.x+rect.width/2))<3,
+     'beat ladder opens to the side instead of over the beat button');
    await touch('touchMove',[[x,y-43]]);
    assert.ok(Number(await beats.inputValue())>before,
      'beat drag no longer updates pattern length');
@@ -273,11 +288,50 @@ try{
    await touch('touchCancel',[]);
    assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),false,
      'cancelled beat drag left guide open');
+   assert.equal(await beatDial.evaluate(el=>el.classList.contains('gesture-source-active')),false,
+     'cancelled beat drag failed to restore its original button');
    assert.deepEqual(errors,[]);
    console.log('PASS P4 touch ladder for tempo and beat controls');
   }catch(error){
    fail++;console.error('FAIL P4 touch ladder:',error);
    await page.screenshot({path:path.join(screenshots,'touch-p4-FAILED.png')}).catch(()=>{});
+  }finally{await page.close();}
+ }
+ // Verify the real motion path separately from reduced-motion touch tests.
+ // The source button must grow into the guide, then shrink back after release.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844},
+    reducedMotion:'no-preference'});
+  const errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   const button=page.locator('#tempoValue'),guide=page.locator('.gesture-guide');
+   await button.scrollIntoViewIfNeeded();
+   const source=await button.boundingBox();
+   const x=source.x+source.width/2,y=source.y+source.height/2;
+   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x,y-27,{steps:3});
+   assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),true);
+   assert.ok((await guide.evaluate(el=>parseFloat(getComputedStyle(el).transitionDuration)))>.05,
+     'motion-enabled morph lost its CSS transition');
+   await page.waitForTimeout(250);
+   const expanded=await guide.boundingBox();
+   assert.ok(expanded.height>=255&&expanded.width>=100,'guide did not morph to full ladder');
+   assert.ok(Math.abs(expanded.x+expanded.width/2-x)<3,
+     'expanded ladder not centered under original tempo button');
+   await page.screenshot({path:path.join(screenshots,'tempo-morph-animated-expanded.png')});
+   await page.mouse.up();
+   await page.waitForFunction(()=>!document.querySelector('.gesture-guide').classList.contains('is-morphing'));
+   assert.ok(await button.isVisible(),'original tempo button not restored');
+   assert.equal(await button.evaluate(el=>el.classList.contains('gesture-source-active')),false);
+   const restored=await button.boundingBox();
+   assert.ok(Math.abs(restored.width-source.width)<1&&Math.abs(restored.height-source.height)<1,
+     'morph shifted its source button layout');
+   assert.deepEqual(errors,[]);
+   console.log('PASS P4 reversible button-to-ladder morph');
+  }catch(error){
+   fail++;console.error('FAIL P4 reversible morph:',error);
+   await page.screenshot({path:path.join(screenshots,'tempo-morph-FAILED.png')}).catch(()=>{});
   }finally{await page.close();}
  }
 }finally{

@@ -120,3 +120,10 @@
 - Reale simulierte Touch-Gesten für Tempo sowie Beat-Anzahl; Leiter erscheint mit aktivem Strich, Zustand aktualisiert sich und wird bei Pointer-Up/Cancel entfernt.
 - Regression entdeckt und behoben: eine falsche automatische Ersetzung verdoppelte einen JavaScript-Bezeichner in `src/app.js`. Neu: `node --check` für alle Laufzeitmodule als fester Syntax-Regressionstest.
 - **P4 im Code technisch umgesetzt, hardwareseitige Abnahme noch offen. P5 Linear-View-Drag und P6 Plotter-/Seitenanimationen weiterhin offen.**
+
+## P4b – Gestenleiter transformiert jetzt direkt aus dem Button
+- Nutzerfeedback umgesetzt: Die Zahlenleiter erscheint **nicht** mehr seitlich. Sie beginnt exakt mit der Form, Größe und Position des berührten Buttons und erweitert sich zentriert an derselben Stelle zu 104×260 px. An kleinen Bildschirmrändern wird die Endposition nur so weit wie nötig verschoben.
+- Beim Loslassen/Abbruch schrumpft die Führung zurück; der ursprüngliche Button wird wieder sichtbar. Seine Pointer-Capture-/Tastatursemantik und die musikalische Zustandslogik bleiben unverändert.
+- Die morphende Führung ist bewusst `aria-hidden`, `pointer-events:none`; bei `prefers-reduced-motion` gibt es keine Übergänge und sofortige Rückkehr.
+- Browser-Suite prüft Touch-Positionierung, Pointer-Cancel, Rückgabe der Originalbuttons sowie die tatsächliche Vorwärts-/Rückwärtsanimation in Chromium; erster CI-Nachweis ausstehend.
+- Keine Änderungen an Audio-Scheduler, Datenmodell, Linear View oder V2-P5.

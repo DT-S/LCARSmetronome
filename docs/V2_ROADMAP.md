@@ -74,6 +74,8 @@
 - [ ] Stufen mit klar definierten Intervallen; Zoom/hohe Werte dürfen die Anzeige nicht überfüllen. Wert-Clamping beibehalten.
 - **Fertig wenn:** schnell ablesbare Schritte, keine Steuerkonflikte oder doppelten Änderungsereignisse.
 
+**P4b Feinschliff:** Die Führung morphiert aus dem bestehenden Value-Button unter dem Finger und schrumpft danach wieder zurück. Touch-/Motion-Regressionstests ergänzen die P4-Abnahme; echte Safari-Geräteabnahme noch offen.
+
 ### P5 – Linear View: Beat-Gesten
 - [ ] **Tap** auf Beat-Button verändert weiter nur seinen Akzentzustand.
 - [ ] **Vertikaler Drag** auf einen Beat der äußeren bzw. inneren Reihe verändert die jeweilige **Anzahl** (1–20), analog zur Ring-Längeninteraktion; Drag darf keinen Akzent auslösen.

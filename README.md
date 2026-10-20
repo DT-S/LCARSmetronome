@@ -1,5 +1,5 @@
-> **Rhythm PADD 2.0 – Entwicklungsbranch**  
-> Diese Branch-Version ist noch **kein fertiges V2-Release**. Die bisherige stabile Version 0.5.15 bleibt auf `main`.  
+> **Rhythm PADD 2.0.0-rc.1 – Release-Kandidat**  
+> Die vier gemeldeten UI-Bugs sind behoben und automatisiert getestet. Die finale Version 2.0.0 bleibt bis zur echten iPhone-/Audio-Abnahme und Klärung der UI-Sound-Rechte zurückgehalten. Die bisherige stabile Version 0.5.15 bleibt auf `main`.  
 > [Roadmap](docs/V2_ROADMAP.md) · [Designsystem](docs/V2_DESIGN_SYSTEM.md) · [QA-Matrix](docs/V2_TEST_MATRIX.md) · [Fortschritt](docs/V2_PROGRESS.md) · [Phase 1](docs/V2_PHASE1_IMPLEMENTATION.md)
 
 ---

@@ -40,3 +40,11 @@ Der V2-Entwicklungsbranch ist funktional implementiert. **Es liegt noch keine vo
 - 9/9 Chromium-Viewports; zusätzlich: gecachter Offline-Neustart, persistentes IndexedDB, Export/Restore, produktiver Service-Worker-Austausch, Live-Transport/Panorama/Mute-Solo-Regression sowie Firefox-Engine-Navigation und Persistenz.
 - Automatisierte Firefox-Engine ist **nicht identisch** mit einem echten lokalen Arch-Linux-Firefox-Gerätetest; Chromium-Touchprofile sind kein Safari-iOS.
 - Kein Test kann die subjektive Qualität von Stereopanning, Lautstärke, Soundimport, Hörlatenz oder PWA-Safe-Areas auf echter Hardware garantieren. Die Nutzerabnahme und der erwähnte Bug bleiben Release-Blocker.
+
+## RC1 – Neue Fehlerbehebungen
+- Doppeltipp-Zoom: `touch-action: manipulation` auf HTML/Body/App-Shell, echter Pinch-Zoom bleibt aktiv. Safari-Gerätetest erforderlich.
+- Benutzeroberfläche: neues `v2-polish.css` mit harmonisierter Schriftgröße in Diary/System und Schwarz auf Ice-Blue in Stats.
+- Zahlenleiter: 13 Rasterzeilen bleiben immer im Layout; ungültige Bereiche werden nur unsichtbar. Aktiver Mittelpunkt bleibt bei jedem Wert von 1 bis 20 zentriert.
+- Datenformat und Service-Worker-Scope unverändert; Cache-Revision für RC1.
+- Automatische Testnachweise: [CI 39356239083](https://github.com/DT-S/LCARSmetronome/actions/runs/39356239083) (vollständig grün).
+- App-Version derzeit `2.0.0-rc.1` als expliziter Release-Kandidat. **Nicht final freigeben, bevor reale Safari/Audio-/Lizenzprüfung erfolgt.**

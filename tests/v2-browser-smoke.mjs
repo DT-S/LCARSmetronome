@@ -67,6 +67,26 @@ try{
     assert.equal(dims.css,'auto',`${label}: main must scroll independently`);
     assert.ok(dims.aside.right<=dims.main.left,`${label}: fascia overlaps content`);
    }
+   // Large-screen stage: the circle is square, footer and transport remain
+   // inside the independently scrolling workspace, without occluding controls.
+   if(width>=1440&&height>=780){
+    const stage=await page.evaluate(()=>{
+     const box=q=>{const r=document.querySelector(q).getBoundingClientRect();
+      return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+     const main=document.querySelector('main');
+     return {dial:box('#dial'),transport:box('#metronome .transport'),legend:box('#metronome .legend'),
+       instrument:box('#metronome .instrument'),side:box('#metronome .side-controls'),
+       footer:box('.app-shell > main > footer'),mainScroll:main.scrollHeight-main.clientHeight,
+       stageRule:getComputedStyle(document.querySelector('#metronome .instrument')).borderLeftWidth};
+    });
+    assert.ok(stage.instrument.width>stage.dial.width, `${label}: dial leaves no room for its frame`);
+    assert.ok(Math.abs(stage.dial.width-stage.dial.height)<12,`${label}: ring lost its square ratio ${JSON.stringify(stage.dial)}`);
+    assert.ok(stage.transport.top>stage.dial.top && stage.transport.bottom<=stage.instrument.bottom+3,
+      `${label}: transport escaped the LCARS stage ${JSON.stringify(stage)}`);
+    assert.ok(stage.side.bottom>stage.side.top+350,`${label}: short side frame`);
+    assert.ok(parseFloat(stage.stageRule)>=18,`${label}: desktop cheek rail is missing`);
+    assert.ok(stage.mainScroll<210,`${label}: unnecessarily tall main overflow ${JSON.stringify(stage)}`);
+   }
    await page.screenshot({path:path.join(screenshots,`${label}-metronome.png`)});
    await page.locator('#view').click();
    assert.ok(await page.locator('#linear .step').count()>0,`${label}: Linear View missing steps`);

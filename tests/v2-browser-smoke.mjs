@@ -69,7 +69,7 @@ try{
    }
    // Large-screen stage: the circle is square, footer and transport remain
    // inside the independently scrolling workspace, without occluding controls.
-   if(width>=1440&&height>=780){
+   if(width>=1440&&height>=960){
     const stage=await page.evaluate(()=>{
      const box=q=>{const r=document.querySelector(q).getBoundingClientRect();
       return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};

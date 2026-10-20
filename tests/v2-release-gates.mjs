@@ -149,6 +149,40 @@ try{
    assert.deepEqual(errors,[]);
   }finally{serveOldWorker=false;await context.close();}
  });
+ await output('Chromium live transport, channel pan and mute/solo regression',async()=>{
+  const context=await browser.newContext({viewport:{width:1024,height:768}});
+  const page=await context.newPage(),errors=[];
+  page.on('pageerror',err=>errors.push(err.message));
+  try{
+   await page.goto(base,{waitUntil:'networkidle'});
+   await page.waitForSelector('#rings [data-index]');
+   await page.locator('#start').click();
+   await page.waitForFunction(()=>document.querySelector('#start').textContent==='STOP',
+     null,{timeout:15000});
+   assert.equal(await page.locator('#playStatus').textContent(),'PLAYING');
+   await page.locator('[data-tab="audio"]').click();
+   const firstPan=page.locator('#mixer input[data-field="pan"]').first();
+   const panButtons=page.locator('#mixer .pan-scale').first().locator('button');
+   await panButtons.first().click();
+   assert.equal(await firstPan.inputValue(),'-1');
+   await panButtons.last().click();
+   assert.equal(await firstPan.inputValue(),'1');
+   await panButtons.nth(1).click();
+   assert.equal(await firstPan.inputValue(),'0');
+   const outer=page.locator('#mixer .panel').first();
+   await outer.locator('button[data-field="mute"]').click();
+   assert.equal(await outer.locator('button[data-field="mute"]').getAttribute('aria-pressed'),'true');
+   await outer.locator('button[data-field="mute"]').click();
+   await outer.locator('button[data-field="solo"]').click();
+   assert.equal(await outer.locator('button[data-field="solo"]').getAttribute('aria-pressed'),'true');
+   await outer.locator('button[data-field="solo"]').click();
+   await page.locator('[data-tab="metronome"]').click();
+   await page.locator('#start').click();
+   await page.waitForFunction(()=>document.querySelector('#start').textContent==='START',null,{timeout:10000});
+   assert.equal(await page.locator('#playStatus').textContent(),'READY');
+   assert.deepEqual(errors,[]);
+  }finally{await context.close();}
+ });
  await browser.close();browser=null;
  // Firefox is an independent browser-engine check, not a claim of having
  // personally tested Arch Linux or iOS Safari hardware.

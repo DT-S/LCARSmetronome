@@ -161,3 +161,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
  #settings .panel #scaleButtons button{font-size:12px;}
  #analyticsContent .session-choices button{font-size:13px;}
 }
+
+/* v2 RC2: iOS keyboard must not move the LCARS fascia; the <main> content
+   well remains the sole scrollable region. Respect reduced interface scale. */
+@media (max-width:640px) {
+ html { overscroll-behavior:none; }
+ body { position:fixed; inset:0; width:100%; height:100%; overflow:hidden; overscroll-behavior:none; }
+ #diaryEditor input, #diaryEditor textarea {
+   font-size:max(18px,calc(16px * var(--mobile-zoom-inverse,1)));
+ }
+ #tap { touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+}

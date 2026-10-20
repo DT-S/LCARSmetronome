@@ -156,7 +156,11 @@ export function buildMatrixFaders(index,channel,{onChange}){
   root.append(module);
   native[kind]=input;
   views[kind]={module,housing,readout,bracket,ledTicks,vernierLaser,segments:segmentNodes,ticks:tickNodes,coarse,vernier,coords:fineMicro?.querySelector('output')};
-  const set=v=>onChange(kind,matrixClamp(Math.round(v*100)/100,isPan?-1:0,1));
+  const set=(v,gesture=false)=>{
+   const next=matrixClamp(Math.round(v*100)/100,isPan?-1:0,1);
+   if(next===Number(native[kind].value))return;
+   onChange(kind,next,{gesture});
+  };
   for(const [button,step] of [[fineMinus,isPan?-.05:-.01],[finePlus,isPan?.05:.01]])
    bindStep(button,step,delta=>set(Number(native[kind].value)+delta));
   if(isPan){
@@ -183,15 +187,15 @@ export function buildMatrixFaders(index,channel,{onChange}){
     surface.setPointerCapture(event.pointerId);
     housing.classList.add('matrix-active');
     input.focus({preventScroll:true});
-    if(!fine)set(matrixValue(kind,(event.clientX-rect.left)/rect.width));
+    if(!fine)set(matrixValue(kind,(event.clientX-rect.left)/rect.width),true);
    });
    surface.addEventListener('pointermove',event=>{
     if(!pointer||event.pointerId!==pointer.id)return;
     event.preventDefault();
-    if(fine)set(matrixFineValue(pointer.startValue,event.clientX-pointer.startX,kind));
+    if(fine)set(matrixFineValue(pointer.startValue,event.clientX-pointer.startX,kind),true);
     else {
      const rect=(fine?surface:instrument).getBoundingClientRect();
-     set(matrixValue(kind,(event.clientX-rect.left)/rect.width));
+     set(matrixValue(kind,(event.clientX-rect.left)/rect.width),true);
     }
    });
    surface.addEventListener('pointerup',stop);

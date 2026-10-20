@@ -572,13 +572,35 @@ try{
     'different tab did not trigger LCARS page reveal');
    assert.equal(await audio.evaluate(el=>getComputedStyle(el).animationName),'lcars-page-build');
    await page.screenshot({path:path.join(screenshots,'p6-audio-page-build.png')});
-   await page.waitForTimeout(280);
-   assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),false,
-    'page transition continued after 210 ms');
+   const frame=page.locator('#audio .cards > .panel').first();
+   assert.match(await frame.evaluate(el=>getComputedStyle(el).animationName),/lcars-tab-frame/,
+    'audio frame did not join the staggered launch');
+   await page.waitForTimeout(300);
+   assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),true,
+    'staged page build was cut off at the old 210ms boundary');
+   await page.waitForFunction(()=>!document.querySelector('#audio').classList.contains('lcars-page-enter'),
+    null,{timeout:1800});
    await page.locator('[data-tab="audio"]').click();
    assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),false,
     'clicking active tab restarted page animation');
+   for(const tab of ['presets','diary','analytics','settings']){
+    await page.locator(`[data-tab="${tab}"]`).click();
+    const target=page.locator('#'+tab);
+    assert.equal(await target.evaluate(el=>el.classList.contains('lcars-page-enter')),true,
+      tab+' did not receive the menu-build effect');
+    assert.match(await target.locator(':scope > .section-heading').evaluate(el=>getComputedStyle(el).animationName),
+      /lcars-tab-frame/,tab+' structural header not animated');
+    await page.screenshot({path:path.join(screenshots,`menu-build-${tab}.png`)});
+   }
+   // Fast repeated navigation must cancel previous timers and classes.
+   assert.equal(await page.locator('#analytics.lcars-page-enter').count(),0);
+   assert.equal(await page.locator('#diary.lcars-page-enter').count(),0);
    await page.locator('[data-tab="metronome"]').click();
+   assert.equal(await page.locator('#metronome.lcars-page-enter').count(),1);
+   assert.match(await page.locator('#rings circle.track').first().evaluate(el=>getComputedStyle(el).animationName),
+     /lcars-launch-ring/,'metronome re-entry should replay traced rings');
+   await page.waitForFunction(()=>!document.querySelector('#metronome').classList.contains('lcars-page-enter'),
+     null,{timeout:1800});
    const mode=page.locator('#modeButtons button[data-mode="polyrhythm"]');
    await mode.click();
    assert.equal(await mode.getAttribute('aria-pressed'),'true');

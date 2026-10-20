@@ -98,7 +98,7 @@ test('mobile diary editor does not auto-focus or use document scrollIntoView',()
  const source=readFileSync(new URL('../src/diary-ui.js',import.meta.url),'utf8');
  assert.match(source,/if\(onPhone\(\)\)\{/);
  assert.match(source,/well\.scrollTop\+=/);
- assert.match(source,/window\.visualViewport\?\.addEventListener\('resize'/);
+ assert.match(source,/for\(const event of \['resize','scroll'\]\)/);
  const mobile=source.split('if(onPhone()){').at(-1).split('}else{')[0];
  assert.doesNotMatch(mobile,/\.focus\(/);
  assert.doesNotMatch(mobile,/\.scrollIntoView\(/);

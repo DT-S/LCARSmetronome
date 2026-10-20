@@ -21,16 +21,24 @@ export function createDiaryUI(getState,save,notify){
   const focused=document.activeElement;
   if(!well||!editor.contains(focused)||!focused.matches('input,textarea,select'))return;
   const bounds=well.getBoundingClientRect(),field=focused.getBoundingClientRect();
+  const vv=window.visualViewport;
+  // WebKit lets the keyboard cover the lower part of a fixed scroll container.
+  // The input must fit into the *visual* viewport, not merely into <main>.
+  const visibleTop=Math.max(bounds.top,vv?.offsetTop??bounds.top);
+  const visibleBottom=Math.min(bounds.bottom,vv?vv.offsetTop+vv.height:bounds.bottom);
+  if(visibleBottom-visibleTop<60)return;
   const zoom=getState().uiScale||1,margin=12;
-  if(field.bottom>bounds.bottom-margin)well.scrollTop+=(field.bottom-bounds.bottom+margin)/zoom;
-  else if(field.top<bounds.top+margin)well.scrollTop+=(field.top-bounds.top-margin)/zoom;
+  if(field.bottom>visibleBottom-margin)well.scrollTop+=(field.bottom-visibleBottom+margin)/zoom;
+  else if(field.top<visibleTop+margin)well.scrollTop+=(field.top-visibleTop-margin)/zoom;
  }
  document.querySelector('#diaryEditor').addEventListener('focusin',()=>{
   requestAnimationFrame(keepEditorFieldVisible);
  });
- window.visualViewport?.addEventListener('resize',()=>{
-  requestAnimationFrame(keepEditorFieldVisible);
- },{passive:true});
+ for(const event of ['resize','scroll']){
+  window.visualViewport?.addEventListener(event,()=>{
+   requestAnimationFrame(keepEditorFieldVisible);
+  },{passive:true});
+ }
  function render(){
   const d=diary(),root=document.querySelector('#diaryControls');root.replaceChildren();
   const toggle=button(d.enabled?'AUTO LOG · ON':'AUTO LOG · OFF',()=>{d.enabled=!d.enabled;save();render();});toggle.setAttribute('aria-pressed',d.enabled);toggle.className='full';

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from '../src/linear-layout.js';
+import {linearRowSizes,mobileFrameHeight,visibleViewportHeight,keyboardSafeViewportHeight} from '../src/linear-layout.js';
 
 test('3 vs 5 and 3 vs 7 remain single, full-width rows on iPhone',()=>{
   assert.deepEqual(linearRowSizes(3,275),[3]);
@@ -34,4 +34,14 @@ test('iOS standalone viewport is limited by actual visible region, not screen.he
   assert.equal(visibleViewportHeight(844,844,844),844);
   assert.equal(mobileFrameHeight(visibleViewportHeight(844,760,844),.9)*.9,760);
   assert.throws(()=>visibleViewportHeight(0,null,0));
+});
+
+test('opening the iOS keyboard never collapses the LCARS outer frame',()=>{
+ assert.equal(keyboardSafeViewportHeight(410,760,true),760);
+ assert.equal(keyboardSafeViewportHeight(410,760,false),760);
+ assert.equal(keyboardSafeViewportHeight(750,760,false),750);
+ assert.equal(keyboardSafeViewportHeight(840,760,false),840);
+ assert.equal(keyboardSafeViewportHeight(760,760,false),760);
+ assert.equal(keyboardSafeViewportHeight(760,0,true),760);
+ assert.throws(()=>keyboardSafeViewportHeight(0,760,true));
 });

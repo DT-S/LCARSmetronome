@@ -1,6 +1,6 @@
 import {installFeedback,installTapTempo,installSegmentCorners,UI_SCALES,defaultInterfaceScale} from './interface.js';
 import {PAN_PRESETS,setChannelPan} from './pan-control.js';
-import {installPrecisionSlider,formatVolume} from './precision-slider.js';
+import {mountLcarsSlider,syncLcarsSlider} from './lcars-slider.js';
 import {buildMatrixFaders} from './matrix-faders.js';
 import {linearRowSizes,mobileFrameHeight,visibleViewportHeight,keyboardSafeViewportHeight} from './linear-layout.js';
 import {installUpdateManager} from './update-manager.js';
@@ -40,7 +40,14 @@ const shortModes={standard:'STANDARD',polyrhythm:'POLYRHYTHM',polymeter:'POLYMET
 for(const [value,label] of Object.entries(shortModes)){
  const b=document.createElement('button');b.type='button';b.dataset.mode=value;b.textContent=label;b.title=MODES[value];b.onclick=()=>{const change=state.mode!==value;state.mode=value;render();changed();if(change)motion.mode(b);};$('#modeButtons').append(b);
 }
+let lastFaderTone=0;
+function faderTouchFeedback(){
+ if(state.haptic)navigator.vibrate?.(5); // iOS may not expose vibration.
+ const now=performance.now();
+ if(now-lastFaderTone>95){lastFaderTone=now;audio.ui('hoversound',state);}
+}
 $('#swing').oninput=e=>{state.swing=Number(e.target.value)/100;syncSwing(state);changed();};
+mountLcarsSlider($('#swing'),{kind:'swing',title:'SHUFFLE / SWING',code:'42-S9',onValueChange:faderTouchFeedback});
 let heardTempo=null;
 function tempoReadout(event=null){
  $('#tempoValue').textContent=state.bpm;$('#tempoValue').setAttribute('aria-valuenow',state.bpm);
@@ -172,7 +179,7 @@ function render(){applyScale();for(const k of ['bpm','beats','subdivisions','cou
   $('#outerLabel').textContent=poly?'OUTER PATTERN LENGTH':'QUARTERS PER BAR';
   $('#innerLabel').textContent=poly?'INNER PATTERN LENGTH':'SUBDIVISIONS / QUARTER';
   $('#meterNote').textContent=state.mode==='polyrhythm'?`Outer ${state.beats} / inner ${state.subdivisions} over ${state.training.cycleQuarters} quarters`:state.mode==='polymeter'?`Outer ${state.beats}/4 · inner ${state.subdivisions}/4`:`${state.beats}/4 · ${state.subdivisions} subdivisions per quarter`;
-  tempoReadout();syncNumbers();renderTraining(state,trainingChanged);renderPatterns();renderMixer();renderPresets();diaryUI.render();soundUI.draw();}
+  tempoReadout();syncNumbers();renderTraining(state,trainingChanged);renderPatterns();renderMixer();renderPresets();diaryUI.render();soundUI.draw();syncLcarsSlider($('#master'));syncLcarsSlider($('#uiVolume'));}
 function renderMixer(){
   $('#mixer').replaceChildren();state.channels.forEach((c,i)=>{
     const panel=document.createElement('div');panel.className='panel';
@@ -254,7 +261,12 @@ $('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>
 let taps=[];installTapTempo($('#tap'),()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;});
 $('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();motion.view(linear?$('#linear'):$('#dial'));};
 
-for(const k of ['master','uiVolume']){const input=$('#'+k);input.oninput=e=>{state[k]=Number(e.target.value);changed();};installPrecisionSlider(input,{format:formatVolume});}
+for(const k of ['master','uiVolume']){
+ const input=$('#'+k);
+ input.oninput=e=>{state[k]=Number(e.target.value);changed();};
+ mountLcarsSlider(input,{kind:'volume',title:k==='master'?'MASTER / OUTPUT':'UI / VOLUME',
+   code:k==='master'?'GAIN-M':'GAIN-UI',onValueChange:faderTouchFeedback});
+}
 for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();$('main').scrollTop=0;motion.page(b.dataset.tab);});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};

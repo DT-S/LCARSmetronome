@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ladderSteps,ladderPlacement} from '../src/gesture-guide.js';
-test('P4 ladder shows 13 one-unit rungs with current marker and major steps',()=>{
+import {ladderSteps,ladderMorphGeometry} from '../src/gesture-guide.js';
+
+test('P4 ladder shows 13 one-unit rungs and an active step',()=>{
  const steps=ladderSteps(120,20,400);
  assert.equal(steps.length,13);
  assert.deepEqual(steps.map(x=>x.value),Array.from({length:13},(_,i)=>126-i));
@@ -9,17 +10,26 @@ test('P4 ladder shows 13 one-unit rungs with current marker and major steps',()=
  assert.equal(steps.find(x=>x.active).value,120);
  assert.equal(steps.find(x=>x.value===125).major,true);
 });
-test('P4 guide respects integer boundaries and hides invalid rungs',()=>{
- const steps=ladderSteps(1,1,20);
- assert.equal(steps.filter(x=>x.available).length,7);
- assert.equal(steps.filter(x=>x.active)[0].value,1);
+test('P4 ladder hides out-of-range marks without moving the active rung',()=>{
+ assert.equal(ladderSteps(1,1,20).filter(x=>x.available).length,7);
  assert.equal(ladderSteps(400,20,400).filter(x=>x.available).length,7);
+ assert.equal(ladderSteps(1,1,20).findIndex(x=>x.active),6);
 });
-test('P4 ladder stays within visual viewport on either side',()=>{
- const onRight=ladderPlacement({left:40,right:70,top:200,height:40},390,844);
- assert.equal(onRight.left,82);
- const onLeft=ladderPlacement({left:290,right:345,top:500,height:40},390,844);
- assert.equal(onLeft.left,174);
- const short=ladderPlacement({left:10,right:30,top:25,height:30},320,280);
- assert.ok(short.top>=8&&short.top<=12);
+test('P4 morph begins at exact button bounds and expands beneath its center',()=>{
+ const rect={left:120,top:240,width:80,height:50};
+ const g=ladderMorphGeometry(rect,390,844);
+ assert.deepEqual(g.from,rect);
+ assert.deepEqual(g.to,{left:108,top:135,width:104,height:260});
+ assert.equal(g.to.left+g.to.width/2,rect.left+rect.width/2);
+ assert.equal(g.to.top+g.to.height/2,rect.top+rect.height/2);
+});
+test('P4 morph stays on screen at bottom and both horizontal edges',()=>{
+ const left=ladderMorphGeometry({left:5,top:720,width:45,height:45},390,844);
+ assert.equal(left.to.left,8);
+ assert.equal(left.to.top,576);
+ const right=ladderMorphGeometry({left:344,top:5,width:50,height:45},390,844);
+ assert.equal(right.to.left,278);
+ assert.equal(right.to.top,8);
+ const small=ladderMorphGeometry({left:10,top:10,width:50,height:45},320,280);
+ assert.ok(small.to.left>=8&&small.to.top>=8);
 });

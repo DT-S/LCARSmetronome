@@ -748,7 +748,7 @@
    are untouched. Every decorative rail is pointer-events:none.
    Min-height gate keeps short landscape windows on the tested layout.
    ================================================================ */
-@media (min-width:1440px) and (min-height:780px) {
+@media (min-width:1440px) and (min-height:960px) {
   /* Only alter the scrolling workspace while the metronome page is shown:
      Presets, Diary, Analytics and System retain their own page layouts. */
   .app-shell > main:has(#metronome:not([hidden])) {
@@ -758,12 +758,16 @@
   #metronome.page:not([hidden]) {
     display:flex;
     flex-direction:column;
-    flex:1 1 auto;
+    /* Zero flex basis prevents the circular control's intrinsic width from
+       growing the entire page past the available scroll-well height. */
+    flex:1 1 0;
     min-height:0;
     min-width:0;
   }
   #metronome .instrument-layout {
-    flex:1 1 auto;
+    /* Occupy available page space, never derive height from the dial. */
+    flex:1 1 0;
+    height:0;
     display:grid;
     grid-template-columns:minmax(0,1.55fr) minmax(355px,.95fr);
     gap:clamp(18px,2.1vw,40px);

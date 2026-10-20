@@ -89,3 +89,10 @@ Der erste vollständige Lauf `39336109612` bestand alle 5 bisherigen Ziele, inkl
 - Reale simulierte Touch-Gesten für Tempo sowie Beat-Anzahl; Leiter erscheint mit aktivem Strich, Zustand aktualisiert sich und wird bei Pointer-Up/Cancel entfernt.
 - Regression entdeckt und behoben: eine falsche automatische Ersetzung verdoppelte einen JavaScript-Bezeichner in `src/app.js`. Neu: `node --check` für alle Laufzeitmodule als fester Syntax-Regressionstest.
 - **P4 im Code technisch umgesetzt, hardwareseitige Abnahme noch offen. P5 Linear-View-Drag und P6 Plotter-/Seitenanimationen weiterhin offen.**
+
+## P5 – Linear View Regressionen
+- Touch Tap ändert nur Akzent; vertikaler Drag nur Anzahl; erster Finger bleibt durch Pointer-Capture auf unveränderter Row-Node.
+- Absicherung für 1–20, 3:5, 3:7, 20:20 und ausgeglichene mobile Zeilenumbrüche.
+- Nach `pointercancel` springt die veränderte Anzahl auf ihren Startwert zurück und die Morph-Leiter verschwindet.
+- Keyboard-Fokus bleibt beim Umschalten des Akzents erhalten; Mausdrag und Circular-View-Switch weiterhin aktiv.
+- Automatisierter Basisnachweis: [Run 39348533144](https://github.com/DT-S/LCARSmetronome/actions/runs/39348533144). Ergänzte 3:5-/3:7-/20:20-Checks ausstehend.

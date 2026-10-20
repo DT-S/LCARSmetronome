@@ -391,6 +391,33 @@ try{
    await swipe(outer,0,62);
    assert.equal(await outer.locator('.step').count(),3);
    assert.equal(await outer.getAttribute('data-persistent-test'),'outer-original');
+   assert.equal(await inner.locator('.step').count(),7,'3:7 polyrhythm damaged');
+   // Directly exercise the mixed-length layout using the same state-setting
+   // path as manual input. The 3:5 and 3:7 examples must stay full width.
+   for(const count of [5,7]){
+    await page.locator('#subdivisions').evaluate((input,value)=>{
+     input.value=String(value);input.dispatchEvent(new Event('change',{bubbles:true}));
+    },count);
+    assert.equal(await outer.locator('.step').count(),3);
+    assert.equal(await inner.locator('.step').count(),count);
+    assert.equal(await outer.getAttribute('data-persistent-test'),'outer-original');
+    assert.equal(await inner.getAttribute('data-persistent-test'),'inner-original');
+   }
+   await page.screenshot({path:path.join(screenshots,'linear-p5-polyrhythm-3-7.png')});
+   // Stress the maximum supported 20:20 combination and mobile wrapping.
+   for(const field of ['beats','subdivisions']){
+    await page.locator(`#${field}`).evaluate(input=>{
+     input.value='20';input.dispatchEvent(new Event('change',{bubbles:true}));
+    });
+   }
+   for(const row of [outer,inner]){
+    assert.equal(await row.locator('.step').count(),20);
+    assert.ok(await row.locator('.pattern-line').count()>=2,'20 notes failed to wrap');
+    const sizes=await row.locator('.pattern-line').evaluateAll(lines=>lines.map(x=>x.querySelectorAll('.step').length));
+    assert.equal(sizes.reduce((a,b)=>a+b,0),20);
+    assert.ok(Math.max(...sizes)-Math.min(...sizes)<=1,'unbalanced 20-beat rows');
+   }
+   await page.screenshot({path:path.join(screenshots,'linear-p5-polyrhythm-20-20.png')});
    // Verify numerical limits through the production input/model, not through
    // mock state: the gesture must clamp without adding/removing phantom steps.
    for(const [count,distance,expectCount] of [[20,-62,20],[1,62,1]]){

@@ -140,3 +140,10 @@
 - Beide `pattern-row`-Container bleiben über sämtliche Render-Zyklen **identische DOM-Elemente** und besitzen die Pointer-Capture, während Buttons umgeordnet, entfernt oder ergänzt werden. Keyboard-/AT-Klicks bleiben möglich. Dynamische mobile Zeilenumbrüche werden beibehalten.
 - Die P4-Morph-Leiter dient als visuelle Rückmeldung unter dem Finger. Der Original-Audiokern und `number()`/Scheduler/Storage bleiben unverändert.
 - Pure Schrittberechnung besitzt Node-Regressionstests; geräteübergreifende Browser-/Touch-Prüfung noch offen.
+
+## P5 – Automatisierter Browsernachweis (20.10.2026)
+- [GitHub Actions Run 39348533144](https://github.com/DT-S/LCARSmetronome/actions/runs/39348533144): **SUCCESS** (Node + Chromium), neun Auflösungen, vorbestehende Audio- und P4-Tests weiter grün.
+- Linear: Touch-Tap ausschließlich Akzentwechsel, vertikaler Touch-Drag verändert Beats unabhängig von Subdivisions; Pointer-Capture bleibt auf persistenten Row-DOM-Knoten trotz neuem Beat-Layout; Escalation 4→7, 2→7, Reduktion 7→3, `pointercancel` rollt Teiländerungen zurück und hinterlässt keine offene Leiter.
+- Desktop: Tastatur `Enter` bleibt nutzbar und der Fokus nach Akzentänderung erhalten; Maus-Drag 4→7 funktioniert.
+- Zusätzlich Grenzfälle 3:5, 3:7 und 20:20 mit gleichmäßigem Wrapping in die Browser-Suite aufgenommen. Der Lauf für diese ergänzten Assertions steht noch aus.
+- **Offen:** Echter iPhone-/iPad-Safari- und Firefox-Praxistest; vom Nutzer erwähnter kleiner Bug bleibt gemäß Wunsch auf später vertagt.

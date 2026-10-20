@@ -78,7 +78,7 @@
 
 ### P5 – Linear View: Beat-Gesten
 
-**Status:** Persistent rows und vertikaler Drag in Code eingebaut. Browser-/Touch-/Keyboard-Abnahme ausstehend; Bugbehandlung außerhalb dieser Phase zurückgestellt.
+**Status:** Persistent rows und vertikaler Drag implementiert; [Chromium + Node Tests grün](https://github.com/DT-S/LCARSmetronome/actions/runs/39348533144). Ergänzende 3:5-/3:7-/20:20-Tests laufen noch; echte Geräteabnahme offen. Der separat erwähnte Bug bleibt zurückgestellt.
 - [ ] **Tap** auf Beat-Button verändert weiter nur seinen Akzentzustand.
 - [ ] **Vertikaler Drag** auf einen Beat der äußeren bzw. inneren Reihe verändert die jeweilige **Anzahl** (1–20), analog zur Ring-Längeninteraktion; Drag darf keinen Akzent auslösen.
 - [ ] Pointer-Capture auf dem **stabilen Zeilencontainer**: neue DOM-Buttons durch `renderPatterns` dürfen die laufende Geste nicht abbrechen.

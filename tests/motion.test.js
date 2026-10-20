@@ -19,3 +19,10 @@ test('P6 motion is event-triggered, reduced-motion safe and never runs on audio 
  assert.doesNotMatch(css,/(?:animation|transition)\s*:[^;]*\binfinite\b|(?:^|\n)\s*\.scanline\b|(?:^|\n)\s*\.sidebar-node\b/);
  assert.doesNotMatch(js,/requestAnimationFrame|setInterval|AudioContext|Math.random/);
 });
+
+test('P6 navigation binds a collection and never calls .forEach on a single element',()=>{
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ assert.match(app,/document\.querySelectorAll\('\[data-tab\]'\)\.forEach/);
+ assert.match(app,/document\.querySelectorAll\('\.page'\)\.forEach/);
+ assert.match(app,/document\.querySelectorAll\('\.nav'\)\.forEach/);
+});

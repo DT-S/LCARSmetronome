@@ -68,7 +68,9 @@ try{
    await page.locator('#export').click();
    const download=await downloadPromise;
    assert.match(download.suggestedFilename(),/^lcars-backup-\d{4}-\d\d-\d\d\.json$/);
-   const buffer=await import('node:fs/promises').then(fs=>fs.readFile(await download.path()));
+   const downloadPath=await download.path();
+   const {readFile}=await import('node:fs/promises');
+   const buffer=await readFile(downloadPath);
    const backup=JSON.parse(buffer.toString());
    assert.equal(backup.version,5);
    assert.equal(backup.bpm,122);

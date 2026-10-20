@@ -223,7 +223,7 @@ export function buildMatrixFaders(index,channel,{onChange}){
    const activeIndex=Math.min(MATRIX_SEGMENTS-1,Math.floor(fraction*MATRIX_SEGMENTS));
    view.segments.forEach((segment,i)=>{
     const lit=kind==='volume'?value>0&&i<=activeIndex:
-      value>=0?i>=10&&i<=activeIndex:i<=9&&i>=activeIndex;
+      value>=0?i>=MATRIX_SEGMENTS/2&&i<=activeIndex:i<MATRIX_SEGMENTS/2&&i>=activeIndex;
     segment.classList.toggle('lit',lit);
     segment.classList.toggle('wave-peak',i===activeIndex&&(kind==='pan'||value>0));
     segment.classList.toggle('wave-near',Math.abs(i-activeIndex)===1);

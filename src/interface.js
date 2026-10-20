@@ -68,7 +68,8 @@ export function installSegmentCorners(root){
 }
 
 export function activationSound(control){
- if(control.dataset.tab)return control.classList.contains('active')?'buttonpress':'switchingmenus';
+ // Separate menu-build sample slot, currently backed by the original menu tone.
+ if(control.dataset.tab)return control.classList.contains('active')?'buttonpress':'lcars-menu-build';
  if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'switchingmenus';
  return 'buttonpress';
 }

@@ -1,6 +1,11 @@
 import {decodeBytes} from './custom-sounds.js';
 import {synthesize,SOUNDS} from './synth.js';
 export const METRONOME_GAIN=2;
+// Future original/licensed menu-build audio goes in this independent slot.
+// Set this to './assets/audio/ui/lcars-menu-build.mp3' when the file exists,
+// and also add that file to sw.js precache to preserve offline playback.
+export const LCARS_MENU_BUILD_SLOT='lcars-menu-build';
+export const LCARS_MENU_BUILD_ASSET=null;
 import {audible} from './model.js';
 export class AudioEngine {
   constructor(){this.buffers=new Map();this.active=new Set();this.sampleStatus=[];}
@@ -21,6 +26,7 @@ export class AudioEngine {
   async load(){
     const ui=['switchingmenus','hoversound','Acceptsound','invalidsound','Warningsound','buttonpress'];
     const entries=ui.map(n=>[n,`./assets/audio/ui/${n}.mp3`]);
+    if(LCARS_MENU_BUILD_ASSET)entries.push([LCARS_MENU_BUILD_SLOT,LCARS_MENU_BUILD_ASSET]);
 
     await Promise.all(entries.map(async([key,path])=>{try{const r=await fetch(path);if(!r.ok)throw Error();const data=await r.arrayBuffer();if(data.byteLength===0)throw Error();this.buffers.set(key,await this.ctx.decodeAudioData(data));}catch{this.sampleStatus.push(key);}}));
     for(const kind of Object.keys(SOUNDS).filter(k=>k!=='auto'))for(let state=0;state<3;state++){
@@ -43,6 +49,10 @@ export class AudioEngine {
     const source=c.createBufferSource();source.buffer=buffer;source.connect(track.gain);source.start(time);
     this.active.add(source);source.onended=()=>{this.active.delete(source);source.disconnect();source._env?.disconnect();};
   }
-  ui(name,s){if(!this.ctx||this.ctx.state!=='running'||!s.uiEnabled)return;const b=this.buffers.get(name);if(!b)return;const source=this.ctx.createBufferSource();source.buffer=b;source.connect(this.uiGain);source.start();source.onended=()=>source.disconnect();}
+  ui(name,s){if(!this.ctx||this.ctx.state!=='running'||!s.uiEnabled)return;
+    // Placeholder uses the existing short menu cue until a dedicated sample
+    // is installed; no missing-asset fetch, second beep or network dependency.
+    const b=this.buffers.get(name)||(name===LCARS_MENU_BUILD_SLOT?this.buffers.get('switchingmenus'):null);
+    if(!b)return;const source=this.ctx.createBufferSource();source.buffer=b;source.connect(this.uiGain);source.start();source.onended=()=>source.disconnect();}
   cancel(){for(const node of this.active){try{node.stop();}catch{}}this.active.clear();}
 }

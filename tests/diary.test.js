@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {PracticeRecorder,diaryDefaults,validateDiary,validateEntry,diaryCSV,summarize,dateKey,AUTO_LOG_MINIMUMS,eligibleAutoLog,diaryDeletionTargets,deleteDiaryEntries} from '../src/diary.js';
 import {fresh,validate,presetSettings,loadPreset} from '../src/model.js';
 import {Scheduler} from '../src/scheduler.js';
@@ -37,7 +38,7 @@ test('a captured threshold excludes short audio sessions but permits sessions ex
    const r=new PracticeRecorder();
    r.begin(0,100000,{...meta,minAutoLogSeconds:minimum});
    r.boundary(0,120,'standard');
-   return r.end(length,crypto.randomUUID());
+   return r.end(length,'logged-'+minimum);
   };
   assert.equal(eligibleAutoLog(minimum===0?.05:minimum-.01,minimum),false);
   assert.equal(eligibleAutoLog(minimum===0?.1:minimum,minimum),true);

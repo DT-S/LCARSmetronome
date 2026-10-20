@@ -45,7 +45,9 @@ test('RC3 mobile viewport and CSS exclude browser-level zoom',()=>{
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
  assert.match(index,/maximum-scale=1,user-scalable=no/);
- assert.match(index,/Rhythm core 2\.0\.0 RC3/);
+ const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+ const expectedRelease=pkg.version.replace('-rc.',' RC');
+ assert.ok(index.includes('Rhythm core '+expectedRelease),'UI release label must match package version');
  assert.match(css,/html,body,\.app-shell\{touch-action:pan-x pan-y;\}/);
  assert.match(sw,/v2-rc3-no-page-zoom/);
  assert.match(sw,/\.\/src\/viewport-zoom-guard\.js/);

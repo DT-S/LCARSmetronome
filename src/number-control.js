@@ -22,8 +22,11 @@ export function enhanceNumber(input,guide=null){
    if(!g||g.id!==e.pointerId)return;
    const step=dragIncrement(g,e.clientX,e.clientY);
    if(g.mode){
-    if(!dragged)guide?.show(b,Number(input.value),min,max,
-      b.getAttribute('aria-label')||'VALUE');
+    if(!dragged){
+     const title={beats:'OUTER BEATS',subdivisions:'SUBDIVISIONS',countIn:'COUNT-IN',duration:'DURATION'}[input.id]||
+       b.getAttribute('aria-label')||'VALUE';
+     guide?.show(b,Number(input.value),min,max,title);
+    }
     dragged=true;
    }
    if(step)set(Number(input.value)+step);

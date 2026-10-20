@@ -277,6 +277,7 @@ try{
    await touch('touchMove',[[x,y-13]]);
    assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),true,
      'beat drag did not reveal visual ladder');
+   assert.equal(await guide.locator('.gesture-guide-heading').textContent(),'OUTER BEATS');
    assert.equal(await beatDial.evaluate(el=>el.classList.contains('gesture-source-active')),true);
    const beatBox=await guide.boundingBox();
    assert.ok(Math.abs(beatBox.x+beatBox.width/2-(rect.x+rect.width/2))<3,

@@ -89,6 +89,10 @@ export function createGestureGuide(doc=document){
   const style=window.getComputedStyle(anchor);
   root.style.setProperty('--guide-source-color',style.backgroundColor);
   root.style.setProperty('--guide-source-radius',style.borderRadius);
+  root.style.setProperty('--guide-source-ink',style.color);
+  root.style.setProperty('--guide-source-family',style.fontFamily);
+  root.style.setProperty('--guide-source-size',style.fontSize);
+  root.style.setProperty('--guide-source-weight',style.fontWeight);
   source=anchor;
   active=true;
   root.classList.add('is-morphing');

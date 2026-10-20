@@ -45,9 +45,12 @@
  inset:0;
  display:grid;
  place-items:center;
- font:900 clamp(15px,2vw,25px)/1 Arial,sans-serif;
+ font-family:var(--guide-source-family,Arial,sans-serif);
+ font-size:var(--guide-source-size,23px);
+ font-weight:var(--guide-source-weight,900);
+ line-height:1;
  font-variant-numeric:tabular-nums;
- color:#000;
+ color:var(--guide-source-ink,#000);
  opacity:1;
  transition:opacity .085s linear;
 }

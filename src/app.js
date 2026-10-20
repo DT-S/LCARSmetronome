@@ -187,10 +187,11 @@ function renderMixer(){
     panel.innerHTML=`<span class="eyebrow">CHANNEL 0${i+1}</span><h3>${i?'INNER CHANNEL':'OUTER CHANNEL'}</h3>`;
     let panButtons=[];
     // The source demo only supplies the look/interaction, not a new audio bus.
-    const matrix=buildMatrixFaders(i,c,{onChange:(kind,value)=>{
+    const matrix=buildMatrixFaders(i,c,{onChange:(kind,value,{gesture=false}={})=>{
       if(kind==='pan')setChannelPan(c,value,matrix.inputs.pan,panButtons);
       else c.volume=value;
       matrix.sync();changed();
+      if(gesture)faderTouchFeedback();
     }});
     panel.append(matrix.root);
     const panGroup=document.createElement('div');

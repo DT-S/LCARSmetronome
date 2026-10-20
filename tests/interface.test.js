@@ -6,7 +6,19 @@ import {fresh,validate,presetSettings,loadPreset} from '../src/model.js';
 function control({tab,mode,id,active=false,pressed=false,tag='BUTTON'}={}){const classes=new Set(active?['active']:[]);return {id,dataset:{tab,mode},tagName:tag,classList:{contains:s=>classes.has(s),add:s=>classes.add(s),remove:s=>classes.delete(s)},getAttribute:k=>k==='aria-pressed'?String(pressed):null,closest:()=>null,contains:()=>false,querySelector:()=>null};}
 function fixture(options={}){const c=control(options);c.closest=s=>s==='.sound-choices'?null:c;const handlers={},calls=[],state=fresh();const root={addEventListener(n,f){(handlers[n]??=[]).push(f);}};installFeedback(root,{unlock:async()=>{},audio:{loading:Promise.resolve(),ui:(name,s)=>{if(s.uiEnabled)calls.push(name);}},state:()=>state});const fire=(name,extra={})=>{for(const f of handlers[name]||[])f({target:c,button:0,pointerId:1,pointerType:'touch',clientX:1,clientY:1,...extra});};return {c,calls,fire,state};}
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
-test('navigation uses switch sound only for a different destination',()=>{assert.equal(activationSound(control({tab:'audio'})),'switchingmenus');assert.equal(activationSound(control({tab:'audio',active:true})),'buttonpress');assert.equal(activationSound(control({mode:'ramp',pressed:true})),'buttonpress');assert.equal(activationSound(control({mode:'ramp'})),'switchingmenus');});
+test('navigation uses switch sound only for a different destination',()=>{assert.equal(activationSound(control({tab:'audio'})),'lcars-menu-build');assert.equal(activationSound(control({tab:'audio',active:true})),'buttonpress');assert.equal(activationSound(control({mode:'ramp',pressed:true})),'buttonpress');assert.equal(activationSound(control({mode:'ramp'})),'switchingmenus');});
+test('navigation cue plays just once for a new page, with no extra click on the same tab',async()=>{
+ const f=fixture({tab:'audio'});
+ f.fire('click',{detail:1});await settle();
+ assert.deepEqual(f.calls,['lcars-menu-build']);
+ f.c.classList.add('active');
+ f.fire('click',{detail:1});await settle();
+ assert.deepEqual(f.calls,['lcars-menu-build','buttonpress']);
+ f.state.uiEnabled=false;
+ f.c.classList.remove('active');
+ f.fire('click',{detail:1});await settle();
+ assert.deepEqual(f.calls,['lcars-menu-build','buttonpress']);
+});
 test('finger contact hovers before release; summary activation beeps',async()=>{const f=fixture({tag:'SUMMARY'});f.fire('pointerdown');await settle();assert.deepEqual(f.calls,['hoversound']);assert.ok(f.c.classList.contains('touch-pressed'));f.fire('pointerup');assert.ok(!f.c.classList.contains('touch-pressed'));f.fire('click');await settle();assert.deepEqual(f.calls,['hoversound','buttonpress']);});
 test('release or scrolling cancels a delayed hover',async()=>{for(const event of ['pointerup','pointercancel','pointermove']){const f=fixture();f.fire('pointerdown');f.fire(event,{clientX:30,clientY:30});await settle();assert.deepEqual(f.calls,[]);assert.ok(!f.c.classList.contains('touch-pressed'));}});
 test('hover preference applies to touch and does not disable click feedback',async()=>{const f=fixture();f.state.hoverEnabled=false;f.fire('pointerdown');await settle();f.fire('pointerup');f.fire('click');await settle();assert.deepEqual(f.calls,['buttonpress']);});

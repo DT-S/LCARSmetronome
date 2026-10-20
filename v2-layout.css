@@ -770,6 +770,7 @@
     height:0;
     display:grid;
     grid-template-columns:minmax(0,1.55fr) minmax(355px,.95fr);
+    grid-template-rows:minmax(0,1fr); /* Do not let child min-content enlarge the stage. */
     gap:clamp(18px,2.1vw,40px);
     align-items:stretch;
     min-height:0;

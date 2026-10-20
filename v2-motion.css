@@ -243,6 +243,12 @@
 .app-shell.lcars-booting #metronome .transport #start {
   animation:lcars-launch-pop 230ms steps(5,end) 855ms both;
 }
+.app-shell.lcars-booting #metronome .side-controls > .panel > .eyebrow,
+.app-shell.lcars-booting #metronome .side-controls > .panel > h3,
+.app-shell.lcars-booting #metronome .side-controls > .panel > .mode-help,
+.app-shell.lcars-booting #metronome .side-controls > .panel > .lcars-info {
+  animation:lcars-launch-details 280ms ease-out 585ms both;
+}
 .app-shell.lcars-booting #metronome .side-controls .training-fields,
 .app-shell.lcars-booting #metronome .side-controls .swing-control,
 .app-shell.lcars-booting #metronome .side-controls label {

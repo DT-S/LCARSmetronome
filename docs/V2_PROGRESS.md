@@ -134,3 +134,9 @@
 - Getrennter Browsercheck mit Bewegung prüft Öffnen, Endgröße, Zentrierung, Rückanimation und unveränderte Button-Geometrie.
 - Nach visueller Screenshot-Abnahme wurden die kurzen Titel (`OUTER BEATS`, `SUBDIVISIONS`, `COUNT-IN`, `DURATION`) sowie Schriftgröße/-familie/-farbe des Ausgangsbuttons für die Rücktransformation übernommen.
 - Echte iPhone-Safari-Abnahme weiterhin offen; P5 und P6 bewusst nicht begonnen.
+
+## P5 – Linear View Beat-Gesten (Implementierung)
+- Direkt auf einem Beat nach oben/unten ziehen, um die Länge der jeweiligen äußeren/inneren Reihe von 1–20 zu verändern. Eine kurze Berührung ändert weiterhin den Akzent, eine Ziehbewegung ausschließlich die Länge; horizontale Gesten werden ignoriert.
+- Beide `pattern-row`-Container bleiben über sämtliche Render-Zyklen **identische DOM-Elemente** und besitzen die Pointer-Capture, während Buttons umgeordnet, entfernt oder ergänzt werden. Keyboard-/AT-Klicks bleiben möglich. Dynamische mobile Zeilenumbrüche werden beibehalten.
+- Die P4-Morph-Leiter dient als visuelle Rückmeldung unter dem Finger. Der Original-Audiokern und `number()`/Scheduler/Storage bleiben unverändert.
+- Pure Schrittberechnung besitzt Node-Regressionstests; geräteübergreifende Browser-/Touch-Prüfung noch offen.

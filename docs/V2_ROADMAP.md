@@ -77,6 +77,8 @@
 **P4b Feinschliff abgeschlossen (automatisiert):** Die Führung morphiert aus dem Value-Button direkt unter dem Finger und klappt wieder zurück. [9/9 Auflösungen sowie Touch-/Morph-Tests grün](https://github.com/DT-S/LCARSmetronome/actions/runs/39347394768). Echte Safari-Geräteabnahme noch offen.
 
 ### P5 – Linear View: Beat-Gesten
+
+**Status:** Persistent rows und vertikaler Drag in Code eingebaut. Browser-/Touch-/Keyboard-Abnahme ausstehend; Bugbehandlung außerhalb dieser Phase zurückgestellt.
 - [ ] **Tap** auf Beat-Button verändert weiter nur seinen Akzentzustand.
 - [ ] **Vertikaler Drag** auf einen Beat der äußeren bzw. inneren Reihe verändert die jeweilige **Anzahl** (1–20), analog zur Ring-Längeninteraktion; Drag darf keinen Akzent auslösen.
 - [ ] Pointer-Capture auf dem **stabilen Zeilencontainer**: neue DOM-Buttons durch `renderPatterns` dürfen die laufende Geste nicht abbrechen.

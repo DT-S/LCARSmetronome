@@ -3,6 +3,7 @@ import {PAN_PRESETS,setChannelPan} from './pan-control.js';
 import {installPrecisionSlider,formatVolume} from './precision-slider.js';
 import {buildMatrixFaders} from './matrix-faders.js';
 import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from './linear-layout.js';
+import {installLinearBeatGesture} from './linear-gesture.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {createGestureGuide} from './gesture-guide.js';
 import {customSoundUI} from './custom-sounds.js';
@@ -56,6 +57,7 @@ export function beatArcPath(radius,index,total){
   const xy=(r,a)=>`${(250+r*Math.cos(a)).toFixed(3)} ${(250+r*Math.sin(a)).toFixed(3)}`;
   return `M ${xy(outer,angle-half)} A ${outer} ${outer} 0 0 1 ${xy(outer,angle+half)} L ${xy(inner,angle+half)} A ${inner} ${inner} 0 0 0 ${xy(inner,angle-half)} Z`;
 }
+const linearRows=new Map();
 function renderPatterns(){
   let svg='<circle class="track" cx="250" cy="250" r="212"/><circle class="track inner-track" cx="250" cy="250" r="149"/>';
   svg+='<g class="dial-ticks" aria-hidden="true">'+radialTicks().map(t=>`<line x1="${t.x1}" y1="${t.y1}" x2="${t.x2}" y2="${t.y2}"/>`).join('')+'</g>';
@@ -66,13 +68,36 @@ function renderPatterns(){
     });
   }
   $('#rings').innerHTML=svg;
-  for(const container of [$('#linear')]){
-    container.replaceChildren();
-    for(const [channel,key,label] of [[0,'outer','OUTER PATTERN'],[1,'inner','INNER PATTERN']]){
-      const title=document.createElement('h3');title.textContent=label;container.append(title);
-      const row=document.createElement('div');row.className='pattern-row';row.dataset.channel=String(channel);
-      state[key].forEach((s,i)=>{const b=document.createElement('button');b.className=`step state${s}`;b.dataset.channel=channel;b.dataset.index=i;b.textContent=i+1;b.setAttribute('aria-label',`${label} ${i+1}: ${names[s]}`);b.onclick=()=>cycle(channel,i);row.append(b);});container.append(row);
+  // P5: The row itself owns pointer capture. Do not replace it while the
+  // user's finger is held down; re-render only/reuse its beat button children.
+  for(const [channel,key,label] of [[0,'outer','OUTER PATTERN'],[1,'inner','INNER PATTERN']]){
+    let row=linearRows.get(channel);
+    if(!row){
+      const title=document.createElement('h3');
+      title.textContent=label;
+      row=document.createElement('div');
+      row.className='pattern-row';
+      row.dataset.channel=String(channel);
+      $('#linear').append(title,row);
+      installLinearBeatGesture(row,{
+        channel,getCount:()=>state[key].length,
+        onStep:nextCount=>number(channel?'subdivisions':'beats',nextCount,1,20),
+        onTap:index=>cycle(channel,index),guide:gestureGuide
+      });
+      linearRows.set(channel,row);
     }
+    const previous=[...row.querySelectorAll('button.step')];
+    const buttons=state[key].map((s,i)=>{
+      const b=previous[i]||document.createElement('button');
+      b.type='button';
+      b.className=`step state${s}`;
+      b.dataset.channel=String(channel);
+      b.dataset.index=String(i);
+      b.textContent=String(i+1);
+      b.setAttribute('aria-label',`${label} ${i+1}: ${names[s]}`);
+      return b;
+    });
+    row.replaceChildren(...buttons);
   }
   layoutLinearPatterns();
 }

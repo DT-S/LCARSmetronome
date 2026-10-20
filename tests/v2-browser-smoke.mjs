@@ -229,6 +229,57 @@ try{
    await page.screenshot({path:path.join(screenshots,'touch-pan-FAILED.png')}).catch(()=>{});
   }finally{await page.close();}
  }
+ // P4: real touch gestures must reveal the visual ladder without altering
+ // existing tempo or number-control state management.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844},
+    hasTouch:true,isMobile:true,reducedMotion:'reduce'});
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   const guide=page.locator('.gesture-guide');
+   assert.equal(await guide.count(),1,'P4 guide not installed');
+   const session=await page.context().newCDPSession(page);
+   const touch=async(type,points)=>session.send('Input.dispatchTouchEvent',{
+    type,touchPoints:points.map(([x,y])=>({x,y}))});
+   const tempo=page.locator('#tempoValue');
+   await tempo.scrollIntoViewIfNeeded();
+   let rect=await tempo.boundingBox(),x=rect.x+rect.width/2,y=rect.y+rect.height/2;
+   const bpmBefore=Number(await tempo.textContent());
+   await touch('touchStart',[[x,y]]);
+   await touch('touchMove',[[x,y-13]]);
+   assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),true,
+     'tempo drag did not reveal visual ladder');
+   await touch('touchMove',[[x,y-43]]);
+   assert.ok(Number(await tempo.textContent())>bpmBefore,'tempo drag no longer works');
+   assert.equal(await guide.locator('.gesture-guide-rung.is-current').count(),1);
+   await page.screenshot({path:path.join(screenshots,'touch-tempo-ladder-active.png')});
+   await touch('touchEnd',[]);
+   assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),false);
+   const beats=page.locator('#beats');
+   const beatDial=beats.locator('xpath=..').locator('button.value-dial');
+   await beatDial.scrollIntoViewIfNeeded();
+   rect=await beatDial.boundingBox();x=rect.x+rect.width/2;y=rect.y+rect.height/2;
+   const before=Number(await beats.inputValue());
+   await touch('touchStart',[[x,y]]);
+   await touch('touchMove',[[x,y-13]]);
+   assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),true,
+     'beat drag did not reveal visual ladder');
+   await touch('touchMove',[[x,y-43]]);
+   assert.ok(Number(await beats.inputValue())>before,
+     'beat drag no longer updates pattern length');
+   await page.screenshot({path:path.join(screenshots,'touch-beats-ladder-active.png')});
+   await touch('touchCancel',[]);
+   assert.equal(await guide.evaluate(el=>el.classList.contains('is-visible')),false,
+     'cancelled beat drag left guide open');
+   assert.deepEqual(errors,[]);
+   console.log('PASS P4 touch ladder for tempo and beat controls');
+  }catch(error){
+   fail++;console.error('FAIL P4 touch ladder:',error);
+   await page.screenshot({path:path.join(screenshots,'touch-p4-FAILED.png')}).catch(()=>{});
+  }finally{await page.close();}
+ }
 }finally{
  await browser.close();
  await new Promise(resolve=>server.close(resolve));

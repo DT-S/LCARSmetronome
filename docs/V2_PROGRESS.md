@@ -10,7 +10,7 @@
 | P2 Alle Seiten | OFFEN | Metronome, Audio, Presets, Diary, Stats, System |
 | P3 Präzisions-Fader | IMPLEMENTIERT + CI GRÜN, HARDWARE OFFEN | [9-Viewport + Touch-/Mouse-/Keyboard-Test](https://github.com/DT-S/LCARSmetronome/actions/runs/39338925485); iOS-/Firefox-Abnahme ausstehend |
 | P4 Zahlenleiter | OFFEN | BPM + Parameter |
-| P5 Linear-Drag | OFFEN | stabile Pointer-Capture |
+| P5 Linear-Drag | IMPLEMENTIERT + CI GRÜN, GERÄTE OFFEN | [Chromium P5 3:5 / 3:7 / 20:20, Touch & Tastatur](https://github.com/DT-S/LCARSmetronome/actions/runs/39348800249) |
 | P6 Motion / Plots | OFFEN | dezente Transitions |
 | P7 Release-Freigabe | OFFEN | reale Geräte, PWA, Audio, Lizenzen |
 
@@ -147,3 +147,11 @@
 - Desktop: Tastatur `Enter` bleibt nutzbar und der Fokus nach Akzentänderung erhalten; Maus-Drag 4→7 funktioniert.
 - Zusätzlich Grenzfälle 3:5, 3:7 und 20:20 mit gleichmäßigem Wrapping in die Browser-Suite aufgenommen. Der Lauf für diese ergänzten Assertions steht noch aus.
 - **Offen:** Echter iPhone-/iPad-Safari- und Firefox-Praxistest; vom Nutzer erwähnter kleiner Bug bleibt gemäß Wunsch auf später vertagt.
+
+## P5 – Abschließender automatisierter Nachweis
+- [GitHub Actions Run 39348800249](https://github.com/DT-S/LCARSmetronome/actions/runs/39348800249): **SUCCESS**, Node-Regressionen und Browser-Smoke erfolgreich.
+- **9/9 Chromium-Auflösungen** (320–1920 px) inklusive unveränderter Audio-/P4-Regressionstests.
+- Direkte Linear-View-Touchgesten mit persistenten Reihen, Akzent-Taps, unabhängigen äußeren/inneren Beat-Zahlen, Undo bei Pointer-Cancel, keine Phantomklicks, 1–20 Grenzen.
+- 3:5, 3:7 und 20:20 erfolgreich überprüft; mobile Zeilen sind auch bei 20:20 gleichmäßig verteilt, mit unverändertem DOM-Zeilencontainer.
+- Desktop-Tastatur und Mausdrag getestet, inklusive Fokus-Erhalt bei Akzentwechsel.
+- **P5 im Code und automatisiert abgeschlossen.** Für die Produktfreigabe bleiben echter iPhone-/Tablet-Safari-, Arch-Firefox- und Audio-Gerätetest offen. Der vom Nutzer separat entdeckte kleine Bug wird absichtlich später behandelt.

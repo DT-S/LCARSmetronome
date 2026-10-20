@@ -96,3 +96,6 @@ Der erste vollständige Lauf `39336109612` bestand alle 5 bisherigen Ziele, inkl
 - Nach `pointercancel` springt die veränderte Anzahl auf ihren Startwert zurück und die Morph-Leiter verschwindet.
 - Keyboard-Fokus bleibt beim Umschalten des Akzents erhalten; Mausdrag und Circular-View-Switch weiterhin aktiv.
 - Automatisierter Basisnachweis: [Run 39348533144](https://github.com/DT-S/LCARSmetronome/actions/runs/39348533144). Ergänzte 3:5-/3:7-/20:20-Checks ausstehend.
+
+## P5 – Abschließender Browser-Beleg
+[Erfolgreiche GitHub Actions Run 39348800249](https://github.com/DT-S/LCARSmetronome/actions/runs/39348800249). Alle neun Chromium-Zielauflösungen bestanden, außerdem Touch-Taps, direktes vertikales Scrubbing, stabile Pointer-Capture/Re-Renders, 3:5 / 3:7 / 20:20, ausgewogenes Row-Wrapping, Pointer-Cancel-Rollback, 1–20-Clamping, Desktop-Keyboard/Mouse. Das ist keine reale iOS- oder Firefox-Hardwareprüfung.

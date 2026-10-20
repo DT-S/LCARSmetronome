@@ -78,12 +78,12 @@
 
 ### P5 – Linear View: Beat-Gesten
 
-**Status:** Persistent rows und vertikaler Drag implementiert; [Chromium + Node Tests grün](https://github.com/DT-S/LCARSmetronome/actions/runs/39348533144). Ergänzende 3:5-/3:7-/20:20-Tests laufen noch; echte Geräteabnahme offen. Der separat erwähnte Bug bleibt zurückgestellt.
-- [ ] **Tap** auf Beat-Button verändert weiter nur seinen Akzentzustand.
-- [ ] **Vertikaler Drag** auf einen Beat der äußeren bzw. inneren Reihe verändert die jeweilige **Anzahl** (1–20), analog zur Ring-Längeninteraktion; Drag darf keinen Akzent auslösen.
-- [ ] Pointer-Capture auf dem **stabilen Zeilencontainer**: neue DOM-Buttons durch `renderPatterns` dürfen die laufende Geste nicht abbrechen.
-- [ ] Multitouch/Scroll/Klick-Suppression/Berechnungs­schwelle sauber definieren; Fokus/Tastatur-Nutzung weiter möglich.
-- [ ] Anzahländerungen laufen weiterhin über die vorhandene `number()`-Funktion und greifen gemäß bestehender Scheduling-Semantik.
+**Status:** P5 implementiert, sämtliche automatisierten Checks inklusive 3:5, 3:7, 20:20, Touch-Tap/Drag, Desktop-Maus und Tastatur [erfolgreich](https://github.com/DT-S/LCARSmetronome/actions/runs/39348800249). Reale Safari-/Firefox-Geräteabnahme bleibt offen; der separat gemeldete Bug ist zurückgestellt.
+- [x] **Tap** auf Beat-Button verändert weiter nur seinen Akzentzustand.
+- [x] **Vertikaler Drag** auf einen Beat der äußeren bzw. inneren Reihe verändert die jeweilige **Anzahl** (1–20), analog zur Ring-Längeninteraktion; Drag darf keinen Akzent auslösen.
+- [x] Pointer-Capture auf dem **stabilen Zeilencontainer**: neue DOM-Buttons durch `renderPatterns` dürfen die laufende Geste nicht abbrechen.
+- [x] Multitouch/Scroll/Klick-Suppression/Berechnungs­schwelle sauber definieren; Fokus/Tastatur-Nutzung weiter möglich.
+- [x] Anzahländerungen laufen weiterhin über die vorhandene `number()`-Funktion und greifen gemäß bestehender Scheduling-Semantik.
 - **Fertig wenn:** 3:5, 3:7, 8+, 20:20, Tap und Drag in beiden Views ohne doppelte Akzente oder Verschiebungen funktionieren.
 
 ### P6 – LCARS-Motion-System und Plotter

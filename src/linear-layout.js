@@ -31,3 +31,9 @@ export function visibleViewportHeight(innerHeight, visualViewportHeight, documen
   if(!candidates.length) throw new RangeError('No visible viewport dimensions');
   return Math.min(...candidates);
 }
+
+/** Keep the LCARS fascia at pre-keyboard height when visualViewport shrinks. */
+export function keyboardSafeViewportHeight(measured,stable,isEditing,threshold=110){
+ if(!Number.isFinite(measured)||measured<=0)throw new RangeError('Invalid viewport height');
+ return Number.isFinite(stable)&&stable>0&&(isEditing||measured<stable-threshold)?stable:measured;
+}

@@ -556,6 +556,53 @@ try{
   }catch(error){fail++;console.error('FAIL P6 reduced motion:',error);
   }finally{await page.close();}
  }
+ // P7: cached PWA must relaunch with network disabled and preserve
+ // user preferences in IndexedDB across a full browser page reload.
+ {
+  const context=await browser.newContext({viewport:{width:390,height:844}});
+  const page=await context.newPage(),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   await page.waitForSelector('#rings [data-channel="0"][data-index]');
+   await page.waitForFunction(async()=>Boolean(await navigator.serviceWorker?.ready.then(r=>r.active)));
+   await page.waitForFunction(async()=>Boolean(await caches.match('./index.html')));
+   // Change real user preferences, then wait for the existing async save chain
+   // to finish before closing the tab.
+   await page.locator('[data-tab="settings"]').click();
+   await page.locator('#uiEnabled').uncheck();
+   await page.locator('#uiVolume').evaluate(input=>{
+    input.value='0.42';input.dispatchEvent(new Event('input',{bubbles:true}));
+   });
+   await page.waitForFunction(()=>document.querySelector('#saveStatus')?.textContent==='SAVED ON THIS DEVICE',
+    {timeout:15000});
+   const snapshot=await page.evaluate(async()=>{
+    const {read}=await import('./src/storage.js');
+    const state=await read();
+    return {uiEnabled:state.uiEnabled,uiVolume:state.uiVolume,version:state.version};
+   });
+   assert.equal(snapshot.uiEnabled,false);
+   assert.equal(snapshot.uiVolume,.42);
+   await context.setOffline(true);
+   await page.reload({waitUntil:'load'});
+   await page.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:15000});
+   await page.locator('[data-tab="settings"]').click();
+   assert.equal(await page.locator('#uiEnabled').isChecked(),false,
+     'P7 offline relaunch lost UI sound preference');
+   assert.equal(await page.locator('#uiVolume').inputValue(),'0.42',
+     'P7 offline relaunch lost volume preference');
+   assert.equal(await page.locator('#connection').textContent(),'OFFLINE SYSTEM');
+   const restored=await page.evaluate(async()=>{
+    const {read}=await import('./src/storage.js');return read();
+   });
+   assert.equal(restored.version,snapshot.version,'P7 offline launch migrated schema unexpectedly');
+   assert.deepEqual(errors,[]);
+   console.log('PASS P7 cached offline relaunch + IndexedDB persistence');
+  }catch(error){
+   fail++;console.error('FAIL P7 offline PWA persistence:',error);
+   await page.screenshot({path:path.join(screenshots,'p7-offline-FAILED.png')}).catch(()=>{});
+  }finally{await context.close();}
+ }
 }finally{
  await browser.close();
  await new Promise(resolve=>server.close(resolve));

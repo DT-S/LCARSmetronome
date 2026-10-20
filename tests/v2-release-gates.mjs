@@ -115,33 +115,25 @@ try{
    await page.goto(base,{waitUntil:'networkidle'});
    await waitReady(page);
    assert.ok(await page.evaluate(async()=> (await caches.keys()).includes('lcars-core-/-old-p7-release')));
-   // The old worker owns an active client. Updating should reach WAITING,
-   // and the existing "INSTALL UPDATE & RELOAD" button must promote it.
+   // V2 RC2+ automatically skipWaiting() once its offline files are
+   // installed. The update button then explicitly reloads the current tab.
+   // Older P7 logic incorrectly required a worker to remain WAITING.
    serveOldWorker=false;
-   const waiting=await page.evaluate(async()=>{
+   await page.evaluate(async()=>{
     const reg=await navigator.serviceWorker.getRegistration();
     await reg.update();
-    await new Promise((resolve,reject)=>{
-     if(reg.waiting)return resolve();
-     const timeout=setTimeout(()=>reject(Error('new SW never reached waiting')),15000);
-     const poll=()=>{
-      if(reg.waiting){clearTimeout(timeout);resolve();}
-      else setTimeout(poll,80);
-     };
-     poll();
-    });
-    return reg.waiting?.state;
    });
-   assert.equal(waiting,'installed');
-   await page.waitForFunction(()=>!document.querySelector('#update').hidden);
-   await page.locator('[data-tab="settings"]').click();
-   await page.locator('#update').click();
    await page.waitForFunction(async()=>{
     const reg=await navigator.serviceWorker.getRegistration();
+    const keys=await caches.keys();
     return reg?.active?.scriptURL.endsWith('/sw.js')&&
-      (await caches.keys()).some(k=>k.startsWith('lcars-core-')&&k.includes('v2-'))&&
-      !(await caches.keys()).includes('lcars-core-/-old-p7-release');
-   },{timeout:20000});
+      keys.some(k=>k.startsWith('lcars-core-')&&k.includes('v2-'))&&
+      !keys.includes('lcars-core-/-old-p7-release');
+   },null,{timeout:20000});
+   await page.locator('[data-tab="settings"]').click();
+   const update=page.locator('#update');
+   assert.equal(await update.isVisible(),true,'RC2+ update/reload control should always be accessible');
+   await update.click();
    await page.waitForSelector('#rings [data-index]',{timeout:20000});
    await context.setOffline(true);
    await page.reload({waitUntil:'domcontentloaded'});

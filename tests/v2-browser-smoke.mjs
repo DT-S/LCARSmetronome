@@ -580,7 +580,7 @@ try{
     'LCARS structural frame did not launch');
    await page.screenshot({path:path.join(screenshots,'p6-audio-page-build.png')});
    const frame=page.locator('#audio .cards > .panel').first();
-   assert.match(await frame.evaluate(el=>getComputedStyle(el).animationName),/lcars-tab-frame/,
+   assert.match(await frame.evaluate(el=>getComputedStyle(el).animationName),/lcars-page-plate/,
     'audio frame did not join the staggered launch');
    await page.waitForTimeout(300);
    assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),true,

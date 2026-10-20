@@ -49,6 +49,7 @@ export function createMotionController(root=document){
   const next=root.getElementById(nextId);
   if(!next||next.hidden)return false;
   lastPage=nextId;
+  finishBoot(); // User-initiated navigation cancels any remaining launch choreography.
   for(const item of pages)if(item!==next)clear(item,'lcars-page-enter');
   run(next,'lcars-page-enter');
   return true;

@@ -540,6 +540,15 @@
 #metronome.lcars-page-enter .side-controls :is(.training-fields,.swing-control,label,.mode-help) {
   animation:lcars-page-data 280ms ease-out 730ms both;
 }
+/* A real press during construction wins against decorative appearance.
+   Users must be able to change mode/view immediately, even mid-sequence. */
+#metronome.lcars-page-enter #modeButtons button.lcars-mode-ack[aria-pressed=true] {
+  animation:lcars-mode-confirm 220ms ease-out;
+}
+#metronome.lcars-page-enter #dial.lcars-view-enter,
+#metronome.lcars-page-enter #linear.lcars-view-enter {
+  animation:lcars-view-build 195ms ease-out both;
+}
 /* The page and shell classes disappear at 1.2s, leaving no persistent
    masking, idle animations or CSS hit-area modifications. */
 @media (prefers-reduced-motion:reduce) {

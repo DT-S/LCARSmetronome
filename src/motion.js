@@ -26,8 +26,8 @@ export function createMotionController(root=document){
   const timer=pageTimers.get(node);
   if(timer!==undefined){clearTimeout(timer);pageTimers.delete(node);}
   clear(node,'lcars-page-enter');
-  // Global rails/headers must finish alongside the destination page.
-  if(pageTimers.size===0)shell?.classList.remove('lcars-page-building');
+  // Header, sidebar, top/bottom bars and footer are immutable LCARS chassis.
+  // Only the selected .page ever receives a tab-transition class.
  };
  let bootStarted=false,bootTimer=null;
  function finishBoot(){
@@ -58,7 +58,6 @@ export function createMotionController(root=document){
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!reduce){
    run(next,'lcars-page-enter');
-   shell?.classList.add('lcars-page-building');
    pageTimers.set(next,setTimeout(()=>finishPage(next),LCARS_PAGE_BUILD_DURATION_MS));
   }
   return true;

@@ -37,13 +37,22 @@ export function installLinearBeatGesture(row,{channel,getCount,onStep,onTap,guid
   row.classList.remove('linear-dragging');
   if(gesture&&row.hasPointerCapture(gesture.id))row.releasePointerCapture(gesture.id);
  };
+ const cancel=()=>{
+  if(!active)return;
+  const original=active.startingCount;
+  const wasDrag=active.mode==='drag';
+  clear();
+  // A system-level interruption reverts a partial gesture; it never
+  // produces an accent tap, even when the browser steals capture.
+  if(wasDrag&&getCount()!==original)onStep(original);
+ };
  row.addEventListener('pointerdown',event=>{
   const button=event.target.closest?.('button.step');
   if(!button||!row.contains(button)||active||event.button!==0||event.isPrimary===false)return;
   event.preventDefault();
   active={id:event.pointerId,index:Number(button.dataset.index),button,
    startX:event.clientX,startY:event.clientY,lastY:event.clientY,
-   mode:'pending',accumulator:0};
+   mode:'pending',accumulator:0,startingCount:getCount()};
   row.setPointerCapture(event.pointerId);
  });
  row.addEventListener('pointermove',event=>{
@@ -69,9 +78,9 @@ export function installLinearBeatGesture(row,{channel,getCount,onStep,onTap,guid
   if(mode==='pending')onTap(index);
  });
  row.addEventListener('pointercancel',event=>{
-  if(active&&active.id===event.pointerId)clear();
+  if(active&&active.id===event.pointerId)cancel();
  });
- row.addEventListener('lostpointercapture',()=>{if(active)clear();});
+ row.addEventListener('lostpointercapture',()=>{if(active)cancel();});
  row.addEventListener('click',event=>{
   if(event.detail!==0)return;
   const button=event.target.closest?.('button.step');
@@ -83,5 +92,5 @@ export function installLinearBeatGesture(row,{channel,getCount,onStep,onTap,guid
    row.querySelector(`button.step[data-index="${index}"]`)?.focus({preventScroll:true});
   }
  });
- return {cancel:clear};
+ return {cancel};
 }

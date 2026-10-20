@@ -21,7 +21,8 @@ test('fractional displacement accumulates across pointer moves and reversals',()
  assert.equal(linearDragSteps(g,0,-16).steps,0);
  assert.equal(linearDragSteps(g,0,-24).steps,1);
  assert.equal(linearDragSteps(g,0,-30).steps,0);
- assert.equal(linearDragSteps(g,0,-4).steps,-2);
+ assert.equal(linearDragSteps(g,0,-4).steps,-1);
+ assert.ok(g.accumulator<0,'fractional reverse movement must carry to next event');
 });
 test('horizontal swipes do not change beat count or trigger a tap',()=>{
  const g=start();

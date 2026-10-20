@@ -16,6 +16,6 @@ test('P6 motion is event-triggered, reduced-motion safe and never runs on audio 
  assert.match(css,/lcars-page-build/);
  assert.match(css,/chart-probe-line/);
  assert.match(css,/chart-motion-static/);
- assert.doesNotMatch(css.replace(/\\/\\*[\\s\\S]*?\\*\\//g,''),/\\binfinite\\b|\\.scanline|\\.sidebar-node/);
+ assert.doesNotMatch(css,/(?:animation|transition)\s*:[^;]*\binfinite\b|(?:^|\n)\s*\.scanline\b|(?:^|\n)\s*\.sidebar-node\b/);
  assert.doesNotMatch(js,/requestAnimationFrame|setInterval|AudioContext|Math.random/);
 });

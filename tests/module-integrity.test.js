@@ -53,3 +53,12 @@ test('all executable JavaScript modules parse as valid ECMAScript',()=>{
     },`Broken JS syntax in ${moduleName}`);
   }
 });
+
+test('test suite sources also pass JavaScript syntax checking',()=>{
+ const testsRoot=new URL('../tests/',import.meta.url);
+ for(const testName of readdirSync(testsRoot).filter(x=>x.endsWith('.js')||x.endsWith('.mjs'))){
+  assert.doesNotThrow(()=>execFileSync(process.execPath,
+   ['--check',fileURLToPath(new URL(testName,testsRoot))],{stdio:'pipe'}),
+    `Invalid test source syntax in ${testName}`);
+ }
+});

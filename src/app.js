@@ -21,7 +21,7 @@ import {Scheduler} from './scheduler.js';
 import {read,write,download} from './storage.js';
 // Prevent browser pinch/gesture zoom before registering any UI interactions.
 installViewportZoomGuard(document);
-const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const gestureGuide=createGestureGuide(document);
 const motion=createMotionController(document);
 const audio=new AudioEngine();let state=fresh(),linear=false,saveTimer,saveChain=Promise.resolve(),wakeLock,noticeTimer,starting=false,restoring=false,activePreset='';

@@ -66,6 +66,8 @@
 **Nachtrag P3b:** Voyager-inspirierte segmentierte Audio-Matrix mit funktionsfähigem Scrubbing, animierter Nadel, 35-Tick-Vernier und zusätzlichen Schrittbuttons. [Automatisierte Prüfung erfolgreich](https://github.com/DT-S/LCARSmetronome/actions/runs/39343815394), reale Gerätefreigabe ausstehend.
 
 ### P4 – Zahlenleiter für Tempo und Parameter
+
+**Status:** Reusable LCARS-Ladder und Anbindung an Tempo/Zahlenfelder implementiert, automatische Browser- und Geräteprüfung ausstehend. Neue Gesten für Linear View gehören weiterhin zu P5.
 - [ ] Gemeinsame visuelle Gestenanzeige für BPM, Beats, Subdivisions, Count-in und ausgewählte Trainingsparameter.
 - [ ] Bei einer echten Geste: vertikale LCARS-Führung, gestrichelte rote/korallfarbene Leitschiene, horizontale Stufen und markierte aktuelle Position. Neben statt unter dem Finger.
 - [ ] Bestehende Bedienlogik (Drag nach oben/unten, kreisförmig für Tempo, Antippen zum Tippen, Keyboard Arrow/Home/End) erhalten.

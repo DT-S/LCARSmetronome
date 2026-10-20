@@ -104,3 +104,11 @@
 - [Finaler V2-Lauf 39343815394](https://github.com/DT-S/LCARSmetronome/actions/runs/39343815394): **SUCCESS**, Node-Regression und 9-Viewport-Chromium-Suite inklusive Maus, Tastatur, Click-Presets und simulierter Touch-Scrub-Gesten.
 - UI-Screenshots als kurzlebiges GitHub-Actions-Artefakt `rhythm-padd-v2-layout-screenshots`.
 - **Offen:** tatsächliche Safari-PWA auf iPhone, weitere Tablet-Geräte, Arch Firefox, Audio-Kopfhörerprüfung und endgültige visuelle Freigabe durch den Nutzer. `main` nicht geändert.
+
+## P4 – Animierte Zahlenleiter (Implementation)
+- Das zentrale Visualisierungsmodul `src/gesture-guide.js` zeigt zwei rote gestrichelte Schienen mit dreizehn 1-Step-Querrungen und aktivem Wert.
+- Die Zahlenleiter ist für BPM (20–400), Beats/Subdivisions (1–20) sowie Count-in/Duration mit existierenden Drag-Steuerungen verbunden.
+- Die bisherige Drag-/Orbit-/Tastatur-/Direkteingabe-Logik wird nicht ersetzt; das zusätzliche Overlay ist `pointer-events:none`.
+- Das Overlay erscheint erst nach echter Bewegung und verschwindet bei Pointer-Up, Cancel, Capture-Verlust, Edit-Modus und Browser-Unfocus.
+- CSS nutzt reduzierte Animation gemäß `prefers-reduced-motion`.
+- Softwaretests und reale Browser-/Geräteabnahme sind noch gesondert nachzuweisen.

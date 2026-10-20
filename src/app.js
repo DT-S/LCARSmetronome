@@ -4,6 +4,7 @@ import {installPrecisionSlider,formatVolume} from './precision-slider.js';
 import {buildMatrixFaders} from './matrix-faders.js';
 import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from './linear-layout.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
+import {createGestureGuide} from './gesture-guide.js';
 import {customSoundUI} from './custom-sounds.js';
 import {createDiaryUI} from './diary-ui.js';
 import {SOUNDS} from './synth.js';
@@ -14,7 +15,8 @@ import {angleDelta} from './rhythm.js';
 import {AudioEngine} from './audio.js';
 import {Scheduler} from './scheduler.js';
 import {read,write,download} from './storage.js';
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const gestureGuide=createGestureGuide(document);
 const audio=new AudioEngine();let state=fresh(),linear=false,saveTimer,saveChain=Promise.resolve(),wakeLock,noticeTimer,starting=false,restoring=false,activePreset='';
 // The first launch uses 90% on phones; existing saved user preferences still win.
 state.uiScale=defaultInterfaceScale(matchMedia('(max-width:640px)').matches);
@@ -207,7 +209,7 @@ function stop(message='READY',endTime=audio.ctx?.currentTime){
  scheduler.stop();releaseWake();$('#start').textContent='START';$('#playStatus').textContent=message;heardTempo=null;tempoReadout();$('#dial').classList.remove('gap-phase');$$('.playing').forEach(n=>n.classList.remove('playing'));}
 $('#start').onclick=async()=>{if(starting||restoring)return;if(soundUI.isBusy())return notify('Wait for sound import to finish.','Warningsound');if(scheduler.running){stop();return;}starting=true;$('#start').disabled=true;try{await unlock();await audio.loading;await audio.loadCustom(state.customSounds);audio.mix(state);scheduler.start(state,state.diary.enabled?{exercise:state.diary.exercise,category:state.diary.category,preset:activePreset}:null);$('#start').textContent='STOP';$('#playStatus').textContent='PLAYING';if(navigator.wakeLock)try{wakeLock=await navigator.wakeLock.request('screen');}catch{}}catch{notify('Audio could not start. Tap Start again.','invalidsound');}finally{starting=false;$('#start').disabled=false;}};
 for(const [k,min,max] of [['beats',1,20],['subdivisions',1,20],['countIn',0,8],['duration',0,3600]])$('#'+k).onchange=e=>number(k,Number(e.target.value),min,max);
-for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id));
+for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id),gestureGuide);
 $('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>number('bpm',state.bpm+1,20,400);
 let taps=[];$('#tap').onclick=()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;};
 $('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();};
@@ -228,7 +230,7 @@ function gesture(el,isTempo=false){let g=null,suppressClick=false;
   el.addEventListener('pointerup',e=>end(e));el.addEventListener('pointercancel',e=>end(e,true));el.addEventListener('lostpointercapture',()=>{g=null;});
   el.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return;}if(isTempo)return;const p=e.target.closest('[data-index]');if(p)cycle(Number(p.dataset.channel),Number(p.dataset.index));});
 }
-gesture($('#rings'));installTempoControl($('#tempo'),$('#tempoValue'),$('#bpm'),()=>state.bpm,v=>number('bpm',v,20,400));
+gesture($('#rings'));installTempoControl($('#tempo'),$('#tempoValue'),$('#bpm'),()=>state.bpm,v=>number('bpm',v,20,400),gestureGuide);
 $('#rings').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const p=e.target.closest('[data-index]');if(p){e.preventDefault();const channel=p.dataset.channel,index=p.dataset.index;cycle(Number(channel),Number(index));$(`#rings [data-channel="${channel}"][data-index="${index}"]`)?.focus();}}});
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.target.closest('input,button,select,textarea,[role=button],dialog')){e.preventDefault();$('#start').click();}});
 installFeedback(document,{unlock,audio,state:()=>state});

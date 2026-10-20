@@ -1406,3 +1406,17 @@
   background: var(--orange);
   box-shadow: inset 0 -4px #fff0d9;
 }
+
+/* iOS PWA input handling: keep the document immobile while the keyboard opens.
+   Only the interior <main> is scrollable; the LCARS fascia stays anchored. */
+@media (max-width:640px) {
+  html { overscroll-behavior:none; }
+  body { position:fixed; inset:0; width:100%; height:100%; overflow:hidden; overscroll-behavior:none; }
+  /* WebKit may zoom the whole PWA if an input's *rendered* size is below 16px.
+     Compensate for the user-selected CSS zoom without enlarging desktop forms. */
+  #diaryEditor input, #diaryEditor textarea {
+    font-size:max(18px,calc(16px * var(--mobile-zoom-inverse,1)));
+  }
+  /* Two rapid taps must be two beats, not Safari's double-tap zoom gesture. */
+  #tap { touch-action:manipulation; user-select:none; -webkit-user-select:none; }
+}

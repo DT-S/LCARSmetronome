@@ -11,6 +11,26 @@ function metric(label,value){const n=el('div','stat-tile');n.append(el('span',''
 export function createDiaryUI(getState,save,notify){
  let editing=null,range=30,category='',exercise='',source='all',day='',limit=30;
  const diary=()=>getState().diary;
+ const onPhone=()=>window.matchMedia('(max-width:640px)').matches;
+ // The mobile PADD has exactly one scrolling region: <main>. When iOS opens
+ // the keyboard, preserve the focused editor field inside that region instead
+ // of letting Safari pan the entire zoomed document to an empty black area.
+ function keepEditorFieldVisible(){
+  if(!editing||!onPhone())return;
+  const well=document.querySelector('main'),editor=document.querySelector('#diaryEditor');
+  const focused=document.activeElement;
+  if(!well||!editor.contains(focused)||!focused.matches('input,textarea,select'))return;
+  const bounds=well.getBoundingClientRect(),field=focused.getBoundingClientRect();
+  const zoom=getState().uiScale||1,margin=12;
+  if(field.bottom>bounds.bottom-margin)well.scrollTop+=(field.bottom-bounds.bottom+margin)/zoom;
+  else if(field.top<bounds.top+margin)well.scrollTop+=(field.top-bounds.top-margin)/zoom;
+ }
+ document.querySelector('#diaryEditor').addEventListener('focusin',()=>{
+  requestAnimationFrame(keepEditorFieldVisible);
+ });
+ window.visualViewport?.addEventListener('resize',()=>{
+  requestAnimationFrame(keepEditorFieldVisible);
+ },{passive:true});
  function render(){
   const d=diary(),root=document.querySelector('#diaryControls');root.replaceChildren();
   const toggle=button(d.enabled?'AUTO LOG · ON':'AUTO LOG · OFF',()=>{d.enabled=!d.enabled;save();render();});toggle.setAttribute('aria-pressed',d.enabled);toggle.className='full';
@@ -58,7 +78,16 @@ export function createDiaryUI(getState,save,notify){
   }catch(err){notify(err.message,'invalidsound');}};
   root.append(form,sessionChart(e));
   const details=el('details','lcars-info');details.append(el('summary','','TIMING RECORD'));details.append(el('p','',`Source: ${e.source}. End: ${dateLabel(e.end)}. ${e.reason}. Preset: ${e.preset||'—'}. Stopping ends a session; the next start creates a separate entry. Idle time between sessions is excluded.`));
-  if(e.history.length){const table=el('table','history-table');const head=el('tr');for(const title of ['ELAPSED','BPM','MODE'])head.append(el('th','',title));table.append(head);for(const p of e.history){const row=el('tr');for(const v of [durationLabel(p.at),p.bpm,MODES[p.mode]||p.mode])row.append(el('td','',v));table.append(row);}details.append(table);}root.append(details);root.scrollIntoView({block:'start',behavior:'smooth'});name.focus();
+  if(e.history.length){const table=el('table','history-table');const head=el('tr');for(const title of ['ELAPSED','BPM','MODE'])head.append(el('th','',title));table.append(head);for(const p of e.history){const row=el('tr');for(const v of [durationLabel(p.at),p.bpm,MODES[p.mode]||p.mode])row.append(el('td','',v));table.append(row);}details.append(table);}root.append(details);
+  if(onPhone()){
+   // Scroll the inner content well only. No autofocus: the form must be visible
+   // before the user chooses an input and intentionally opens the keyboard.
+   const well=document.querySelector('main'),zoom=getState().uiScale||1;
+   well.scrollTop+=(root.getBoundingClientRect().top-well.getBoundingClientRect().top)/zoom-8;
+  }else{
+   root.scrollIntoView({block:'start',behavior:'smooth'});
+   name.focus({preventScroll:true});
+  }
  }
  function renderStats(){
   const root=document.querySelector('#analyticsContent');root.replaceChildren();const filters=el('div','panel');filters.append(el('h3','','DATA FILTERS'));

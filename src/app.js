@@ -1,4 +1,4 @@
-import {installFeedback,installSegmentCorners,UI_SCALES,defaultInterfaceScale} from './interface.js';
+import {installFeedback,installTapTempo,installSegmentCorners,UI_SCALES,defaultInterfaceScale} from './interface.js';
 import {PAN_PRESETS,setChannelPan} from './pan-control.js';
 import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from './linear-layout.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
@@ -181,7 +181,7 @@ $('#start').onclick=async()=>{if(starting||restoring)return;if(soundUI.isBusy())
 for(const [k,min,max] of [['beats',1,20],['subdivisions',1,20],['countIn',0,8],['duration',0,3600]])$('#'+k).onchange=e=>number(k,Number(e.target.value),min,max);
 for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id));
 $('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>number('bpm',state.bpm+1,20,400);
-let taps=[];$('#tap').onclick=()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;};
+let taps=[];installTapTempo($('#tap'),()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;});
 $('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();};
 
 for(const k of ['master','uiVolume'])$('#'+k).oninput=e=>{state[k]=Number(e.target.value);changed();};

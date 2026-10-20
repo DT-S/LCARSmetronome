@@ -97,6 +97,8 @@
 - **Fertig wenn:** Navigation und Diagramme ruhig, hochwertig, verständlich, flüssig und auditiv unverändert bleiben.
 
 ### P7 – Release-Kandidat, Geräteprüfung, Freigabe
+
+**In Arbeit:** Abnahmecheckliste, Asset-Herkunft und Offline-PWA-Regressionen. Kein Release ohne physische Geräte-/Audio-/Lizenzprüfung und Behebung des vom Nutzer erwähnten Bugs.
 - [ ] Sämtliche Node-Regressionstests grün und echte Browser-/PWA-Tests gemäß `V2_TEST_MATRIX.md`.
 - [ ] Tests auch mit Offline-Start, Versionwechsel, Speicher, Export/Import, Aktualisierung und App-Neustart.
 - [ ] Audiohören mit Kopfhörern: Panorama L/C/R, unabhängige Kanäle, Mute/Solo, Custom Sounds, Tap, Swing, Ramp; Timing/Audio unter UI-Animation beobachten.

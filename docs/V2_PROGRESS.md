@@ -171,3 +171,8 @@
 - **Plotter:** Echter Messpunktfokus/Touch/Hover positioniert einmalig zwei dünne Kreuzlinien auf den tatsächlichen x-/y-Werten, hebt nur diesen Marker hervor und zeigt die unveränderte Datenbeschreibung. Linien-/Balkenaufbau nur beim Neubau des Plots, und bei mehr als 120 Punkten keine massenweisen Marker-Animationen.
 - **Explizit entfernt/vermieden:** Keine Scanlines, keine animierten SYS-Streifen, kein blinkendes Idle-Telemetrie-Display, keine zufälligen Messwerte. `prefers-reduced-motion: reduce` deaktiviert nicht notwendige Animationen vollständig (Browsercheck).
 - **P6 im Code + CI abgeschlossen**, aber nicht endgültig für echte Geräte freigegeben. Offene P7-Gates: Safari auf iPhone/iPad, Arch Firefox, Offline-Start/Updates, Accessibility und Audio-/Latenzhörtest. Der vom Nutzer erwähnte kleine Bug bleibt wie gewünscht für später vorgemerkt, ohne Ursachenbehauptung. Version bleibt auf `main` unangetastet.
+
+## P7 – Release-Gates angelegt
+- Release-Kandidat und konkrete Abnahmeliste unter [V2_RELEASE_CANDIDATE.md](V2_RELEASE_CANDIDATE.md). Kein V2.0.0-Tag, keine Änderung an `main` und kein Deployment ohne ausdrückliche Freigabe.
+- P7 Offline-Neustart-/IndexedDB-Browsercheck ist in die CI-Suite aufgenommen; Ergebnis muss geprüft werden.
+- Hardware-, Lizenz- und bekannter Bug-Blocker sind bewusst offen und werden nicht als automatisiert bestanden markiert.

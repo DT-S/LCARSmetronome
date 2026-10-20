@@ -603,6 +603,113 @@ try{
    await page.screenshot({path:path.join(screenshots,'p7-offline-FAILED.png')}).catch(()=>{});
   }finally{await context.close();}
  }
+ // V2 release candidate: iPhone double-tap stability, contextual typography,
+ // actual touch tempo tapping and fixed midpoint for every numeric ladder.
+ {
+  const context=await browser.newContext({viewport:{width:390,height:844},
+   isMobile:true,hasTouch:true,reducedMotion:'reduce',deviceScaleFactor:3});
+  const page=await context.newPage(),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   await page.waitForSelector('#rings [data-channel="0"][data-index]');
+   const gestures=await page.evaluate(()=>{
+    return {html:getComputedStyle(document.documentElement).touchAction,
+      body:getComputedStyle(document.body).touchAction,
+      shell:getComputedStyle(document.querySelector('.app-shell')).touchAction,
+      font:getComputedStyle(document.documentElement).webkitTextSizeAdjust,
+      scale:window.visualViewport?.scale??1};
+   });
+   for(const name of ['html','body','shell'])assert.equal(gestures[name],'manipulation',
+    `P7 iOS double-tap guard missing on ${name}`);
+   // Send actual touch events: three quick TAP TEMPO taps and two taps in
+   // empty content. This must not be replaced by a preventDefault click hack.
+   const session=await page.context().newCDPSession(page);
+   const tap=async(x,y)=>{
+    await session.send('Input.dispatchTouchEvent',{type:'touchStart',
+      touchPoints:[{x,y}]});
+    await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+   };
+   const button=page.locator('#tap');
+   const rect=await button.boundingBox();
+   for(let i=0;i<3;i++)await tap(rect.x+rect.width/2,rect.y+rect.height/2);
+   const blank=await page.locator('#metronome .section-heading h2').boundingBox();
+   for(let i=0;i<2;i++)await tap(blank.x+blank.width/2,blank.y+blank.height/2);
+   assert.ok(Math.abs((await page.evaluate(()=>window.visualViewport?.scale??1))-gestures.scale)<.02,
+    'touch interactions changed visual viewport zoom');
+   const pre=await page.evaluate(async()=>{
+    const {createGestureGuide}=await import('./src/gesture-guide.js');
+    const anchor=document.createElement('button');
+    anchor.textContent='BEATS';anchor.style.cssText='position:fixed;left:155px;top:330px;width:75px;height:50px';
+    document.body.append(anchor);
+    const guide=createGestureGuide(document);
+    const result=[];
+    for(const value of [1,2,15,16,17,18,19,20]){
+     guide.show(anchor,value,1,20,'OUTER BEATS');
+     const root=guide.element,track=root.querySelector('.gesture-guide-rungs');
+     const active=root.querySelector('.gesture-guide-rung.is-current');
+     const tr=track.getBoundingClientRect(),ar=active.getBoundingClientRect();
+     result.push({value,relative:(ar.top+ar.height/2-tr.top)/tr.height,
+       outside:root.querySelectorAll('.gesture-guide-rung.is-outside').length,
+       rows:root.querySelectorAll('.gesture-guide-rung').length});
+     guide.hide();
+    }
+    rootCleanup();
+    function rootCleanup(){guide.element.remove();anchor.remove();}
+    return result;
+   });
+   for(const row of pre){
+    assert.equal(row.rows,13,'ladder lost track count');
+    assert.ok(Math.abs(row.relative-.5)<.06,
+      `gold indicator left center at ${row.value}: ${JSON.stringify(row)}`);
+   }
+   assert.equal(pre.find(x=>x.value===20).outside,6);
+   console.log('PASS RC double-tap, tempo taps, centered ladder limits 1–20');
+   await page.locator('[data-tab="settings"]').click();
+   const settings=await page.evaluate(()=>{
+    const size=selector=>parseFloat(getComputedStyle(document.querySelector(selector)).fontSize);
+    return {
+      backup:size('#settings .lcars-info summary'),
+      export:size('#settings #export'),
+      import:size('#settings .file-button')
+    };
+   });
+   assert.deepEqual([settings.backup,settings.export,settings.import],[14,14,14],
+    'system backup controls have inconsistent typography');
+   await page.locator('[data-tab="diary"]').click();
+   const fonts=await page.evaluate(()=>{
+    const size=sel=>parseFloat(getComputedStyle(document.querySelector(sel)).fontSize);
+    const entry=document.createElement('article');
+    entry.className='panel log-entry';
+    entry.innerHTML='<h3>TEST SESSION</h3><div class="session-data"><div class="stat-tile"><span>START</span><strong>19/10/26</strong></div></div>';
+    document.querySelector('#diaryList').append(entry);
+    const result={category:size('#diary .diary-categories button'),
+      recording:size('#diary .lcars-info summary'),
+      label:size('#diaryList .stat-tile span'),
+      value:size('#diaryList .stat-tile strong'),
+      panelWidth:entry.getBoundingClientRect().width};
+    entry.remove();return result;
+   });
+   assert.ok(fonts.category>=12&&fonts.recording>=13);
+   assert.ok(fonts.value<=15&&fonts.value>=13,'diary entry values are oversized');
+   await page.locator('[data-tab="analytics"]').click();
+   const contrast=await page.evaluate(()=>{
+    const row=document.createElement('div');row.className='session-choices';
+    const item=document.createElement('button');item.textContent='DAY 19/10/26 · OPEN PRACTICE';
+    row.append(item);document.querySelector('#analyticsContent').append(row);
+    const color=getComputedStyle(item).color,bg=getComputedStyle(item).backgroundColor;
+    row.remove();return {color,bg};
+   });
+   assert.equal(contrast.color,'rgb(0, 0, 0)','stats session selection text is not black');
+   assert.equal(contrast.bg,'rgb(153, 201, 239)','stats session selection must be readable on ice blue');
+   assert.deepEqual(errors,[]);
+   await page.screenshot({path:path.join(screenshots,'rc-mobile-type-scale.png')});
+   console.log('PASS RC uniform System/Diary typography and high-contrast Stats');
+  }catch(error){
+   fail++;console.error('FAIL RC iOS/typography/ladder:',error);
+   await page.screenshot({path:path.join(screenshots,'rc-mobile-regression-FAILED.png')}).catch(()=>{});
+  }finally{await context.close();}
+ }
 }finally{
  await browser.close();
  await new Promise(resolve=>server.close(resolve));

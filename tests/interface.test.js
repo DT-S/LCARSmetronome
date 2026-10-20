@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {activationSound,installFeedback,segmentCornerRadii,UI_SCALES,defaultInterfaceScale} from '../src/interface.js';
+import {activationSound,installFeedback,installTapTempo,segmentCornerRadii,UI_SCALES,defaultInterfaceScale} from '../src/interface.js';
 import {fresh,validate,presetSettings,loadPreset} from '../src/model.js';
-function control({tab,mode,active=false,pressed=false,tag='BUTTON'}={}){const classes=new Set(active?['active']:[]);return {dataset:{tab,mode},tagName:tag,classList:{contains:s=>classes.has(s),add:s=>classes.add(s),remove:s=>classes.delete(s)},getAttribute:k=>k==='aria-pressed'?String(pressed):null,closest:()=>null,contains:()=>false,querySelector:()=>null};}
+function control({tab,mode,id,active=false,pressed=false,tag='BUTTON'}={}){const classes=new Set(active?['active']:[]);return {id,dataset:{tab,mode},tagName:tag,classList:{contains:s=>classes.has(s),add:s=>classes.add(s),remove:s=>classes.delete(s)},getAttribute:k=>k==='aria-pressed'?String(pressed):null,closest:()=>null,contains:()=>false,querySelector:()=>null};}
 function fixture(options={}){const c=control(options);c.closest=s=>s==='.sound-choices'?null:c;const handlers={},calls=[],state=fresh();const root={addEventListener(n,f){(handlers[n]??=[]).push(f);}};installFeedback(root,{unlock:async()=>{},audio:{loading:Promise.resolve(),ui:(name,s)=>{if(s.uiEnabled)calls.push(name);}},state:()=>state});const fire=(name,extra={})=>{for(const f of handlers[name]||[])f({target:c,button:0,pointerId:1,pointerType:'touch',clientX:1,clientY:1,...extra});};return {c,calls,fire,state};}
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 test('navigation uses switch sound only for a different destination',()=>{assert.equal(activationSound(control({tab:'audio'})),'switchingmenus');assert.equal(activationSound(control({tab:'audio',active:true})),'buttonpress');assert.equal(activationSound(control({mode:'ramp',pressed:true})),'buttonpress');assert.equal(activationSound(control({mode:'ramp'})),'switchingmenus');});
@@ -44,4 +44,62 @@ test('segmented layout refresh is scoped to dynamic controls, not frame-updated 
  const source=readFileSync(new URL('../src/interface.js',import.meta.url),'utf8');
  assert.match(source,/observer\.observe\(node,\{childList:true,subtree:true\}\)/);
  assert.doesNotMatch(source,/observer\.observe\(root,\{childList:true,subtree:true/);
+});
+
+test('Tap Tempo measures on pointerdown and never on pointerup or its synthetic click',()=>{
+ const callbacks={};let taps=0;
+ const button={addEventListener:(event,fn)=>{callbacks[event]=fn;}};
+ installTapTempo(button,()=>{taps++;});
+ callbacks.pointerdown({button:0,isPrimary:true,pointerType:'touch'});
+ assert.equal(taps,1);
+ // Releasing a pressed finger adds no second tempo sample.
+ callbacks.click({detail:1});
+ assert.equal(taps,1);
+ callbacks.pointerdown({button:0,isPrimary:true,pointerType:'touch'});
+ assert.equal(taps,2);
+ callbacks.click({detail:1});
+ assert.equal(taps,2);
+ // Keyboard/assistive activation has no preceding pointerdown.
+ callbacks.click({detail:0});
+ assert.equal(taps,3);
+ callbacks.click({detail:1});
+ assert.equal(taps,4);
+ callbacks.pointerdown({button:2,isPrimary:true,pointerType:'mouse'});
+ callbacks.pointerdown({button:0,isPrimary:false,pointerType:'touch'});
+ assert.equal(taps,4);
+});
+
+test('Tap Tempo makes exactly one press beep on contact, independent of hover setting',async()=>{
+ const f=fixture({id:'tap'});
+ f.fire('pointerdown');await settle();
+ assert.deepEqual(f.calls,['buttonpress']);
+ f.fire('pointerup');f.fire('click',{detail:1});
+ await settle();
+ assert.deepEqual(f.calls,['buttonpress']);
+ f.fire('pointerover',{pointerType:'mouse'});
+ await settle();
+ assert.deepEqual(f.calls,['buttonpress']);
+ const noHover=fixture({id:'tap'});
+ noHover.state.hoverEnabled=false;
+ noHover.fire('pointerdown');await settle();
+ assert.deepEqual(noHover.calls,['buttonpress']);
+ noHover.fire('pointerup');noHover.fire('click',{detail:1});
+ await settle();
+ assert.deepEqual(noHover.calls,['buttonpress']);
+});
+
+test('Tap Tempo keeps keyboard activation feedback',async()=>{
+ const f=fixture({id:'tap'});
+ f.fire('click',{detail:0});await settle();
+ assert.deepEqual(f.calls,['buttonpress']);
+});
+
+test('mobile diary editor does not auto-focus or use document scrollIntoView',()=>{
+ const source=readFileSync(new URL('../src/diary-ui.js',import.meta.url),'utf8');
+ assert.match(source,/if\(onPhone\(\)\)\{/);
+ assert.match(source,/well\.scrollTop\+=/);
+ assert.match(source,/for\(const event of \['resize','scroll'\]\)/);
+ const mobile=source.split('if(onPhone()){').at(-1).split('}else{')[0];
+ assert.doesNotMatch(mobile,/\.focus\(/);
+ assert.doesNotMatch(mobile,/\.scrollIntoView\(/);
 });

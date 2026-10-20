@@ -120,6 +120,17 @@
  cursor:ew-resize;touch-action:none!important;appearance:none!important;
  background:transparent!important;
 }
+/* Keep the invisible native thumb large enough for Safari's range drag.
+   Hiding it visually must not remove its interactive hit target. */
+.lcars-range-native::-webkit-slider-runnable-track{height:100%;background:transparent;}
+.lcars-range-native::-webkit-slider-thumb{
+ -webkit-appearance:none;appearance:none;width:28px;height:70px;
+ border:0;background:transparent;cursor:ew-resize;
+}
+.lcars-range-native::-moz-range-track{height:100%;background:transparent;}
+.lcars-range-native::-moz-range-thumb{
+ width:28px;height:70px;border:0;background:transparent;cursor:ew-resize;
+}
 .lcars-range-native:disabled{cursor:not-allowed;}
 .lcars-focused .lcars-slide-track{outline:2px solid #fff6c2;outline-offset:2px;}
 .lcars-slide-cap{position:relative;min-width:0;padding-left:2px;background:#000;}

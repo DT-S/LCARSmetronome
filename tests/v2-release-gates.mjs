@@ -51,7 +51,7 @@ try{
    const cached=await page.evaluate(async()=>{
     const reg=await navigator.serviceWorker.ready;
     const keys=await caches.keys();
-    const cache=await caches.open(keys.find(k=>k.includes('lcars-core-v2-dev-p6-motion-1')));
+    const cache=await caches.open(keys.find(k=>k.startsWith('lcars-core-')&&k.includes('v2-')&&k!=='lcars-core-/-old-p7-release'));
     return {scope:reg.scope,keys,html:Boolean(await cache.match('./index.html')),
       module: Boolean(await cache.match('./src/app.js')),
       styles: Boolean(await cache.match('./v2-motion.css')),
@@ -139,7 +139,7 @@ try{
    await page.waitForFunction(async()=>{
     const reg=await navigator.serviceWorker.getRegistration();
     return reg?.active?.scriptURL.endsWith('/sw.js')&&
-      (await caches.keys()).some(k=>k.includes('lcars-core-v2-dev-p6-motion-1'))&&
+      (await caches.keys()).some(k=>k.startsWith('lcars-core-')&&k.includes('v2-'))&&
       !(await caches.keys()).includes('lcars-core-/-old-p7-release');
    },{timeout:20000});
    await page.waitForSelector('#rings [data-index]',{timeout:20000});

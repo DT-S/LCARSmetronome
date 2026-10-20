@@ -2,10 +2,10 @@
    Only the identified diary, system, analytics and iOS tap targets change.
    LCARS fascia/sidebar, rings and instrument typography are untouched. */
 
-/* iOS Safari: disable double-tap smart zoom while preserving pinch zoom,
-   scrolling, and the existing tempo multi-tap gesture. Do not use
-   user-scalable=no or maximum-scale=1, which would defeat accessibility. */
-html,body,.app-shell{touch-action:manipulation;}
+/* Fully disable web-page pinch and double-tap zoom while retaining
+   regular horizontal/vertical panning, input gestures and PADD scrolling.
+   The UI's own Interface Size control is independent of browser zoom. */
+html,body,.app-shell{touch-action:pan-x pan-y;}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 
 /* Shared typography scale for regular controls within System + Diary.

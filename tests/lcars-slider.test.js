@@ -47,7 +47,9 @@ test('RC4 new slider controls are wired to existing inputs and are precached off
  assert.match(js,/input\.setAttribute\('aria-valuetext'/);
  assert.match(sw,/\.\/src\/lcars-slider\.js/);
  assert.match(sw,/\.\/v2-lcars-slider\.css/);
- assert.match(index,/2\.0\.0 RC4/);
+ const pkg=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));
+ const expectedRelease=pkg.version.replace('-rc.',' RC');
+ assert.ok(index.includes('Rhythm core '+expectedRelease),'UI release label must match package version');
 });
 test('RC4 LED animations honor reduced motion without introducing synthetic audio',()=>{
  const css=readFileSync(new URL('../v2-lcars-slider.css',import.meta.url),'utf8');

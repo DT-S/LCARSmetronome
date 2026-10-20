@@ -88,3 +88,175 @@
   }
   .xy-plot .chart-probe-line {transition:none!important;}
 }
+
+/* ==========================================================================
+   LCARS SEQUENCED SYSTEM LAUNCH · 2.0.0 RC7
+   Decorative only: no geometry/layout changes, no pointer blocking, no sound.
+   Real SVG beat geometry and persistent user controls remain interactive.
+   CSS animation is scoped to the one-shot `.lcars-booting` shell class.
+   ========================================================================== */
+@keyframes lcars-launch-elbow {
+  0% {clip-path:inset(0 95% 97% 0);filter:brightness(1.7);}
+  48% {clip-path:inset(0 0 76% 0);}
+  100% {clip-path:inset(0 0 0 0);filter:brightness(1);}
+}
+@keyframes lcars-launch-bar-x {
+  0% {clip-path:inset(0 100% 0 0);filter:brightness(1.55);}
+  100% {clip-path:inset(0 0 0 0);filter:brightness(1);}
+}
+@keyframes lcars-launch-bar-y {
+  0% {clip-path:inset(0 0 100% 0);filter:brightness(1.4);}
+  100% {clip-path:inset(0 0 0 0);filter:brightness(1);}
+}
+@keyframes lcars-launch-border {
+  0% {border-left-color:transparent;border-top-color:transparent;border-bottom-color:transparent;}
+  45% {border-left-color:var(--padd-amber,#ffcc66);border-top-color:transparent;border-bottom-color:transparent;}
+  100% {border-left-color:var(--padd-amber,#ffcc66);border-top-color:var(--padd-amber,#ffcc66);border-bottom-color:var(--padd-peach,#ff9966);}
+}
+@keyframes lcars-launch-panel-border {
+  0% {border-left-color:transparent;border-top-color:transparent;border-bottom-color:transparent;}
+  55% {border-left-color:var(--panel-accent,var(--padd-lavender,#cc99cc));border-top-color:transparent;border-bottom-color:transparent;}
+  100% {border-left-color:var(--panel-accent,var(--padd-lavender,#cc99cc));border-top-color:var(--panel-accent,var(--padd-lavender,#cc99cc));border-bottom-color:var(--panel-accent,var(--padd-lavender,#cc99cc));}
+}
+@keyframes lcars-launch-pop {
+  0% {opacity:0;clip-path:inset(0 100% 0 0);filter:brightness(1.65);}
+  55% {opacity:1;clip-path:inset(0 0 0 0);filter:brightness(1.22);}
+  100% {opacity:1;clip-path:inset(0 0 0 0);filter:brightness(1);}
+}
+@keyframes lcars-launch-details {
+  0% {opacity:0;clip-path:inset(0 100% 0 0);}
+  100% {opacity:1;clip-path:inset(0 0 0 0);}
+}
+@keyframes lcars-launch-ring {
+  0% {opacity:.05;stroke-dashoffset:var(--boot-circumference);}
+  100% {opacity:1;stroke-dashoffset:0;}
+}
+@keyframes lcars-launch-node {
+  0% {opacity:0;filter:brightness(1.7);}
+  55% {opacity:1;filter:brightness(1.25);}
+  100% {opacity:1;filter:brightness(1);}
+}
+
+/* I. Structural elbow and system rails (0–500ms). */
+.app-shell.lcars-booting > header .elbow {
+  animation:lcars-launch-elbow 360ms cubic-bezier(.16,1,.3,1) both;
+}
+.app-shell.lcars-booting > header::after {
+  animation:lcars-launch-bar-x 410ms cubic-bezier(.22,1,.36,1) 70ms both;
+}
+.app-shell.lcars-booting::after {
+  animation:lcars-launch-bar-x 390ms cubic-bezier(.22,1,.36,1) 110ms both;
+}
+.app-shell.lcars-booting > header .heading,
+.app-shell.lcars-booting > header::before {
+  animation:lcars-launch-details 280ms ease-out 180ms both;
+}
+
+/* II. Sidebar and engineering borders (120–720ms).
+   Animate border colors, NOT the whole instrument: clipping the parent would
+   conceal the ring and intercept the carefully staggered child reveals. */
+.app-shell.lcars-booting > aside .rail {
+  animation:lcars-launch-bar-y 370ms cubic-bezier(.22,1,.36,1) 130ms both;
+}
+.app-shell.lcars-booting > aside .rail-end {
+  animation:lcars-launch-bar-y 230ms ease-out 300ms both;
+}
+.app-shell.lcars-booting #metronome .section-heading {
+  animation:lcars-launch-bar-x 340ms cubic-bezier(.22,1,.36,1) 175ms both;
+}
+.app-shell.lcars-booting #metronome .instrument {
+  animation:lcars-launch-border 440ms ease-out 170ms both;
+}
+.app-shell.lcars-booting #metronome .side-controls > .panel {
+  animation:lcars-launch-panel-border 400ms ease-out 235ms both;
+}
+.app-shell.lcars-booting #metronome .side-controls > .panel:nth-of-type(2) {
+  animation-delay:330ms;
+}
+.app-shell.lcars-booting #metronome .side-controls > .operation-info {
+  animation:lcars-launch-bar-x 310ms ease-out 420ms both;
+}
+
+/* III. Navigation and operating modes, discrete LCARS staccato. */
+.app-shell.lcars-booting > aside nav .nav {
+  animation:lcars-launch-pop 220ms steps(5,end) both;
+}
+.app-shell.lcars-booting > aside nav .nav:nth-child(1) {animation-delay:210ms;}
+.app-shell.lcars-booting > aside nav .nav:nth-child(2) {animation-delay:250ms;}
+.app-shell.lcars-booting > aside nav .nav:nth-child(3) {animation-delay:290ms;}
+.app-shell.lcars-booting > aside nav .nav:nth-child(4) {animation-delay:330ms;}
+.app-shell.lcars-booting > aside nav .nav:nth-child(5) {animation-delay:370ms;}
+.app-shell.lcars-booting > aside nav .nav:nth-child(6) {animation-delay:410ms;}
+.app-shell.lcars-booting #metronome .mode-heading {
+  animation:lcars-launch-details 200ms ease-out 290ms both;
+}
+.app-shell.lcars-booting #modeButtons button {
+  animation:lcars-launch-pop 210ms steps(5,end) both;
+}
+.app-shell.lcars-booting #modeButtons button:nth-child(1) {animation-delay:310ms;}
+.app-shell.lcars-booting #modeButtons button:nth-child(2) {animation-delay:350ms;}
+.app-shell.lcars-booting #modeButtons button:nth-child(3) {animation-delay:390ms;}
+.app-shell.lcars-booting #modeButtons button:nth-child(4) {animation-delay:430ms;}
+.app-shell.lcars-booting #modeButtons button:nth-child(5) {animation-delay:470ms;}
+.app-shell.lcars-booting #modeButtons button:nth-child(6) {animation-delay:510ms;}
+.app-shell.lcars-booting #modeButtons button:nth-child(7) {animation-delay:550ms;}
+.app-shell.lcars-booting #modeButtons button:nth-child(8) {animation-delay:590ms;}
+
+/* IV. SVG rings traced in place. Never translate/scale the beat hit targets.
+   Circumferences are 2π×212 ≈ 1332px and 2π×149 ≈ 936px. */
+.app-shell.lcars-booting #rings circle.track:not(.inner-track) {
+  --boot-circumference:1333;
+  stroke-dasharray:1333 1333;
+  animation:lcars-launch-ring 440ms cubic-bezier(.22,1,.36,1) 390ms both;
+}
+.app-shell.lcars-booting #rings circle.track.inner-track {
+  --boot-circumference:937;
+  stroke-dasharray:937 937;
+  animation:lcars-launch-ring 400ms cubic-bezier(.22,1,.36,1) 485ms both;
+}
+.app-shell.lcars-booting #rings .dial-ticks {
+  animation:lcars-launch-details 250ms ease-out 520ms both;
+}
+.app-shell.lcars-booting #tempo {
+  animation:lcars-launch-details 280ms cubic-bezier(.22,1,.36,1) 535ms both;
+}
+.app-shell.lcars-booting #rings g[data-index] {
+  animation:lcars-launch-node 200ms ease-out var(--boot-delay,610ms) both;
+}
+
+/* V. Status, metering, transport and fine controls (570–1260ms). */
+.app-shell.lcars-booting #metronome .legend {
+  animation:lcars-launch-details 230ms ease-out 610ms both;
+}
+.app-shell.lcars-booting #metronome .play-status {
+  animation:lcars-launch-details 255ms ease-out 670ms both;
+}
+.app-shell.lcars-booting #metronome .pattern-counts {
+  animation:lcars-launch-details 260ms ease-out 720ms both;
+}
+.app-shell.lcars-booting #metronome .transport #tap {
+  animation:lcars-launch-pop 230ms steps(5,end) 795ms both;
+}
+.app-shell.lcars-booting #metronome .transport #start {
+  animation:lcars-launch-pop 230ms steps(5,end) 855ms both;
+}
+.app-shell.lcars-booting #metronome .side-controls .training-fields,
+.app-shell.lcars-booting #metronome .side-controls .swing-control,
+.app-shell.lcars-booting #metronome .side-controls label {
+  animation:lcars-launch-details 270ms ease-out 650ms both;
+}
+.app-shell.lcars-booting > main > footer {
+  animation:lcars-launch-details 250ms ease-out 885ms both;
+}
+
+/* Never suppress layout transforms from the original app when motion is
+   reduced. Only disable the launch animations and their temporary masks. */
+@media (prefers-reduced-motion:reduce) {
+  .app-shell.lcars-booting *,
+  .app-shell.lcars-booting::after,
+  .app-shell.lcars-booting > header::before,
+  .app-shell.lcars-booting > header::after {
+    animation:none!important;
+    clip-path:none!important;
+  }
+}

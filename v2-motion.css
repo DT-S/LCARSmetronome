@@ -119,13 +119,16 @@
   100% {border-left-color:var(--panel-accent,var(--padd-lavender,#cc99cc));border-top-color:var(--panel-accent,var(--padd-lavender,#cc99cc));border-bottom-color:var(--panel-accent,var(--padd-lavender,#cc99cc));}
 }
 @keyframes lcars-launch-pop {
-  0% {opacity:0;clip-path:inset(0 100% 0 0);filter:brightness(1.65);}
-  55% {opacity:1;clip-path:inset(0 0 0 0);filter:brightness(1.22);}
-  100% {opacity:1;clip-path:inset(0 0 0 0);filter:brightness(1);}
+  /* Never clip real buttons: clip-path alters the pointer hit region in Safari
+     and Chromium even when pointer-events is left alone. */
+  0% {opacity:0;filter:brightness(1.65);}
+  55% {opacity:1;filter:brightness(1.22);}
+  100% {opacity:1;filter:brightness(1);}
 }
 @keyframes lcars-launch-details {
-  0% {opacity:0;clip-path:inset(0 100% 0 0);}
-  100% {opacity:1;clip-path:inset(0 0 0 0);}
+  /* Opacity preserves the full physical touch/click region of a control. */
+  0% {opacity:0;}
+  100% {opacity:1;}
 }
 @keyframes lcars-launch-ring {
   0% {opacity:.05;stroke-dashoffset:var(--boot-circumference);}
@@ -162,7 +165,7 @@
   animation:lcars-launch-bar-y 230ms ease-out 300ms both;
 }
 .app-shell.lcars-booting #metronome .section-heading {
-  animation:lcars-launch-bar-x 340ms cubic-bezier(.22,1,.36,1) 175ms both;
+  animation:lcars-launch-details 340ms cubic-bezier(.22,1,.36,1) 175ms both;
 }
 .app-shell.lcars-booting #metronome .instrument {
   animation:lcars-launch-border 440ms ease-out 170ms both;
@@ -174,7 +177,7 @@
   animation-delay:330ms;
 }
 .app-shell.lcars-booting #metronome .side-controls > .operation-info {
-  animation:lcars-launch-bar-x 310ms ease-out 420ms both;
+  animation:lcars-launch-details 310ms ease-out 420ms both;
 }
 
 /* III. Navigation and operating modes, discrete LCARS staccato. */

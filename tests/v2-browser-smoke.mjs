@@ -335,6 +335,110 @@ try{
    await page.screenshot({path:path.join(screenshots,'tempo-morph-FAILED.png')}).catch(()=>{});
   }finally{await page.close();}
  }
+ // P5: Real touch-driven Linear View length gestures on BOTH channels.
+ // Confirm stable pointer-capturing rows survive re-render/wrapping, tap stays
+ // an accent cycle, and drag never emits a phantom accent click.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844},
+    hasTouch:true,isMobile:true,reducedMotion:'reduce'});
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   await page.locator('#view').click();
+   const outer=page.locator('#linear .pattern-row[data-channel="0"]');
+   const inner=page.locator('#linear .pattern-row[data-channel="1"]');
+   assert.equal(await outer.locator('.step').count(),4);
+   assert.equal(await inner.locator('.step').count(),2);
+   await outer.evaluate(row=>row.dataset.persistentTest='outer-original');
+   await inner.evaluate(row=>row.dataset.persistentTest='inner-original');
+   const session=await page.context().newCDPSession(page);
+   const touch=async(type,points)=>session.send('Input.dispatchTouchEvent',{
+    type,touchPoints:points.map(([x,y])=>({x,y}))});
+   async function swipe(row,index,distance,{cancel=false}={}){
+    const button=row.locator(`button.step[data-index="${index}"]`);
+    await button.scrollIntoViewIfNeeded();
+    const rect=await button.boundingBox(),x=rect.x+rect.width/2,y=rect.y+rect.height/2;
+    await touch('touchStart',[[x,y]]);
+    if(distance!==0){
+     const sign=Math.sign(distance);
+     await touch('touchMove',[[x,y+sign*10]]);
+     assert.equal(await page.locator('.gesture-guide').evaluate(el=>el.classList.contains('is-visible')),true,
+       'P5 morphing guide did not activate');
+     await touch('touchMove',[[x,y+distance]]);
+    }
+    await touch(cancel?'touchCancel':'touchEnd',[]);
+   }
+   await swipe(outer,1,0); // tap, accents only
+   assert.equal(await outer.locator('button.step[data-index="1"]').getAttribute('class'),'step state3');
+   assert.equal(await outer.locator('.step').count(),4,'tap changed outer beat count');
+   await swipe(outer,0,-49); // threshold + 39px -> 3 new beats
+   assert.equal(await outer.locator('.step').count(),7);
+   assert.equal(await outer.locator('button.step[data-index="1"]').getAttribute('class'),'step state3',
+    'length drag incorrectly cycled accent');
+   assert.equal(await outer.getAttribute('data-persistent-test'),'outer-original','outer row replaced while dragging');
+   assert.equal(await page.locator('#beats').inputValue(),'7');
+   await swipe(inner,0,-75); // from 2 to 7
+   assert.equal(await inner.locator('.step').count(),7);
+   assert.equal(await inner.getAttribute('data-persistent-test'),'inner-original','inner row replaced');
+   assert.equal(await page.locator('#subdivisions').inputValue(),'7');
+   assert.equal(await outer.locator('.step').count(),7,'inner swipe changed outer count');
+   await page.screenshot({path:path.join(screenshots,'linear-p5-polyrhythm-7-7.png')});
+   await swipe(outer,0,49,{cancel:true});
+   assert.equal(await outer.locator('.step').count(),7,'cancelled drag changed count unexpectedly');
+   assert.ok(!await outer.evaluate(el=>el.classList.contains('linear-dragging')),'cancel left row locked');
+   assert.equal(await page.locator('.gesture-guide').evaluate(el=>el.classList.contains('is-visible')),false);
+   await swipe(outer,0,62);
+   assert.equal(await outer.locator('.step').count(),3);
+   assert.equal(await outer.getAttribute('data-persistent-test'),'outer-original');
+   // Verify numerical limits through the production input/model, not through
+   // mock state: the gesture must clamp without adding/removing phantom steps.
+   for(const [count,distance,expectCount] of [[20,-62,20],[1,62,1]]){
+    await page.locator('#beats').evaluate((input,value)=>{
+     input.value=String(value);input.dispatchEvent(new Event('change',{bubbles:true}));
+    },count);
+    assert.equal(await outer.locator('.step').count(),count);
+    await swipe(outer,0,distance);
+    assert.equal(await outer.locator('.step').count(),expectCount,'P5 drag passed 1–20 bound');
+   }
+   await page.locator('#view').click();
+   assert.ok(await page.locator('#rings [data-index]').count()>0,
+    'Circular View broken after linear gesture changes');
+   assert.deepEqual(errors,[]);
+   console.log('PASS P5 Linear View touch, row persistence, tap/drag, 1–20 boundaries');
+  }catch(error){
+   fail++;console.error('FAIL P5 Linear View touch:',error);
+   await page.screenshot({path:path.join(screenshots,'linear-p5-touch-FAILED.png')}).catch(()=>{});
+  }finally{await page.close();}
+ }
+ // Keyboard and mouse still operate the direct beat surfaces on desktop.
+ {
+  const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:'reduce'});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   await page.locator('#view').click();
+   const outer=page.locator('#linear .pattern-row[data-channel="0"]');
+   const first=outer.locator('button.step').first();
+   await first.focus();
+   await page.keyboard.press('Enter');
+   assert.equal(await outer.locator('button.step').first().getAttribute('class'),'step state1');
+   assert.equal(await outer.locator('button.step').count(),4,'keyboard accent changed pattern count');
+   assert.equal(await outer.locator('button.step').first().evaluate(el=>document.activeElement===el),true,
+     'keyboard focus lost during step re-render');
+   await page.mouse.move(0,0);
+   const rect=await outer.locator('button.step').first().boundingBox();
+   const x=rect.x+rect.width/2,y=rect.y+rect.height/2;
+   await page.mouse.move(x,y);await page.mouse.down();
+   await page.mouse.move(x,y-11);await page.mouse.move(x,y-50);
+   await page.mouse.up();
+   assert.equal(await outer.locator('button.step').count(),7,'desktop vertical mouse drag not counted');
+   assert.deepEqual(errors,[]);
+   console.log('PASS P5 desktop keyboard focus and mouse count gestures');
+  }catch(error){
+   fail++;console.error('FAIL P5 desktop keyboard/mouse:',error);
+  }finally{await page.close();}
+ }
 }finally{
  await browser.close();
  await new Promise(resolve=>server.close(resolve));

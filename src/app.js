@@ -4,6 +4,7 @@ import {installPrecisionSlider,formatVolume} from './precision-slider.js';
 import {buildMatrixFaders} from './matrix-faders.js';
 import {linearRowSizes,mobileFrameHeight,visibleViewportHeight,keyboardSafeViewportHeight} from './linear-layout.js';
 import {installUpdateManager} from './update-manager.js';
+import {installViewportZoomGuard} from './viewport-zoom-guard.js';
 import {installLinearBeatGesture} from './linear-gesture.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {createGestureGuide} from './gesture-guide.js';
@@ -18,6 +19,8 @@ import {angleDelta} from './rhythm.js';
 import {AudioEngine} from './audio.js';
 import {Scheduler} from './scheduler.js';
 import {read,write,download} from './storage.js';
+// Prevent browser pinch/gesture zoom before registering any UI interactions.
+installViewportZoomGuard(document);
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const gestureGuide=createGestureGuide(document);
 const motion=createMotionController(document);

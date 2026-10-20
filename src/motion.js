@@ -1,7 +1,7 @@
 // Rhythm PADD V2 / P6 – state-triggered visual motion only.
 // Never called by the audio frame, scheduler or chart value calculations.
 export const LCARS_BOOT_DURATION_MS=1450;
-export const LCARS_PAGE_BUILD_DURATION_MS=960;
+export const LCARS_PAGE_BUILD_DURATION_MS=1200;
 export function shouldLaunchBoot({reducedMotion=false,metronomeVisible=true}={}){
  return !reducedMotion&&metronomeVisible;
 }
@@ -21,12 +21,14 @@ export function createMotionController(root=document){
  // Page build is a staggered multi-element sequence, not a single 210ms
  // animationend. A timer owns cleanup after the FINAL detail comes online.
  const pageTimers=new Map();
+ const shell=root.querySelector('.app-shell');
  const finishPage=node=>{
   const timer=pageTimers.get(node);
   if(timer!==undefined){clearTimeout(timer);pageTimers.delete(node);}
   clear(node,'lcars-page-enter');
+  // Global rails/headers must finish alongside the destination page.
+  if(pageTimers.size===0)shell?.classList.remove('lcars-page-building');
  };
- const shell=root.querySelector('.app-shell');
  let bootStarted=false,bootTimer=null;
  function finishBoot(){
   if(bootTimer!==null){clearTimeout(bootTimer);bootTimer=null;}
@@ -56,6 +58,7 @@ export function createMotionController(root=document){
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!reduce){
    run(next,'lcars-page-enter');
+   shell?.classList.add('lcars-page-building');
    pageTimers.set(next,setTimeout(()=>finishPage(next),LCARS_PAGE_BUILD_DURATION_MS));
   }
   return true;

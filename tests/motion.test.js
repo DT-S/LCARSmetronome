@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {shouldTransition,shouldLaunchBoot,LCARS_BOOT_DURATION_MS,createMotionController} from '../src/motion.js';
+import {shouldTransition,shouldLaunchBoot,LCARS_BOOT_DURATION_MS,LCARS_PAGE_BUILD_DURATION_MS,createMotionController} from '../src/motion.js';
 import {readFileSync} from 'node:fs';
 
 test('P6 page transitions occur for actual destination change only',()=>{
@@ -89,5 +89,79 @@ test('Launch choreography uses real circular geometry, has reduced-motion escape
  assert.doesNotMatch(css,/animation:[^;]*infinite/);
  assert.match(app,/\}render\(\);motion\.boot\(\);storageStatus/);
  assert.match(app,/--boot-delay:/);
- assert.match(sw,/lcars-core-v2-rc7-launch-sequence/);
+ assert.match(sw,/const CACHE=PREFIX\+'lcars-core-v2-rc\d+-/);
+});
+
+test('RC8 each page boot reconstructs the LCARS shell and clears on rapid navigation',()=>{
+ assert.equal(LCARS_PAGE_BUILD_DURATION_MS,1200);
+ const shellClasses=new Set(),classFor=classes=>({
+  add:c=>classes.add(c),remove:c=>classes.delete(c),contains:c=>classes.has(c)
+ });
+ const shell={classList:classFor(shellClasses)};
+ const pageIds=['metronome','audio','presets','diary','analytics','settings'];
+ const pages=pageIds.map(id=>{
+  const classes=new Set();
+  return {id,hidden:id!=='metronome',offsetWidth:300,classList:classFor(classes),
+    addEventListener:()=>{},removeEventListener:()=>{}};
+ });
+ const byId=Object.fromEntries(pages.map(p=>[p.id,p]));
+ const root={
+  querySelectorAll:q=>q==='.page'?pages:[],
+  querySelector:q=>q==='.app-shell'?shell:null,
+  getElementById:id=>byId[id]
+ };
+ const nativeSet=globalThis.setTimeout,nativeClear=globalThis.clearTimeout,nativeMatch=globalThis.matchMedia;
+ let key=0;const tasks=new Map();
+ try{
+  globalThis.setTimeout=(fn,ms)=>{const id=++key;tasks.set(id,{fn,ms});return id;};
+  globalThis.clearTimeout=id=>tasks.delete(id);
+  globalThis.matchMedia=()=>({matches:false});
+  const motion=createMotionController(root);
+  byId.metronome.hidden=true;byId.audio.hidden=false;
+  assert.equal(motion.page('audio'),true);
+  assert.equal(shell.classList.contains('lcars-page-building'),true);
+  assert.equal(byId.audio.classList.contains('lcars-page-enter'),true);
+  assert.equal([...tasks.values()][0].ms,LCARS_PAGE_BUILD_DURATION_MS);
+  assert.equal(motion.page('audio'),false,'current page is never rebooted');
+  byId.audio.hidden=true;byId.analytics.hidden=false;
+  assert.equal(motion.page('analytics'),true);
+  assert.equal(byId.audio.classList.contains('lcars-page-enter'),false,
+    'cancel old tab on fast navigation');
+  assert.equal(byId.analytics.classList.contains('lcars-page-enter'),true);
+  assert.equal(tasks.size,1,'no abandoned timeouts after fast switching');
+  [...tasks.values()][0].fn();
+  assert.equal(tasks.size,0);
+  assert.equal(shell.classList.contains('lcars-page-building'),false);
+  assert.equal(byId.analytics.classList.contains('lcars-page-enter'),false);
+  globalThis.matchMedia=()=>({matches:true});
+  byId.analytics.hidden=true;byId.settings.hidden=false;
+  assert.equal(motion.page('settings'),true);
+  assert.equal(shell.classList.contains('lcars-page-building'),false,
+    'reduced motion must never enter a boot state');
+  assert.equal(byId.settings.classList.contains('lcars-page-enter'),false);
+ }finally{
+  globalThis.setTimeout=nativeSet;globalThis.clearTimeout=nativeClear;
+  if(nativeMatch===undefined)delete globalThis.matchMedia;else globalThis.matchMedia=nativeMatch;
+ }
+});
+
+test('all six pages animate architectural sections without clipping interactive controls',()=>{
+ const css=readFileSync(new URL('../v2-motion.css',import.meta.url),'utf8');
+ const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
+ for(const marker of [
+  '.app-shell.lcars-page-building > header .elbow',
+  '.app-shell.lcars-page-building > aside nav .nav',
+  '.page.lcars-page-enter::before',
+  '.page.lcars-page-enter::after',
+  '.page.lcars-page-enter > .section-heading',
+  '.page.lcars-page-enter > .cards',
+  '.page.lcars-page-enter #diaryControls',
+  '.page.lcars-page-enter #analyticsContent',
+  '#metronome.lcars-page-enter #rings circle.track',
+  '@media (prefers-reduced-motion:reduce)'
+ ])assert.ok(css.includes(marker),'missing construction stage '+marker);
+ assert.match(css,/\.page\.lcars-page-enter \{[\s\S]*?animation:none;/);
+ assert.doesNotMatch(css,/\.page\.lcars-page-enter \{[^}]*translateX\(/,
+  'never slide the complete page or its hit targets horizontally');
+ assert.match(sw,/lcars-core-v2-rc8-all-page-boot/);
 });

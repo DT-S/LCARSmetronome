@@ -572,21 +572,21 @@ try{
     'different tab did not trigger LCARS page reveal');
    assert.equal(await audio.evaluate(el=>getComputedStyle(el).animationName),'none',
     'RC8 never slides or fades the whole page');
-   assert.equal(await page.locator('.app-shell.lcars-page-building').count(),1,
-    'global LCARS header and navigation did not reboot');
+   assert.equal(await page.locator('.app-shell.lcars-page-building').count(),0,
+    'global LCARS chassis must never rebuild during navigation');
    assert.match(await audio.locator(':scope > .section-heading').evaluate(el=>getComputedStyle(el).animationName),
-    /lcars-page-plate/);
-   assert.match(await audio.evaluate(el=>getComputedStyle(el,'::before').animationName),/lcars-page-bus/,
-    'LCARS structural frame did not launch');
+    /lcars-content-title/);
+   assert.equal(await audio.evaluate(el=>getComputedStyle(el,'::before').animationName),'none',
+    'fixed outside rails must not be recreated inside every tab');
    await page.screenshot({path:path.join(screenshots,'p6-audio-page-build.png')});
    const frame=page.locator('#audio .cards > .panel').first();
-   assert.match(await frame.evaluate(el=>getComputedStyle(el).animationName),/lcars-page-plate/,
+   assert.match(await frame.evaluate(el=>getComputedStyle(el).animationName),/lcars-content-frame/,
     'audio frame did not join the staggered launch');
    await page.waitForTimeout(300);
    assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),true,
     'staged page construction ended before its details');
    assert.match(await audio.locator(':scope > .cards > .panel').first()
-    .evaluate(el=>getComputedStyle(el).animationName),/lcars-page-plate/,
+    .evaluate(el=>getComputedStyle(el).animationName),/lcars-content-frame/,
     'audio matrix panels never received their architectural build');
    await page.waitForFunction(()=>!document.querySelector('#audio').classList.contains('lcars-page-enter'),
     null,{timeout:1800});
@@ -599,14 +599,14 @@ try{
     assert.equal(await target.evaluate(el=>el.classList.contains('lcars-page-enter')),true,
       tab+' did not receive the menu-build effect');
     assert.match(await target.locator(':scope > .section-heading').evaluate(el=>getComputedStyle(el).animationName),
-      /lcars-page-plate/,tab+' structural header not animated');
+      /lcars-content-title/,tab+' internal header not animated');
     await page.screenshot({path:path.join(screenshots,`menu-build-${tab}.png`)});
    }
    // Fast repeated navigation must cancel previous timers and classes.
    assert.equal(await page.locator('#analytics.lcars-page-enter').count(),0);
    assert.equal(await page.locator('#diary.lcars-page-enter').count(),0);
-   assert.equal(await page.locator('.app-shell.lcars-page-building').count(),1,
-    'active destination must retain structural boot while switching');
+   assert.equal(await page.locator('.app-shell.lcars-page-building').count(),0,
+    'fixed chrome must not rebuild during fast navigation');
    await page.locator('[data-tab="metronome"]').click();
    assert.equal(await page.locator('#metronome.lcars-page-enter').count(),1);
    assert.match(await page.locator('#rings circle.track').first().evaluate(el=>getComputedStyle(el).animationName),
@@ -682,9 +682,8 @@ try{
   }finally{await page.close();}
  }
 
- // RC8 true LCARS architectural build is identical across viewports:
- // phone, compact phone, tablet, desktop, and XL desktop. Both native
- // scroll/navigation and touch hit targets stay usable during/after build.
+ // RC9: the permanent outer chassis never rebuilds. Capture real
+ // computed animations in phone, tablet and desktop viewports on all 6 tabs.
  for(const [w,h] of [[320,640],[390,844],[768,1024],[1440,900],[1920,1080]]){
   const tabPage=await browser.newPage({viewport:{width:w,height:h},reducedMotion:'no-preference'});
   const failures=[];
@@ -693,45 +692,65 @@ try{
    await tabPage.goto(origin,{waitUntil:'domcontentloaded'});
    await tabPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
     null,{timeout:3500});
+   const stable=await tabPage.evaluate(()=>{
+    const css=(selector,pseudo)=>getComputedStyle(document.querySelector(selector),pseudo);
+    const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();
+     return [r.x,r.y,r.width,r.height].map(n=>Math.round(n));};
+    return {
+     header:css('header .elbow').animationName,
+     top:css('header','::after').animationName,
+     nav:css('aside nav .nav').animationName,
+     side:css('aside .rail').animationName,
+     footer:css('main > footer').animationName,
+     headerRect:box('header .elbow'), navRect:box('aside nav'), footerRect:box('main > footer')
+    };
+   });
+   assert.equal(stable.header,'none',`${w}x${h} startup never cleaned header animation`);
    for(const tab of ['audio','presets','diary','analytics','settings','metronome']){
     await tabPage.locator(`[data-tab="${tab}"]`).click({timeout:7500});
-    const state=await tabPage.evaluate(id=>{
-     const page=document.getElementById(id),shell=document.querySelector('.app-shell');
-     const heading=page.querySelector(':scope > .section-heading');
-     const r=page.getBoundingClientRect();
+    const current=await tabPage.evaluate(id=>{
+     const panel=document.getElementById(id),shell=document.querySelector('.app-shell');
+     const css=(selector,pseudo)=>getComputedStyle(document.querySelector(selector),pseudo);
+     const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();
+      return [r.x,r.y,r.width,r.height].map(n=>Math.round(n));};
+     const title=panel.querySelector(':scope > .section-heading');
+     const a=panel.querySelector(':scope > .cards > .panel, :scope > .panel');
      return {
-      active:!page.hidden,
-      building:page.classList.contains('lcars-page-enter'),
+      active:!panel.hidden,building:panel.classList.contains('lcars-page-enter'),
       shell:shell.classList.contains('lcars-page-building'),
-      frame:getComputedStyle(page,'::before').animationName,
-      pillar:getComputedStyle(page,'::after').animationName,
-      heading:getComputedStyle(heading).animationName,
-      chrome:getComputedStyle(document.querySelector('header .elbow')).animationName,
-      outer:getComputedStyle(page).animationName,
-      width:r.width
+      title:getComputedStyle(title).animationName,
+      internal:a?getComputedStyle(a).animationName:null,
+      header:css('header .elbow').animationName,
+      top:css('header','::after').animationName,
+      nav:css('aside nav .nav').animationName,
+      side:css('aside .rail').animationName,
+      footer:css('main > footer').animationName,
+      headerRect:box('header .elbow'),navRect:box('aside nav'),footerRect:box('main > footer')
      };
     },tab);
-    assert.equal(state.active,true,`${w}x${h} ${tab} hidden`);
-    assert.equal(state.building,true,`${w}x${h} ${tab} build did not start`);
-    assert.equal(state.shell,true,`${w}x${h} shell did not boot`);
-    assert.match(state.frame,/lcars-page-bus/,`${w}x${h} no top LCARS rail`);
-    assert.match(state.pillar,/lcars-page-pillar/,`${w}x${h} no structural pillar`);
-    assert.match(state.heading,/lcars-page-plate/,`${w}x${h} no heading build`);
-    assert.match(state.chrome,/lcars-launch-elbow/,`${w}x${h} no outer elbow build`);
-    assert.equal(state.outer,'none',`${w}x${h} old page-wide transition still active`);
-    assert.ok(state.width>200,`${w}x${h} page lost width`);
+    assert.equal(current.active,true,`${w}x${h} ${tab} hidden`);
+    assert.equal(current.building,true,`${w}x${h} ${tab} content build did not start`);
+    assert.equal(current.shell,false,`${w}x${h} ${tab} fixed shell rebuilt`);
+    assert.match(current.title,/lcars-content-title/,`${w}x${h} ${tab} title did not animate`);
+    if(['audio','presets','diary','settings'].includes(tab))
+     assert.match(current.internal,/lcars-content-frame/,`${w}x${h} ${tab} panel was not constructed`);
+    for(const field of ['header','top','nav','side','footer'])
+     assert.equal(current[field],stable[field],`${w}x${h} ${tab} static ${field} started animating`);
+    // Geometry of static chrome is not modified by tab changes.
+    // Footer is inside main and can move when page content changes, so
+    // only header and navigation placement is required to remain identical.
+    for(const field of ['headerRect','navRect'])
+     assert.deepEqual(current[field],stable[field],`${w}x${h} ${tab} static ${field} shifted`);
     if((w===390||w===1920)&&(tab==='settings'||tab==='metronome')){
-     await tabPage.screenshot({path:path.join(screenshots,`rc8-${w}-${tab}-page-building.png`)});
+     await tabPage.screenshot({path:path.join(screenshots,`rc9-${w}-${tab}-content-only.png`)});
     }
    }
-   await tabPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-page-building'),
+   await tabPage.waitForFunction(()=>!document.querySelector('.page.lcars-page-enter'),
     null,{timeout:2200});
-   assert.equal(await tabPage.locator('.page.lcars-page-enter').count(),0,
-    `${w}x${h} lingering page animation`);
    assert.deepEqual(failures,[],`${w}x${h} browser errors during navigation`);
-   console.log(`PASS full LCARS page assembly ${w}x${h}, all 6 tabs`);
-  }catch(e){fail++;console.error(`FAIL LCARS architecture ${w}x${h}`,e);
-   await tabPage.screenshot({path:path.join(screenshots,`rc8-${w}-FAILED.png`)}).catch(()=>{});
+   console.log(`PASS fixed LCARS shell + staggered tab content ${w}x${h}, all 6 tabs`);
+  }catch(e){fail++;console.error(`FAIL RC9 fixed chassis ${w}x${h}`,e);
+   await tabPage.screenshot({path:path.join(screenshots,`rc9-${w}-FAILED.png`)}).catch(()=>{});
   }finally{await tabPage.close();}
  }
  // P7: cached PWA must relaunch with network disabled and preserve

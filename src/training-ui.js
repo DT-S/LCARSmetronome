@@ -1,4 +1,5 @@
 import {enhanceNumber,syncNumbers} from './number-control.js';
+import {syncLcarsSlider} from './lcars-slider.js';
 import {MODES,clamp} from './model.js';
 const descriptions={
  standard:'Outer ring: quarters per bar. Inner ring: equal subdivisions of each quarter. Both channels are independently programmable.',
@@ -52,4 +53,5 @@ export function syncSwing(s){
  const $=id=>document.getElementById(id),allowed=!['polyrhythm','polymeter','offbeat','displacement'].includes(s.mode)&&s.subdivisions%2===0;
  $('swing').value=Math.round(s.swing*100);$('swing').disabled=!allowed;$('swingValue').textContent=`${Math.round(s.swing*100)}:${100-Math.round(s.swing*100)}`;
  $('swingNote').textContent=allowed?'50:50 straight · 67:33 triplet swing':'Inactive for this mode / odd subdivision count.';
+ syncLcarsSlider($('swing'));
 }

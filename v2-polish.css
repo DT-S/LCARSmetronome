@@ -1,0 +1,163 @@
+/* Rhythm PADD 2.0 visual/interaction polish.
+   Only the identified diary, system, analytics and iOS tap targets change.
+   LCARS fascia/sidebar, rings and instrument typography are untouched. */
+
+/* iOS Safari: disable double-tap smart zoom while preserving pinch zoom,
+   scrolling, and the existing tempo multi-tap gesture. Do not use
+   user-scalable=no or maximum-scale=1, which would defeat accessibility. */
+html,body,.app-shell{touch-action:manipulation;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+
+/* Shared typography scale for regular controls within System + Diary.
+   Allow larger headings and category-creation affordances intentionally. */
+:is(#settings,#diary){
+ --padd-control-size:14px;
+ --padd-caption-size:12px;
+ --padd-value-size:15px;
+}
+:is(#settings,#diary) :is(.lcars-info summary,.mode-help summary){
+ font-size:var(--padd-control-size);
+ line-height:1.25;
+ min-height:44px;
+ padding:10px 13px;
+ letter-spacing:.01em;
+}
+:is(#settings,#diary) :is(.lcars-info p,.mode-help p){
+ font-family:inherit;
+ font-size:13px;
+ line-height:1.48;
+}
+#settings .panel :is(button,.file-button){
+ font-family:inherit;
+ font-size:var(--padd-control-size);
+ line-height:1.25;
+ font-weight:800;
+ letter-spacing:.015em;
+}
+#settings .panel button.full,
+#settings .panel .file-button{
+ display:flex!important;
+ align-items:center;
+ justify-content:center;
+ min-height:48px;
+ width:100%;
+ padding:10px 12px;
+ margin:6px 0;
+ text-align:center;
+ box-sizing:border-box;
+}
+#settings .panel :is(.field-name,#offlineStatus,#storageStatus){
+ font-size:var(--padd-control-size);
+}
+#settings .panel>h3{font-size:16px;}
+#settings .panel #scaleButtons button {
+ font-size:clamp(12px,1.4vw,14px);
+ padding:6px 2px;
+}
+#diary #diaryControls .diary-categories button{
+ font-size:clamp(12px,2.9vw,14px);
+ font-weight:800;
+ line-height:1.18;
+ min-height:46px;
+ padding:8px 5px;
+}
+#diary #diaryControls .category-form button{
+ font-size:14px;
+ padding:9px 10px;
+ min-height:48px;
+}
+#diary #diaryControls .diary-field>.field-name,
+#diary #diaryEditor .diary-field>.field-name{
+ font-size:var(--padd-control-size);
+ min-height:36px;
+ padding:9px 12px;
+}
+#diary .diary-field :is(input,textarea),
+#diary .category-form input,
+#settings :is(input:not([type=checkbox]),textarea){
+ font-size:16px; /* prevents iOS zoom when an editable field receives focus */
+ line-height:1.35;
+ padding:10px 12px;
+}
+#diary .diary-field{min-height:0;margin:7px 0;}
+#diary .diary-field .number-control .value-dial{
+ font-size:17px;
+ min-height:46px;
+ padding:8px 10px;
+}
+#diary #diaryControls>button.full,
+#diary .diary-actions button,
+#diary .log-actions button,
+#diary #diaryEditor .preset-actions button{
+ font-size:var(--padd-control-size);
+ line-height:1.2;
+ padding:9px 8px;
+ min-height:44px;
+}
+#diary .log-entry{
+ padding-bottom:10px;
+}
+#diary .log-entry>h3{
+ font-size:15px;
+ min-height:40px;
+ line-height:1.2;
+ padding:9px 12px;
+}
+#diary #diaryList .session-data{
+ gap:4px;
+ margin:7px 0;
+}
+#diary #diaryList .session-data .stat-tile{
+ min-height:0;
+ padding:8px 10px;
+ border-radius:0;
+ color:#000;
+}
+#diary #diaryList .session-data .stat-tile>span{
+ font-size:11px;
+ line-height:1.15;
+ font-weight:800;
+}
+#diary #diaryList .session-data .stat-tile>strong{
+ font-size:clamp(13px,1.1vw,15px);
+ line-height:1.2;
+ margin-top:3px;
+ font-weight:800;
+ letter-spacing:0;
+ overflow-wrap:anywhere;
+}
+#diary #diaryList .session-data .stat-tile,
+#diary #diaryList .session-data .stat-tile *{
+ text-shadow:none;
+}
+#diary #diaryEditor .system-field{
+ font-size:13px;
+ min-height:42px;
+ padding:10px 12px;
+}
+
+/* The recorded-session selectors in Stats are pale blue. Forcing dark text
+   also covers long dates/exercise titles that previously inherited grey. */
+#analyticsContent .session-choices button,
+#analyticsContent .session-choices button:not([aria-pressed=true]){
+ background:#99c9ef;
+ color:#000;
+ font-size:13px;
+ line-height:1.3;
+ font-weight:800;
+ overflow-wrap:anywhere;
+}
+#analyticsContent .session-choices button[aria-pressed=true]{
+ background:#fff0c5;
+ color:#000;
+ box-shadow:inset 0 -4px #ff9900;
+}
+#analyticsContent .stat-tile{color:#000;}
+#analyticsContent .stat-tile :is(span,strong){color:#000;}
+#analyticsContent .chart-readout{color:#000;}
+@media(max-width:640px){
+ #diary #diaryList .session-data .stat-tile>strong{font-size:13px;}
+ #diary #diaryControls .diary-categories button{font-size:13px;}
+ #settings .panel #scaleButtons button{font-size:12px;}
+ #analyticsContent .session-choices button{font-size:13px;}
+}

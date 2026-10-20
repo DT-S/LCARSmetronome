@@ -176,3 +176,10 @@
 - Release-Kandidat und konkrete Abnahmeliste unter [V2_RELEASE_CANDIDATE.md](V2_RELEASE_CANDIDATE.md). Kein V2.0.0-Tag, keine Änderung an `main` und kein Deployment ohne ausdrückliche Freigabe.
 - P7 Offline-Neustart-/IndexedDB-Browsercheck ist in die CI-Suite aufgenommen; Ergebnis muss geprüft werden.
 - Hardware-, Lizenz- und bekannter Bug-Blocker sind bewusst offen und werden nicht als automatisiert bestanden markiert.
+
+## P7 – Bestätigter browserbasierter Release-Gate-Lauf
+
+- [GitHub Actions 39354186197](https://github.com/DT-S/LCARSmetronome/actions/runs/39354186197): **SUCCESS**, beide Jobs und sämtliche Prüfschritte.
+- 9/9 Chromium-Viewports; zusätzlich: gecachter Offline-Neustart, persistentes IndexedDB, Export/Restore, produktiver Service-Worker-Austausch, Live-Transport/Panorama/Mute-Solo-Regression sowie Firefox-Engine-Navigation und Persistenz.
+- Automatisierte Firefox-Engine ist **nicht identisch** mit einem echten lokalen Arch-Linux-Firefox-Gerätetest; Chromium-Touchprofile sind kein Safari-iOS.
+- Kein Test kann die subjektive Qualität von Stereopanning, Lautstärke, Soundimport, Hörlatenz oder PWA-Safe-Areas auf echter Hardware garantieren. Die Nutzerabnahme und der erwähnte Bug bleiben Release-Blocker.

@@ -7,7 +7,7 @@ Der V2-Entwicklungsbranch ist funktional implementiert. **Es liegt noch keine vo
 - Node-Tests, Modulimport-/Syntaxchecks und Chromium-Browser-Smoke in 9 Auflösungen.
 - Touch-/Keyboard-/Maus-Gesten in Circular/Linear und Audio-Matrix, inklusive Mehrfachrhythmen 3:5 / 3:7 / 20:20.
 - LCARS-Morph/Transition, Reduced Motion und faktenbasierte Diagrammpunkte.
-- Zusätzlicher P7-Browsercheck für lokale Service-Worker-Cache-Installation, Offline-Neustart und IndexedDB-Einstellungen: auf Erfolg des neu gestarteten CI-Laufs warten.
+- [Erfolgreicher P7-CI-Lauf 39354186197](https://github.com/DT-S/LCARSmetronome/actions/runs/39354186197): Service-Worker-Cache, Offline-Neustart, IndexedDB, Export/Restore, Service-Worker-Update, Audiotransportlogik und Firefox-Engine-Regressionen zusätzlich bestanden.
 
 ## Release-Blocker, die echte manuelle Abnahme erfordern
 - **iPhone 13 / Safari PWA**: Installation (Zum Home-Bildschirm), Start mit Flugmodus, Safe Areas, Touch-Fader/Beats, horizontal/vertikal, Audio.
@@ -33,3 +33,10 @@ Der V2-Entwicklungsbranch ist funktional implementiert. **Es liegt noch keine vo
 5. Alte IndexedDB-Daten und Offline-Updatepfad ohne Verlust prüfen.
 
 **Status: RELEASE BLOCKED – Geräte-/Audio-/Lizenzabnahme und Bugbearbeitung offen.**
+
+## P7 – Bestätigter browserbasierter Release-Gate-Lauf
+
+- [GitHub Actions 39354186197](https://github.com/DT-S/LCARSmetronome/actions/runs/39354186197): **SUCCESS**, beide Jobs und sämtliche Prüfschritte.
+- 9/9 Chromium-Viewports; zusätzlich: gecachter Offline-Neustart, persistentes IndexedDB, Export/Restore, produktiver Service-Worker-Austausch, Live-Transport/Panorama/Mute-Solo-Regression sowie Firefox-Engine-Navigation und Persistenz.
+- Automatisierte Firefox-Engine ist **nicht identisch** mit einem echten lokalen Arch-Linux-Firefox-Gerätetest; Chromium-Touchprofile sind kein Safari-iOS.
+- Kein Test kann die subjektive Qualität von Stereopanning, Lautstärke, Soundimport, Hörlatenz oder PWA-Safe-Areas auf echter Hardware garantieren. Die Nutzerabnahme und der erwähnte Bug bleiben Release-Blocker.

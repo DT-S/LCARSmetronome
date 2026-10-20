@@ -112,3 +112,10 @@ Der erste vollständige Lauf `39336109612` bestand alle 5 bisherigen Ziele, inkl
 ## P7 – Release-Kandidat
 - Vollständige P7-Gate-Liste und dokumentierte Assetrisiken: [V2_RELEASE_CANDIDATE.md](V2_RELEASE_CANDIDATE.md).
 - Offline-Neustart mit Cache und IndexedDB ist neuer Teil des Chromium-Smoke; alle echten Safari-/Firefox-/Kopfhörerprüfungen bleiben unabhängig davon offen.
+
+## P7 – Bestätigter browserbasierter Release-Gate-Lauf
+
+- [GitHub Actions 39354186197](https://github.com/DT-S/LCARSmetronome/actions/runs/39354186197): **SUCCESS**, beide Jobs und sämtliche Prüfschritte.
+- 9/9 Chromium-Viewports; zusätzlich: gecachter Offline-Neustart, persistentes IndexedDB, Export/Restore, produktiver Service-Worker-Austausch, Live-Transport/Panorama/Mute-Solo-Regression sowie Firefox-Engine-Navigation und Persistenz.
+- Automatisierte Firefox-Engine ist **nicht identisch** mit einem echten lokalen Arch-Linux-Firefox-Gerätetest; Chromium-Touchprofile sind kein Safari-iOS.
+- Kein Test kann die subjektive Qualität von Stereopanning, Lautstärke, Soundimport, Hörlatenz oder PWA-Safe-Areas auf echter Hardware garantieren. Die Nutzerabnahme und der erwähnte Bug bleiben Release-Blocker.

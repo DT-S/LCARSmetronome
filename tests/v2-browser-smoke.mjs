@@ -83,13 +83,14 @@ try{
    const panInput=page.locator('#mixer input[data-field="pan"]').first();
    assert.equal(await panInput.getAttribute('aria-valuetext'),'CENTER');
    assert.equal(await page.locator('#mixer .matrix-module').count(),4);
-   assert.equal(await page.locator('#mixer .matrix-segment').count(),80);
+   assert.equal(await page.locator('#mixer .matrix-segment').count(),96); // 24 capsules × 4 controls
    assert.equal(await page.locator('#mixer .matrix-tick').count(),140);
    assert.equal(await page.locator('#mixer .matrix-pan-micro').count(),2);
    assert.equal(await page.locator('#mixer .matrix-pan-coords').count(),2);
    assert.equal(await page.locator('#mixer .matrix-readout').count(),4);
    assert.equal(await page.locator('#mixer .matrix-native').count(),4);
-   assert.equal(await page.locator('#audio .precision-readout').count(),2);
+   assert.equal(await page.locator('#audio .lcars-slide-volume').count(),2); // RC4 master + UI volume
+   assert.equal(await page.locator('#audio .lcars-bracket').count(),2);
    const volume=page.locator('#mixer input[data-field="volume"]').first();
    await volume.focus();
    const before=Number(await volume.inputValue());
@@ -620,8 +621,8 @@ try{
       font:getComputedStyle(document.documentElement).webkitTextSizeAdjust,
       scale:window.visualViewport?.scale??1};
    });
-   for(const name of ['html','body','shell'])assert.equal(gestures[name],'manipulation',
-    `P7 iOS double-tap guard missing on ${name}`);
+   for(const name of ['html','body','shell'])assert.equal(gestures[name],'pan-x pan-y',
+    `P7 iOS pinch/double-tap zoom guard missing on ${name}`);
    // Send actual touch events: three quick TAP TEMPO taps and two taps in
    // empty content. This must not be replaced by a preventDefault click hack.
    const session=await page.context().newCDPSession(page);

@@ -92,7 +92,7 @@ test('Launch choreography uses real circular geometry, has reduced-motion escape
  assert.match(sw,/const CACHE=PREFIX\+'lcars-core-v2-rc\d+-/);
 });
 
-test('RC8 each page boot reconstructs the LCARS shell and clears on rapid navigation',()=>{
+test('RC9 page builds never touch persistent chassis and clear on rapid navigation',()=>{
  assert.equal(LCARS_PAGE_BUILD_DURATION_MS,1200);
  const shellClasses=new Set(),classFor=classes=>({
   add:c=>classes.add(c),remove:c=>classes.delete(c),contains:c=>classes.has(c)
@@ -119,7 +119,8 @@ test('RC8 each page boot reconstructs the LCARS shell and clears on rapid naviga
   const motion=createMotionController(root);
   byId.metronome.hidden=true;byId.audio.hidden=false;
   assert.equal(motion.page('audio'),true);
-  assert.equal(shell.classList.contains('lcars-page-building'),true);
+  assert.equal(shell.classList.contains('lcars-page-building'),false,
+    'fixed sidebar/header must stay visible during a tab build');
   assert.equal(byId.audio.classList.contains('lcars-page-enter'),true);
   assert.equal([...tasks.values()][0].ms,LCARS_PAGE_BUILD_DURATION_MS);
   assert.equal(motion.page('audio'),false,'current page is never rebooted');
@@ -145,14 +146,14 @@ test('RC8 each page boot reconstructs the LCARS shell and clears on rapid naviga
  }
 });
 
-test('all six pages animate architectural sections without clipping interactive controls',()=>{
+test('all six pages animate only their inner panels while fixed rails stay untouched',()=>{
  const css=readFileSync(new URL('../v2-motion.css',import.meta.url),'utf8');
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  for(const marker of [
-  '.app-shell.lcars-page-building > header .elbow',
-  '.app-shell.lcars-page-building > aside nav .nav',
-  '.page.lcars-page-enter::before',
-  '.page.lcars-page-enter::after',
+  '.page.lcars-page-enter > .section-heading',
+  '.page.lcars-page-enter > .cards > .panel',
+  '.page.lcars-page-enter #diaryList',
+  '.page.lcars-page-enter #presetList',
   '.page.lcars-page-enter > .section-heading',
   '.page.lcars-page-enter > .cards',
   '.page.lcars-page-enter #diaryControls',
@@ -161,7 +162,14 @@ test('all six pages animate architectural sections without clipping interactive 
   '@media (prefers-reduced-motion:reduce)'
  ])assert.ok(css.includes(marker),'missing construction stage '+marker);
  assert.match(css,/\.page\.lcars-page-enter \{[\s\S]*?animation:none;/);
+ const cssTail=css.slice(css.indexOf('RC9 · THE CHASSIS STAYS ON'));
+ assert.doesNotMatch(cssTail,/\.app-shell\.lcars-page-building/,'fixed shell may animate only at initial boot');
+ assert.doesNotMatch(cssTail,/\.page\.lcars-page-enter::(?:before|after)/,'tab frames must not redraw fixed perimeter rails');
+ assert.doesNotMatch(jsMotion(),/classList\.add\('lcars-page-building'\)/,
+   'navigation must not animate the stable shell');
+ function jsMotion(){return readFileSync(new URL('../src/motion.js',import.meta.url),'utf8');}
+
  assert.doesNotMatch(css,/\.page\.lcars-page-enter \{[^}]*translateX\(/,
   'never slide the complete page or its hit targets horizontally');
- assert.match(sw,/lcars-core-v2-rc8-all-page-boot/);
+ assert.match(sw,/lcars-core-v2-rc9-static-chassis/);
 });

@@ -1,5 +1,24 @@
 export const CATEGORIES=['Rudiments','Grooves','Songs','Patterns','Technik','Polyrhythmik','Timing','Sonstiges'];
-export const diaryDefaults=()=>({enabled:true,exercise:'',category:'Timing',categories:[...CATEGORIES],entries:[]});
+export const AUTO_LOG_MINIMUMS=Object.freeze([0,10,30,60]);
+// New users skip accidental micro-sessions; legacy files without this setting
+// migrate to 0s so existing recording behavior is preserved.
+export const diaryDefaults=()=>({enabled:true,minAutoLogSeconds:10,exercise:'',category:'Timing',categories:[...CATEGORIES],entries:[]});
+export function eligibleAutoLog(seconds,minimum){
+ return Number.isFinite(seconds)&&seconds>=Math.max(.1,minimum);
+}
+export function diaryDeletionTargets(entries,scope,now=Date.now()){
+ if(!Array.isArray(entries)||!Number.isFinite(now))throw TypeError('Invalid diary deletion input');
+ if(scope==='all')return entries;
+ if(scope==='recent')return entries.filter(e=>Number.isFinite(e.end)&&e.end>=now-60000&&e.end<=now);
+ throw RangeError('Invalid deletion scope');
+}
+export function deleteDiaryEntries(diary,scope,now=Date.now()){
+ const targets=diaryDeletionTargets(diary.entries,scope,now);
+ if(!targets.length)return 0;
+ const ids=new Set(targets.map(e=>e.id));
+ diary.entries=diary.entries.filter(e=>!ids.has(e.id));
+ return targets.length;
+}
 const num=(v,a,b)=>Number.isFinite(v)&&v>=a&&v<=b;
 const str=(v,n)=>typeof v==='string'&&v.length<=n;
 export function validateEntry(e){
@@ -8,9 +27,9 @@ export function validateEntry(e){
  return structuredClone(e);
 }
 export function validateDiary(d){
- if(!d||typeof d.enabled!=='boolean'||!str(d.exercise,80)||!str(d.category,40)||!Array.isArray(d.categories)||!d.categories.length||d.categories.length>100||d.categories.some(c=>!str(c,40)||!c.trim())||new Set(d.categories).size!==d.categories.length||!d.categories.includes(d.category)||!Array.isArray(d.entries)||d.entries.length>10000)throw Error('Invalid practice diary');
+ if(!d||typeof d.enabled!=='boolean'||(d.minAutoLogSeconds!==undefined&&!AUTO_LOG_MINIMUMS.includes(d.minAutoLogSeconds))||!str(d.exercise,80)||!str(d.category,40)||!Array.isArray(d.categories)||!d.categories.length||d.categories.length>100||d.categories.some(c=>!str(c,40)||!c.trim())||new Set(d.categories).size!==d.categories.length||!d.categories.includes(d.category)||!Array.isArray(d.entries)||d.entries.length>10000)throw Error('Invalid practice diary');
  const entries=d.entries.map(validateEntry);if(new Set(entries.map(e=>e.id)).size!==entries.length)throw Error('Duplicate practice entry');
- return {...d,categories:[...d.categories],entries};
+ return {...d,minAutoLogSeconds:d.minAutoLogSeconds??0,categories:[...d.categories],entries};
 }
 // Record scheduled boundaries, not animation frames. Trim future look-ahead on stop.
 export class PracticeRecorder {
@@ -18,7 +37,8 @@ export class PracticeRecorder {
  boundary(time,bpm,mode){if(!this.meta)return;const last=this.points.at(-1);if(!last||last.bpm!==bpm||last.mode!==mode)this.points.push({time,bpm,mode});}
  end(time,id){
   if(!this.meta)return null;
-  const meta=this.meta;this.meta=null;const seconds=Math.max(0,time-this.start);if(seconds<.1)return null;
+  const meta=this.meta;this.meta=null;const seconds=Math.max(0,time-this.start);
+  if(!eligibleAutoLog(seconds,meta.minAutoLogSeconds??0))return null;
   const history=this.points.filter(p=>p.time<time).map(p=>({at:Math.max(0,p.time-this.start),bpm:p.bpm,mode:p.mode}));
   if(!history.length)return null;
   return {id,source:'measured',start:this.wall,end:this.wall+seconds*1000,seconds,exercise:meta.exercise||'Open practice',category:meta.category,preset:meta.preset||'',notes:'',rating:null,clean:null,reason:meta.reason||'Stopped',mode:history[0].mode,bpm:history[0].bpm,peak:Math.max(...history.map(p=>p.bpm)),history};

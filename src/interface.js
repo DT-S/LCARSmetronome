@@ -72,9 +72,8 @@ export function activationSound(control){
  if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'switchingmenus';
  return 'buttonpress';
 }
-// Tap Tempo is a percussion-like control: pointer contact, not release, is the beat.
-// The subsequent browser click is ignored for pointer input but kept for keyboard
-// and assistive activation (which may dispatch a click without pointerdown).
+// Treat Tap Tempo like a percussion pad: touch contact is the beat.
+// A following pointer-generated click is ignored, while keyboard activation stays.
 export function installTapTempo(button,onTap){
  let pointerActivated=false;
  button.addEventListener('pointerdown',e=>{
@@ -88,7 +87,6 @@ export function installTapTempo(button,onTap){
   onTap();
  });
 }
-
 export function installFeedback(root,{unlock,audio,state}){
  const selector='button,summary,label.file-button,.sound-drop,input[type=checkbox],label:has(input[type=checkbox]),[role=button]';
  const controlFor=target=>{const c=target.closest?.(selector);return c&&!c.disabled&&c.getAttribute('aria-disabled')!=='true'?c:null;};
@@ -98,7 +96,7 @@ export function installFeedback(root,{unlock,audio,state}){
   if(e.button!==0)return;const c=controlFor(e.target);clear();
   const token={id:e.pointerId,control:c,x:e.clientX,y:e.clientY};press=token;
   if(c&&e.pointerType!=='mouse')c.classList.add('touch-pressed');
-  // Tap is special: one normal press sound on initial contact, no hover tone.
+  // Tap must beep once on contact: never play its normal hover sound.
   if(c?.id==='tap'){
    unlock().then(()=>audio.loading).then(()=>audio.ui('buttonpress',state())).catch(()=>{});
    if(state().haptic)globalThis.navigator?.vibrate?.(8);
@@ -112,8 +110,7 @@ export function installFeedback(root,{unlock,audio,state}){
  root.addEventListener('pointerover',e=>{const c=controlFor(e.target);if(e.pointerType==='mouse'&&c?.id!=='tap'&&c&&!c.contains(e.relatedTarget)&&state().hoverEnabled&&performance.now()-hoverAt>100){hoverAt=performance.now();audio.ui('hoversound',state());}});
  root.addEventListener('click',e=>{
   const c=controlFor(e.target);if(!c)return;
-  // Pointer-triggered Tap clicks already sounded on pointerdown.
-  if(c.id==='tap'&&e.detail>0)return;
+  if(c.id==='tap'&&e.detail>0)return; // Already sounded on pointerdown.
   // Labels generate another click on their input; sound only once.
   if(c.tagName==='LABEL'){if(e.target.tagName==='INPUT'&&labelClick?.control===c&&performance.now()-labelClick.time<80){labelClick=null;return;}if(e.target.tagName!=='INPUT')labelClick={control:c,time:performance.now()};}
   if(c.tagName==='LABEL'&&c.querySelector('input[type=checkbox]'))return;

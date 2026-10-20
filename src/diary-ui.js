@@ -1,6 +1,6 @@
 import {analyticsCharts,sessionChart} from './charts.js';
 import {MODES} from './model.js';
-import {dateKey,dateLabel,durationLabel,summarize,diaryCSV,validateEntry} from './diary.js';
+import {dateKey,dateLabel,durationLabel,summarize,diaryCSV,validateEntry,AUTO_LOG_MINIMUMS,diaryDeletionTargets,deleteDiaryEntries} from './diary.js';
 import {download} from './storage.js';
 import {enhanceNumber} from './number-control.js';
 const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;};
@@ -8,9 +8,49 @@ const button=(label,fn)=>{const b=el('button','',label);b.type='button';b.onclic
 function field(label,input){const l=el('label','diary-field');l.append(el('span','field-name',label),input);return l;}
 function textInput(value,max=80){const i=el('input');i.value=value;i.maxLength=max;return i;}
 function metric(label,value){const n=el('div','stat-tile');n.append(el('span','',label),el('strong','',value));return n;}
-export function createDiaryUI(getState,save,notify){
+export function createDiaryUI(getState,save,notify,isRecording=()=>false){
  let editing=null,range=30,category='',exercise='',source='all',day='',limit=30;
  const diary=()=>getState().diary;
+ const deleteDialog=document.querySelector('#diaryDeleteDialog');
+ const dangerText=document.querySelector('#diaryDangerMessage');
+ const dangerCount=document.querySelector('#diaryDangerCount');
+ const cancelDanger=document.querySelector('#diaryDangerCancel');
+ const confirmDanger=document.querySelector('#diaryDangerConfirm');
+ let deleteScope=null,deleteCutoff=0,returnFocus=null;
+ function closeDanger(){if(deleteDialog.open)deleteDialog.close();}
+ function requestDeletion(scope){
+  if(isRecording())return notify('Stop playback before deleting practice records.','Warningsound');
+  const openedAt=Date.now();
+  const count=diaryDeletionTargets(diary().entries,scope,openedAt).length;
+  if(!count)return notify(scope==='recent'?'No sessions ended in the last 60 seconds.':'Practice archive is already empty.','Warningsound');
+  deleteScope=scope;deleteCutoff=openedAt;returnFocus=document.activeElement;
+  dangerCount.textContent=`${count} SESSION${count===1?'':'S'} SELECTED`;
+  dangerText.textContent=scope==='all'
+   ?'ERASE ALL PRACTICE RECORDS? Session history and analytics will be permanently cleared. Categories and app settings stay unchanged.'
+   :'ERASE RECENT RECORDS? Only sessions that ended within the preceding 60 seconds will be deleted. Older records remain.';
+  confirmDanger.textContent=scope==='all'?'ERASE ALL':'DELETE RECENT';
+  deleteDialog.showModal();
+  cancelDanger.focus({preventScroll:true});
+ }
+ cancelDanger.onclick=closeDanger;
+ confirmDanger.onclick=()=>{
+  if(!deleteScope)return;
+  if(isRecording()){closeDanger();notify('Stop playback before deleting practice records.','Warningsound');return;}
+  const count=deleteDiaryEntries(diary(),deleteScope,deleteCutoff);
+  if(count){
+   // Close potentially edited entries so a later Save cannot resurrect them.
+   closeEditor();save();render();
+  }
+  closeDanger();
+  notify(count?`${count} practice session${count===1?'':'s'} permanently deleted.`:'No matching sessions remain.',count?'Acceptsound':'Warningsound');
+ };
+ deleteDialog.addEventListener('close',()=>{
+  deleteScope=null;deleteCutoff=0;
+  if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});
+  returnFocus=null;
+ });
+ document.querySelector('#diaryClearRecent').onclick=()=>requestDeletion('recent');
+ document.querySelector('#diaryClearAll').onclick=()=>requestDeletion('all');
  const onPhone=()=>window.matchMedia('(max-width:640px)').matches;
  // The mobile PADD has exactly one scrolling region: <main>. When iOS opens
  // the keyboard, preserve the focused editor field inside that region instead
@@ -45,9 +85,26 @@ export function createDiaryUI(getState,save,notify){
   const name=textInput(d.exercise);name.placeholder='Open practice';name.onchange=()=>{d.exercise=name.value.trim();save();};
   const cats=el('div','mode-buttons diary-categories');for(const c of d.categories){const b=button(c,()=>{d.category=c;save();render();});b.setAttribute('aria-pressed',c===d.category);cats.append(b);}
   const add=textInput('',40);add.placeholder='New category';const addForm=el('form','category-form');add.setAttribute('aria-label','New category');const addButton=el('button','','ADD CATEGORY');addForm.append(add,addButton);addForm.onsubmit=e=>{e.preventDefault();const c=add.value.trim();if(!c)return;if(d.categories.length>=100)return notify('Maximum 100 categories.','invalidsound');if(!d.categories.includes(c))d.categories.push(c);d.category=c;save();render();};
-  root.append(toggle,field('NEXT SESSION / EXERCISE',name),el('h3','','CATEGORY'),cats,addForm);
+  const minimum=el('div','diary-minimum');
+  minimum.append(el('span','field-name','AUTO-LOG / MINIMUM DURATION'));
+  const thresholdButtons=el('div','diary-minimum-choices');
+  thresholdButtons.setAttribute('role','group');
+  thresholdButtons.setAttribute('aria-label','Minimum metronome running time for automatic logging');
+  for(const seconds of AUTO_LOG_MINIMUMS){
+   const b=button(seconds===0?'OFF':seconds+' SEC',()=>{
+    d.minAutoLogSeconds=seconds;save();render();
+   });
+   b.dataset.seconds=String(seconds);
+   b.setAttribute('aria-pressed',String(d.minAutoLogSeconds===seconds));
+   thresholdButtons.append(b);
+  }
+  minimum.append(thresholdButtons,el('p','diary-minimum-note',
+   'Sessions shorter than this will not be saved automatically. Count-in does not count. Applies from the next Start.'));
+  root.append(toggle,minimum,field('NEXT SESSION / EXERCISE',name),el('h3','','CATEGORY'),cats,addForm);
   document.querySelector('#manualEntry').onclick=()=>{editing='new';renderEditor();};
   document.querySelector('#csvExport').onclick=()=>download('lcars-practice.csv',diaryCSV(d.entries),'text/csv;charset=utf-8');
+  document.querySelector('#diaryClearRecent').disabled=!diaryDeletionTargets(d.entries,'recent').length;
+  document.querySelector('#diaryClearAll').disabled=!d.entries.length;
   renderList();renderStats();
  }
  function renderList(){

@@ -1,8 +1,14 @@
 import {installFeedback,installTapTempo,installSegmentCorners,UI_SCALES,defaultInterfaceScale} from './interface.js';
 import {PAN_PRESETS,setChannelPan} from './pan-control.js';
+import {mountLcarsSlider,syncLcarsSlider} from './lcars-slider.js';
+import {buildMatrixFaders} from './matrix-faders.js';
 import {linearRowSizes,mobileFrameHeight,visibleViewportHeight,keyboardSafeViewportHeight} from './linear-layout.js';
 import {installUpdateManager} from './update-manager.js';
+import {installViewportZoomGuard} from './viewport-zoom-guard.js';
+import {installLinearBeatGesture} from './linear-gesture.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
+import {createGestureGuide} from './gesture-guide.js';
+import {createMotionController} from './motion.js';
 import {customSoundUI} from './custom-sounds.js';
 import {createDiaryUI} from './diary-ui.js';
 import {SOUNDS} from './synth.js';
@@ -13,12 +19,16 @@ import {angleDelta} from './rhythm.js';
 import {AudioEngine} from './audio.js';
 import {Scheduler} from './scheduler.js';
 import {read,write,download} from './storage.js';
+// Prevent browser pinch/gesture zoom before registering any UI interactions.
+installViewportZoomGuard(document);
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const gestureGuide=createGestureGuide(document);
+const motion=createMotionController(document);
 const audio=new AudioEngine();let state=fresh(),linear=false,saveTimer,saveChain=Promise.resolve(),wakeLock,noticeTimer,starting=false,restoring=false,activePreset='';
 // The first launch uses 90% on phones; existing saved user preferences still win.
 state.uiScale=defaultInterfaceScale(matchMedia('(max-width:640px)').matches);
 const scheduler=new Scheduler(audio,(message,endTime)=>{stop(message,endTime);notify(message,'Warningsound');});
-const diaryUI=createDiaryUI(()=>state,save,notify);
+const diaryUI=createDiaryUI(()=>state,save,notify,()=>scheduler.running||starting||restoring);
 const soundUI=customSoundUI({state:()=>state,audio,unlock,changed,render,notify,running:()=>scheduler.running||starting||restoring});
 function notify(message,sound='Acceptsound'){const n=$('#notice');n.textContent=message;n.classList.add('visible');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>n.classList.remove('visible'),5000);audio.ui(sound,state);}
 async function unlock(){await audio.unlock();audio.mix(state);audio.ctx.onstatechange=()=>{if(scheduler.running&&audio.ctx.state!=='running')stop('Audio interrupted. Restart when ready.');};}
@@ -28,9 +38,16 @@ function number(k,v,min,max){if(!Number.isFinite(v))return;state[k]=clamp(Math.r
 function cycle(channel,i){const key=channel?'inner':'outer';state[key][i]=(state[key][i]+1)%4;renderPatterns();changed();}
 const shortModes={standard:'STANDARD',polyrhythm:'POLYRHYTHM',polymeter:'POLYMETER',gap:'GAP CLICK',random:'RANDOM GAP',offbeat:'OFFBEAT',displacement:'DISPLACEMENT',ramp:'TEMPO RAMP'};
 for(const [value,label] of Object.entries(shortModes)){
- const b=document.createElement('button');b.type='button';b.dataset.mode=value;b.textContent=label;b.title=MODES[value];b.onclick=()=>{state.mode=value;render();changed();};$('#modeButtons').append(b);
+ const b=document.createElement('button');b.type='button';b.dataset.mode=value;b.textContent=label;b.title=MODES[value];b.onclick=()=>{const change=state.mode!==value;state.mode=value;render();changed();if(change)motion.mode(b);};$('#modeButtons').append(b);
+}
+let lastFaderTone=0;
+function faderTouchFeedback(){
+ if(state.haptic)navigator.vibrate?.(5); // iOS may not expose vibration.
+ const now=performance.now();
+ if(now-lastFaderTone>95){lastFaderTone=now;audio.ui('hoversound',state);}
 }
 $('#swing').oninput=e=>{state.swing=Number(e.target.value)/100;syncSwing(state);changed();};
+mountLcarsSlider($('#swing'),{kind:'swing',title:'SHUFFLE / SWING',code:'42-S9',onValueChange:faderTouchFeedback});
 let heardTempo=null;
 function tempoReadout(event=null){
  $('#tempoValue').textContent=state.bpm;$('#tempoValue').setAttribute('aria-valuenow',state.bpm);
@@ -53,6 +70,7 @@ export function beatArcPath(radius,index,total){
   const xy=(r,a)=>`${(250+r*Math.cos(a)).toFixed(3)} ${(250+r*Math.sin(a)).toFixed(3)}`;
   return `M ${xy(outer,angle-half)} A ${outer} ${outer} 0 0 1 ${xy(outer,angle+half)} L ${xy(inner,angle+half)} A ${inner} ${inner} 0 0 0 ${xy(inner,angle-half)} Z`;
 }
+const linearRows=new Map();
 function renderPatterns(){
   let svg='<circle class="track" cx="250" cy="250" r="212"/><circle class="track inner-track" cx="250" cy="250" r="149"/>';
   svg+='<g class="dial-ticks" aria-hidden="true">'+radialTicks().map(t=>`<line x1="${t.x1}" y1="${t.y1}" x2="${t.x2}" y2="${t.y2}"/>`).join('')+'</g>';
@@ -63,13 +81,36 @@ function renderPatterns(){
     });
   }
   $('#rings').innerHTML=svg;
-  for(const container of [$('#linear')]){
-    container.replaceChildren();
-    for(const [channel,key,label] of [[0,'outer','OUTER PATTERN'],[1,'inner','INNER PATTERN']]){
-      const title=document.createElement('h3');title.textContent=label;container.append(title);
-      const row=document.createElement('div');row.className='pattern-row';row.dataset.channel=String(channel);
-      state[key].forEach((s,i)=>{const b=document.createElement('button');b.className=`step state${s}`;b.dataset.channel=channel;b.dataset.index=i;b.textContent=i+1;b.setAttribute('aria-label',`${label} ${i+1}: ${names[s]}`);b.onclick=()=>cycle(channel,i);row.append(b);});container.append(row);
+  // P5: The row itself owns pointer capture. Do not replace it while the
+  // user's finger is held down; re-render only/reuse its beat button children.
+  for(const [channel,key,label] of [[0,'outer','OUTER PATTERN'],[1,'inner','INNER PATTERN']]){
+    let row=linearRows.get(channel);
+    if(!row){
+      const title=document.createElement('h3');
+      title.textContent=label;
+      row=document.createElement('div');
+      row.className='pattern-row';
+      row.dataset.channel=String(channel);
+      $('#linear').append(title,row);
+      installLinearBeatGesture(row,{
+        channel,getCount:()=>state[key].length,
+        onStep:nextCount=>number(channel?'subdivisions':'beats',nextCount,1,20),
+        onTap:index=>cycle(channel,index),guide:gestureGuide
+      });
+      linearRows.set(channel,row);
     }
+    const previous=[...row.querySelectorAll('button.step')];
+    const buttons=state[key].map((s,i)=>{
+      const b=previous[i]||document.createElement('button');
+      b.type='button';
+      b.className=`step state${s}`;
+      b.dataset.channel=String(channel);
+      b.dataset.index=String(i);
+      b.textContent=String(i+1);
+      b.setAttribute('aria-label',`${label} ${i+1}: ${names[s]}`);
+      return b;
+    });
+    row.replaceChildren(...buttons);
   }
   layoutLinearPatterns();
 }
@@ -103,8 +144,7 @@ function refreshMobileFrame(){
     stablePhoneViewport=0;stablePhoneWidth=0;
     return;
   }
-  // The iOS software keyboard changes visualViewport.height, not the usable
-  // full-screen PADD height. Do not shrink the outer LCARS rails on input focus.
+  // Keyboard resize must not collapse the LCARS outer frame.
   const vv=window.visualViewport,width=document.documentElement.clientWidth;
   if(Math.abs(width-stablePhoneWidth)>35)stablePhoneViewport=0;
   stablePhoneWidth=width;
@@ -139,29 +179,56 @@ function render(){applyScale();for(const k of ['bpm','beats','subdivisions','cou
   $('#outerLabel').textContent=poly?'OUTER PATTERN LENGTH':'QUARTERS PER BAR';
   $('#innerLabel').textContent=poly?'INNER PATTERN LENGTH':'SUBDIVISIONS / QUARTER';
   $('#meterNote').textContent=state.mode==='polyrhythm'?`Outer ${state.beats} / inner ${state.subdivisions} over ${state.training.cycleQuarters} quarters`:state.mode==='polymeter'?`Outer ${state.beats}/4 · inner ${state.subdivisions}/4`:`${state.beats}/4 · ${state.subdivisions} subdivisions per quarter`;
-  tempoReadout();syncNumbers();renderTraining(state,trainingChanged);renderPatterns();renderMixer();renderPresets();diaryUI.render();soundUI.draw();}
+  tempoReadout();syncNumbers();renderTraining(state,trainingChanged);renderPatterns();renderMixer();renderPresets();diaryUI.render();soundUI.draw();syncLcarsSlider($('#master'));syncLcarsSlider($('#uiVolume'));}
 function renderMixer(){
   $('#mixer').replaceChildren();state.channels.forEach((c,i)=>{
     const panel=document.createElement('div');panel.className='panel';
-    panel.innerHTML=`<span class="eyebrow">CHANNEL 0${i+1}</span><h3>${i?'INNER CHANNEL':'OUTER CHANNEL'}</h3><label><span class="field-name">VOLUME</span> <input aria-label="Channel ${i+1} volume" data-field="volume" type="range" min="0" max="1" step=".01" value="${c.volume}"></label><label><span class="field-name">PAN</span> <input aria-label="Channel ${i+1} pan" data-field="pan" type="range" min="-1" max="1" step=".01" value="${c.pan}"></label><div class="pan-scale" role="group" aria-label="Channel ${i+1} panorama presets"></div><div class="mixer-buttons"><button data-field="mute" aria-pressed="${c.mute}" class="outline ${c.mute?'toggled':''}">MUTE</button><button data-field="solo" aria-pressed="${c.solo}" class="outline ${c.solo?'toggled':''}">SOLO</button></div>`;
-    const panRange=panel.querySelector('input[data-field="pan"]');
-    const panGroup=panel.querySelector('.pan-scale');
+    panel.classList.add('matrix-channel');
+    panel.innerHTML=`<span class="eyebrow">CHANNEL 0${i+1}</span><h3>${i?'INNER CHANNEL':'OUTER CHANNEL'}</h3>`;
+    let panButtons=[];
+    // The source demo only supplies the look/interaction, not a new audio bus.
+    const matrix=buildMatrixFaders(i,c,{onChange:(kind,value,{gesture=false}={})=>{
+      if(kind==='pan')setChannelPan(c,value,matrix.inputs.pan,panButtons);
+      else c.volume=value;
+      matrix.sync();changed();
+      if(gesture)faderTouchFeedback();
+    }});
+    panel.append(matrix.root);
+    const panGroup=document.createElement('div');
+    panGroup.className='pan-scale';panGroup.setAttribute('role','group');
+    panGroup.setAttribute('aria-label',`Channel ${i+1} panorama presets`);
     for(const {label,value} of PAN_PRESETS){
       const button=document.createElement('button');button.type='button';
       button.dataset.pan=String(value);button.textContent=label;panGroup.append(button);
     }
-    const panButtons=[...panGroup.querySelectorAll('button')];
-    setChannelPan(c,c.pan,panRange,panButtons);
-    panel.querySelectorAll('input').forEach(el=>el.oninput=()=>{
-      if(el.dataset.field==='pan')setChannelPan(c,el.value,panRange,panButtons);
-      else c[el.dataset.field]=Number(el.value);
-      changed();
-    });
+    panButtons=[...panGroup.querySelectorAll('button')];
+    setChannelPan(c,c.pan,matrix.inputs.pan,panButtons);
+    for(const kind of ['volume','pan']){
+      const input=matrix.inputs[kind];
+      input.addEventListener('input',()=>{
+        if(kind==='pan')setChannelPan(c,input.value,input,panButtons);
+        else c.volume=Number(input.value);
+        matrix.sync();changed();
+      });
+    }
     panButtons.forEach(button=>button.onclick=()=>{
-      setChannelPan(c,button.dataset.pan,panRange,panButtons);
-      changed();
+      setChannelPan(c,button.dataset.pan,matrix.inputs.pan,panButtons);
+      matrix.sync();changed();
     });
-    panel.querySelectorAll('button[data-field]').forEach(el=>el.onclick=()=>{state.channels[i][el.dataset.field]=!state.channels[i][el.dataset.field];el.setAttribute('aria-pressed',state.channels[i][el.dataset.field]);el.classList.toggle('toggled',state.channels[i][el.dataset.field]);changed();});
+    panel.append(panGroup);
+    const muteSolo=document.createElement('div');muteSolo.className='mixer-buttons';
+    for(const field of ['mute','solo']){
+      const button=document.createElement('button');button.type='button';
+      button.dataset.field=field;button.textContent=field.toUpperCase();
+      button.className='outline'+(c[field]?' toggled':'');
+      button.setAttribute('aria-pressed',String(c[field]));
+      button.onclick=()=>{
+        c[field]=!c[field];button.setAttribute('aria-pressed',String(c[field]));
+        button.classList.toggle('toggled',c[field]);changed();
+      };
+      muteSolo.append(button);
+    }
+    panel.append(muteSolo);
     ['DOUBLE ACCENT','ACCENT','NORMAL'].forEach((title,clickState)=>{
       const row=document.createElement('div');row.className='accent-sound-row';const label=document.createElement('h4');label.textContent=title;row.append(label);
       const group=document.createElement('div');group.className='sound-choices';group.setAttribute('role','group');group.setAttribute('aria-label',`Channel ${i+1} ${title}`);
@@ -187,17 +254,22 @@ function stop(message='READY',endTime=audio.ctx?.currentTime){
  if(scheduler.settings?.duration)endTime=Math.min(endTime,scheduler.trainingStart+scheduler.settings.duration);
  const entry=scheduler.recorder.end(endTime,crypto.randomUUID());
  if(entry){entry.reason=message==='READY'?'Stopped':message;if(state.diary.entries.length<10000){state.diary.entries.push(entry);save();diaryUI.render();}else notify('Diary full. Export and remove old entries.','Warningsound');}
- scheduler.stop();releaseWake();$('#start').textContent='START';$('#playStatus').textContent=message;heardTempo=null;tempoReadout();$('#dial').classList.remove('gap-phase');$$('.playing').forEach(n=>n.classList.remove('playing'));}
-$('#start').onclick=async()=>{if(starting||restoring)return;if(soundUI.isBusy())return notify('Wait for sound import to finish.','Warningsound');if(scheduler.running){stop();return;}starting=true;$('#start').disabled=true;try{await unlock();await audio.loading;await audio.loadCustom(state.customSounds);audio.mix(state);scheduler.start(state,state.diary.enabled?{exercise:state.diary.exercise,category:state.diary.category,preset:activePreset}:null);$('#start').textContent='STOP';$('#playStatus').textContent='PLAYING';if(navigator.wakeLock)try{wakeLock=await navigator.wakeLock.request('screen');}catch{}}catch{notify('Audio could not start. Tap Start again.','invalidsound');}finally{starting=false;$('#start').disabled=false;}};
+ scheduler.stop();releaseWake();$('#start').textContent='START';motion.status($('#start'));$('#playStatus').textContent=message;heardTempo=null;tempoReadout();$('#dial').classList.remove('gap-phase');$$('.playing').forEach(n=>n.classList.remove('playing'));}
+$('#start').onclick=async()=>{if(starting||restoring)return;if(soundUI.isBusy())return notify('Wait for sound import to finish.','Warningsound');if(scheduler.running){stop();return;}starting=true;$('#start').disabled=true;try{await unlock();await audio.loading;await audio.loadCustom(state.customSounds);audio.mix(state);scheduler.start(state,state.diary.enabled?{exercise:state.diary.exercise,category:state.diary.category,preset:activePreset,minAutoLogSeconds:state.diary.minAutoLogSeconds}:null);$('#start').textContent='STOP';motion.status($('#start'));$('#playStatus').textContent='PLAYING';if(navigator.wakeLock)try{wakeLock=await navigator.wakeLock.request('screen');}catch{}}catch{notify('Audio could not start. Tap Start again.','invalidsound');}finally{starting=false;$('#start').disabled=false;}};
 for(const [k,min,max] of [['beats',1,20],['subdivisions',1,20],['countIn',0,8],['duration',0,3600]])$('#'+k).onchange=e=>number(k,Number(e.target.value),min,max);
-for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id));
+for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id),gestureGuide);
 $('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>number('bpm',state.bpm+1,20,400);
 let taps=[];installTapTempo($('#tap'),()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;});
-$('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();};
+$('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();motion.view(linear?$('#linear'):$('#dial'));};
 
-for(const k of ['master','uiVolume'])$('#'+k).oninput=e=>{state[k]=Number(e.target.value);changed();};
+for(const k of ['master','uiVolume']){
+ const input=$('#'+k);
+ input.oninput=e=>{state[k]=Number(e.target.value);changed();};
+ mountLcarsSlider(input,{kind:'volume',title:k==='master'?'MASTER / OUTPUT':'UI / VOLUME',
+   code:k==='master'?'GAIN-M':'GAIN-UI',onValueChange:faderTouchFeedback});
+}
 for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};
-$$('[data-tab]').forEach(b=>b.onclick=()=>{$$('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);$$('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();if(matchMedia('(max-width: 640px)').matches)$('main').scrollTop=0;});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();$('main').scrollTop=0;motion.page(b.dataset.tab);});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};
 $('#export').onclick=()=>{download(`lcars-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(state,null,2));notify('Backup exported.');};
 $('#import').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>25e6)throw Error('Backup is too large.');const next=validate(JSON.parse(await f.text()));if(soundUI.isBusy()||restoring||starting)throw Error('Wait for the current import to finish.');if(!confirm('Replace settings, presets, practice entries and custom sounds with this backup?'))return;stop();restoring=true;e.target.disabled=true;await unlock();await audio.loading;const prepared=await audio.prepareCustom(next.customSounds);for(const key of audio.buffers.keys())if(key.startsWith('user-'))audio.buffers.delete(key);for(const [key,buffer] of prepared)audio.buffers.set(key,buffer);state=next;activePreset='';diaryUI.closeEditor();render();changed();notify('Backup restored.');}catch(err){notify('Import rejected: '+err.message,'invalidsound');}finally{restoring=false;e.target.disabled=false;e.target.value='';}};
@@ -211,7 +283,7 @@ function gesture(el,isTempo=false){let g=null,suppressClick=false;
   el.addEventListener('pointerup',e=>end(e));el.addEventListener('pointercancel',e=>end(e,true));el.addEventListener('lostpointercapture',()=>{g=null;});
   el.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return;}if(isTempo)return;const p=e.target.closest('[data-index]');if(p)cycle(Number(p.dataset.channel),Number(p.dataset.index));});
 }
-gesture($('#rings'));installTempoControl($('#tempo'),$('#tempoValue'),$('#bpm'),()=>state.bpm,v=>number('bpm',v,20,400));
+gesture($('#rings'));installTempoControl($('#tempo'),$('#tempoValue'),$('#bpm'),()=>state.bpm,v=>number('bpm',v,20,400),gestureGuide);
 $('#rings').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const p=e.target.closest('[data-index]');if(p){e.preventDefault();const channel=p.dataset.channel,index=p.dataset.index;cycle(Number(channel),Number(index));$(`#rings [data-channel="${channel}"][data-index="${index}"]`)?.focus();}}});
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.target.closest('input,button,select,textarea,[role=button],dialog')){e.preventDefault();$('#start').click();}});
 installFeedback(document,{unlock,audio,state:()=>state});

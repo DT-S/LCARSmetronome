@@ -1,0 +1,17 @@
+/* P5: the same P4 ladder morphs out of touched linear steps.
+   Only beat hit areas consume vertical touch gestures; the main content
+   can still scroll normally from headings, gutters and non-control areas. */
+#linear .pattern-row .step {
+ touch-action:none;
+ -webkit-user-select:none;
+ user-select:none;
+}
+#linear .pattern-row.linear-dragging .step {
+ cursor:ns-resize;
+}
+#linear .pattern-row .step.gesture-source-active {
+ opacity:0!important;
+}
+@media (prefers-reduced-motion:reduce){
+ #linear .pattern-row .step{transition:none!important;}
+}

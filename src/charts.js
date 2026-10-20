@@ -17,12 +17,46 @@ function plot(host,series,{xLabel,yLabel,labels=[],bars=false,scatter=false}){
  for(let i=0;i<=4;i++){const value=maxY*i/4;svg.append(svgNode('line',{x1:left,y1:y(value),x2:right,y2:y(value),class:'chart-grid'}),svgNode('text',{x:left-9,y:y(value)+4,'text-anchor':'end',class:'axis-label'},maxY<10?value.toFixed(1):Math.round(value)));}
  svg.append(svgNode('text',{x:left,y:mobile?18:22,class:'axis-label'},yLabel),svgNode('text',{x:right,y:plotH-7,'text-anchor':'end',class:'axis-label'},xLabel));
  const ticks=[0,.25,.5,.75,1];for(const t of ticks){const index=Math.round(t*maxX);svg.append(svgNode('text',{x:x(index),y:mobile?bottom+18:328,'text-anchor':t===0?'start':t===1?'end':'middle',class:'axis-label'},labels[index]||Math.round(index)));}
+ // Actual recorded points only. The crosshair starts hidden and is moved
+ // solely by focus/hover on a mark; no fake telemetry or background loop.
+ const chartStatic=points.length>120;
+ if(chartStatic)svg.classList.add('chart-motion-static');
+ const probeX=svgNode('line',{x1:left,y1:top,x2:left,y2:bottom,
+  class:'chart-probe-line','aria-hidden':'true'});
+ const probeY=svgNode('line',{x1:left,y1:bottom,x2:right,y2:bottom,
+  class:'chart-probe-line','aria-hidden':'true'});
+ svg.append(probeX,probeY);
+ let inspected=null;
+ const hideProbe=mark=>{
+  if(mark&&inspected!==mark)return;
+  inspected?.classList.remove('chart-inspected');
+  inspected=null;
+  probeX.classList.remove('is-visible');
+  probeY.classList.remove('is-visible');
+ };
+ const inspect=(mark,p,description)=>{
+  if(inspected!==mark)inspected?.classList.remove('chart-inspected');
+  inspected=mark;
+  mark.classList.add('chart-inspected');
+  const px=x(p.x),py=y(p.y);
+  probeX.setAttribute('x1',px);probeX.setAttribute('x2',px);
+  probeY.setAttribute('y1',py);probeY.setAttribute('y2',py);
+  probeX.classList.add('is-visible');
+  probeY.classList.add('is-visible');
+  readout.textContent=description;
+ };
  const legend=node('div',undefined,'chart-legend');
  for(const [index,s] of series.entries()){
   const color=['#ffcc88','#cc99ff','#88ccff','#ff8899','#99ddbb','#eeeeaa'][index%6];const name=node('span',s.name);name.style.borderColor=color;legend.append(name);
   if(!scatter&&(!bars||index)){let path='',connected=false;for(const p of s.points){if(p.y===null){connected=false;continue;}path+=`${connected?'L':'M'}${x(p.x)},${y(p.y)} `;connected=true;}svg.append(svgNode('path',{d:path,fill:'none',stroke:color,'stroke-width':3.5,pathLength:1,class:'chart-line'}));}
   for(const p of s.points){if(p.y===null)continue;const mark=bars&&!index?svgNode('rect',{x:x(p.x)-Math.max(1,Math.min(12,(mobile?110:280)/(maxX+1))),y:y(p.y),width:Math.max(2,Math.min(24,(mobile?225:560)/(maxX+1))),height:Math.max(1,bottom-y(p.y)),fill:color,class:'chart-bar'}):svgNode('circle',{cx:x(p.x),cy:y(p.y),r:5,fill:color,class:'chart-dot'});
-   const description=`${s.name} · ${p.label}`;mark.setAttribute('tabindex','0');mark.setAttribute('role',p.select?'button':'img');if(p.select){mark.addEventListener('click',p.select);mark.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();p.select();}});}mark.setAttribute('aria-label',description);const show=()=>{readout.textContent=description;};mark.addEventListener('pointerenter',show);mark.addEventListener('pointerdown',show);mark.addEventListener('focus',show);svg.append(mark);
+   const description=`${s.name} · ${p.label}`;mark.setAttribute('tabindex','0');mark.setAttribute('role',p.select?'button':'img');if(p.select){mark.addEventListener('click',p.select);mark.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();p.select();}});}mark.setAttribute('aria-label',description);const show=()=>inspect(mark,p,description);
+   mark.addEventListener('pointerenter',show);
+   mark.addEventListener('pointerdown',show);
+   mark.addEventListener('focus',show);
+   mark.addEventListener('pointerleave',()=>{if(document.activeElement!==mark)hideProbe(mark);});
+   mark.addEventListener('blur',()=>hideProbe(mark));
+   svg.append(mark);
   }
  }
  wrap.append(svg);host.append(legend,wrap,readout);

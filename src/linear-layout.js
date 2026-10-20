@@ -32,10 +32,7 @@ export function visibleViewportHeight(innerHeight, visualViewportHeight, documen
   return Math.min(...candidates);
 }
 
-/**
- * iOS shrinks visualViewport for the software keyboard. The LCARS frame must
- * stay at its pre-keyboard height; only the scrollable main well moves.
- */
+/** Keep the LCARS fascia at pre-keyboard height when visualViewport shrinks. */
 export function keyboardSafeViewportHeight(measured,stable,isEditing,threshold=110){
  if(!Number.isFinite(measured)||measured<=0)throw new RangeError('Invalid viewport height');
  return Number.isFinite(stable)&&stable>0&&(isEditing||measured<stable-threshold)?stable:measured;

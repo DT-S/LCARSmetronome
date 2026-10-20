@@ -112,3 +112,11 @@
 - Das Overlay erscheint erst nach echter Bewegung und verschwindet bei Pointer-Up, Cancel, Capture-Verlust, Edit-Modus und Browser-Unfocus.
 - CSS nutzt reduzierte Animation gemäß `prefers-reduced-motion`.
 - Softwaretests und reale Browser-/Geräteabnahme sind noch gesondert nachzuweisen.
+
+## P4 – Bestätigter Testnachweis
+
+- [GitHub Actions 39345968421](https://github.com/DT-S/LCARSmetronome/actions/runs/39345968421): **SUCCESS** für Node-Regressions und Chromium-Browser-Smoke.
+- Neun Viewports 320–1920 px; vorhandene Audio-Matrix und Navigation weiterhin intakt.
+- Reale simulierte Touch-Gesten für Tempo sowie Beat-Anzahl; Leiter erscheint mit aktivem Strich, Zustand aktualisiert sich und wird bei Pointer-Up/Cancel entfernt.
+- Regression entdeckt und behoben: eine falsche automatische Ersetzung verdoppelte einen JavaScript-Bezeichner in `src/app.js`. Neu: `node --check` für alle Laufzeitmodule als fester Syntax-Regressionstest.
+- **P4 im Code technisch umgesetzt, hardwareseitige Abnahme noch offen. P5 Linear-View-Drag und P6 Plotter-/Seitenanimationen weiterhin offen.**

@@ -67,7 +67,7 @@
 
 ### P4 – Zahlenleiter für Tempo und Parameter
 
-**Status:** Reusable LCARS-Ladder und Anbindung an Tempo/Zahlenfelder implementiert, automatische Browser- und Geräteprüfung ausstehend. Neue Gesten für Linear View gehören weiterhin zu P5.
+**Status:** Zahlenleiter für Tempo und numerische Bedienelemente implementiert und automatisiert geprüft ([9 Viewports + Touch-Gesten](https://github.com/DT-S/LCARSmetronome/actions/runs/39345968421)). Geräteabnahme weiterhin ausstehend. Neue Gesten für Linear View gehören weiterhin zu P5.
 - [ ] Gemeinsame visuelle Gestenanzeige für BPM, Beats, Subdivisions, Count-in und ausgewählte Trainingsparameter.
 - [ ] Bei einer echten Geste: vertikale LCARS-Führung, gestrichelte rote/korallfarbene Leitschiene, horizontale Stufen und markierte aktuelle Position. Neben statt unter dem Finger.
 - [ ] Bestehende Bedienlogik (Drag nach oben/unten, kreisförmig für Tempo, Antippen zum Tippen, Keyboard Arrow/Home/End) erhalten.

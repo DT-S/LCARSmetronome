@@ -81,3 +81,11 @@ Der erste vollständige Lauf `39336109612` bestand alle 5 bisherigen Ziele, inkl
 - [Finaler V2-Lauf 39343815394](https://github.com/DT-S/LCARSmetronome/actions/runs/39343815394): **SUCCESS**, Node-Regression und 9-Viewport-Chromium-Suite inklusive Maus, Tastatur, Click-Presets und simulierter Touch-Scrub-Gesten.
 - UI-Screenshots als kurzlebiges GitHub-Actions-Artefakt `rhythm-padd-v2-layout-screenshots`.
 - **Offen:** tatsächliche Safari-PWA auf iPhone, weitere Tablet-Geräte, Arch Firefox, Audio-Kopfhörerprüfung und endgültige visuelle Freigabe durch den Nutzer. `main` nicht geändert.
+
+## P4 – Bestätigter Testnachweis
+
+- [GitHub Actions 39345968421](https://github.com/DT-S/LCARSmetronome/actions/runs/39345968421): **SUCCESS** für Node-Regressions und Chromium-Browser-Smoke.
+- Neun Viewports 320–1920 px; vorhandene Audio-Matrix und Navigation weiterhin intakt.
+- Reale simulierte Touch-Gesten für Tempo sowie Beat-Anzahl; Leiter erscheint mit aktivem Strich, Zustand aktualisiert sich und wird bei Pointer-Up/Cancel entfernt.
+- Regression entdeckt und behoben: eine falsche automatische Ersetzung verdoppelte einen JavaScript-Bezeichner in `src/app.js`. Neu: `node --check` für alle Laufzeitmodule als fester Syntax-Regressionstest.
+- **P4 im Code technisch umgesetzt, hardwareseitige Abnahme noch offen. P5 Linear-View-Drag und P6 Plotter-/Seitenanimationen weiterhin offen.**

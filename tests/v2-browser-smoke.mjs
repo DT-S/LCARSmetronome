@@ -466,6 +466,96 @@ try{
    fail++;console.error('FAIL P5 desktop keyboard/mouse:',error);
   }finally{await page.close();}
  }
+ // P6 explicit navigation, mode, view transitions. Nothing animates just
+ // because the scheduler renders frames; same-tab re-entry is inert.
+ {
+  const page=await browser.newPage({viewport:{width:1440,height:900},
+    reducedMotion:'no-preference'});
+  const errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   const audio=page.locator('#audio');
+   await page.locator('[data-tab="audio"]').click();
+   assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),true,
+    'different tab did not trigger LCARS page reveal');
+   assert.equal(await audio.evaluate(el=>getComputedStyle(el).animationName),'lcars-page-build');
+   await page.screenshot({path:path.join(screenshots,'p6-audio-page-build.png')});
+   await page.waitForTimeout(280);
+   assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),false,
+    'page transition continued after 210 ms');
+   await page.locator('[data-tab="audio"]').click();
+   assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),false,
+    'clicking active tab restarted page animation');
+   await page.locator('[data-tab="metronome"]').click();
+   const mode=page.locator('#modeButtons button[data-mode="polyrhythm"]');
+   await mode.click();
+   assert.equal(await mode.getAttribute('aria-pressed'),'true');
+   assert.equal(await mode.evaluate(el=>getComputedStyle(el).animationName),'lcars-mode-confirm',
+    'mode change lacked status acknowledgement');
+   await page.waitForTimeout(300);
+   await mode.click();
+   assert.notEqual(await mode.evaluate(el=>getComputedStyle(el).animationName),'lcars-mode-confirm',
+    'clicking selected mode repeated transition');
+   await page.locator('#view').click();
+   assert.equal(await page.locator('#linear').evaluate(el=>getComputedStyle(el).animationName),'lcars-view-build');
+   await page.locator('#view').click();
+   assert.ok(await page.locator('#rings [data-index]').count()>0,'circular view broke');
+   // Charts get REAL measurement probes. This fixture is ephemeral test-only
+   // DOM, not stored in the diary or included in a shipped demo.
+   await page.locator('[data-tab="diary"]').click();
+   await page.evaluate(async()=>{
+    const {sessionChart}=await import('./src/charts.js');
+    const fixture=document.createElement('div');fixture.id='p6-chart-test';
+    document.querySelector('#diary').append(fixture);
+    fixture.append(sessionChart({seconds:20,history:[
+     {at:0,bpm:120},{at:10,bpm:145}
+    ]}));
+   });
+   const plot=page.locator('#p6-chart-test .xy-plot');
+   assert.equal(await plot.locator('.chart-dot').count(),4);
+   assert.equal(await plot.locator('.chart-probe-line').count(),2);
+   const mark=plot.locator('.chart-dot').first();
+   await mark.focus();
+   assert.equal(await mark.evaluate(el=>el.classList.contains('chart-inspected')),true,
+    'focus did not select measured point');
+   assert.equal(await plot.locator('.chart-probe-line.is-visible').count(),2);
+   const positions=await page.evaluate(()=>{
+    const plot=document.querySelector('#p6-chart-test .xy-plot');
+    const circle=plot.querySelector('.chart-dot');
+    const vertical=plot.querySelector('.chart-probe-line');
+    return {x:Number(circle.getAttribute('cx')),probe:Number(vertical.getAttribute('x1'))};
+   });
+   assert.equal(positions.x,positions.probe,'crosshair is not linked to measured x');
+   assert.match(await page.locator('#p6-chart-test .chart-readout').textContent(),/120 BPM/);
+   await page.screenshot({path:path.join(screenshots,'p6-chart-real-point-probe.png')});
+   await mark.blur();
+   assert.equal(await plot.locator('.chart-probe-line.is-visible').count(),0);
+   assert.deepEqual(errors,[]);
+   console.log('PASS P6 state-driven page/view/mode motion and factual chart crosshair');
+  }catch(error){
+   fail++;console.error('FAIL P6 motion/chart:',error);
+   await page.screenshot({path:path.join(screenshots,'p6-motion-FAILED.png')}).catch(()=>{});
+  }finally{await page.close();}
+ }
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844},
+    reducedMotion:'reduce'});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   await page.locator('[data-tab="audio"]').click();
+   assert.equal(await page.locator('#audio').evaluate(el=>getComputedStyle(el).animationName),'none',
+    'reduced-motion setting failed for page animation');
+   await page.locator('[data-tab="metronome"]').click();
+   await page.locator('#view').click();
+   assert.equal(await page.locator('#linear').evaluate(el=>getComputedStyle(el).animationName),'none',
+    'reduced-motion setting failed for view animation');
+   assert.deepEqual(errors,[]);
+   console.log('PASS P6 reduced-motion disablement');
+  }catch(error){fail++;console.error('FAIL P6 reduced motion:',error);
+  }finally{await page.close();}
+ }
 }finally{
  await browser.close();
  await new Promise(resolve=>server.close(resolve));

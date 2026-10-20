@@ -1,8 +1,9 @@
-import {installFeedback,installSegmentCorners,UI_SCALES,defaultInterfaceScale} from './interface.js';
+import {installFeedback,installTapTempo,installSegmentCorners,UI_SCALES,defaultInterfaceScale} from './interface.js';
 import {PAN_PRESETS,setChannelPan} from './pan-control.js';
 import {installPrecisionSlider,formatVolume} from './precision-slider.js';
 import {buildMatrixFaders} from './matrix-faders.js';
-import {linearRowSizes,mobileFrameHeight,visibleViewportHeight} from './linear-layout.js';
+import {linearRowSizes,mobileFrameHeight,visibleViewportHeight,keyboardSafeViewportHeight} from './linear-layout.js';
+import {installUpdateManager} from './update-manager.js';
 import {installLinearBeatGesture} from './linear-gesture.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {createGestureGuide} from './gesture-guide.js';
@@ -125,18 +126,27 @@ function layoutLinearPatterns(){
     row.replaceChildren(...lines);
   }
 }
+let stablePhoneViewport=0,stablePhoneWidth=0;
 function refreshMobileFrame(){
   const shell=document.querySelector('.app-shell');
-  if(!matchMedia('(max-width: 640px)').matches){shell.style.removeProperty('height');return;}
-  // `screen.height` also covers iOS system areas outside the PWA viewport.
-  // Never stretch the grid there: the third (footer) row would be clipped.
-  // Measure the smaller, actually available viewport instead.
-  const vv=window.visualViewport;
-  const height=visibleViewportHeight(
+  if(!matchMedia('(max-width: 640px)').matches){
+    shell.style.removeProperty('height');
+    stablePhoneViewport=0;stablePhoneWidth=0;
+    return;
+  }
+  // Keyboard resize must not collapse the LCARS outer frame.
+  const vv=window.visualViewport,width=document.documentElement.clientWidth;
+  if(Math.abs(width-stablePhoneWidth)>35)stablePhoneViewport=0;
+  stablePhoneWidth=width;
+  const measured=visibleViewportHeight(
     window.innerHeight,
     vv ? vv.height + Math.max(0,vv.offsetTop||0) : null,
     document.documentElement.clientHeight
   );
+  const active=document.activeElement;
+  const editorFocused=!!(active?.closest?.('#diaryEditor')&&active.matches('input,textarea,select'));
+  const height=keyboardSafeViewportHeight(measured,stablePhoneViewport,editorFocused);
+  if(height===measured)stablePhoneViewport=measured;
   shell.style.height=`${mobileFrameHeight(height,state.uiScale)}px`;
 }
 window.addEventListener('resize',()=>{refreshMobileFrame();layoutLinearPatterns();},{passive:true});
@@ -238,7 +248,7 @@ $('#start').onclick=async()=>{if(starting||restoring)return;if(soundUI.isBusy())
 for(const [k,min,max] of [['beats',1,20],['subdivisions',1,20],['countIn',0,8],['duration',0,3600]])$('#'+k).onchange=e=>number(k,Number(e.target.value),min,max);
 for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id),gestureGuide);
 $('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>number('bpm',state.bpm+1,20,400);
-let taps=[];$('#tap').onclick=()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;};
+let taps=[];installTapTempo($('#tap'),()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;});
 $('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();motion.view(linear?$('#linear'):$('#dial'));};
 
 for(const k of ['master','uiVolume']){const input=$('#'+k);input.oninput=e=>{state[k]=Number(e.target.value);changed();};installPrecisionSlider(input,{format:formatVolume});}
@@ -266,8 +276,11 @@ async function storageStatus(){const yes=await navigator.storage?.persisted?.();
 $('#persist').onclick=async()=>{try{const ok=await navigator.storage?.persist?.();await storageStatus();notify(ok?'Persistent storage granted.':'Browser did not grant persistent storage.','Warningsound');}catch{notify('Storage request unavailable.','Warningsound');}};
 const connection=()=>$('#connection').textContent=navigator.onLine?'LOCAL SYSTEM':'OFFLINE SYSTEM';addEventListener('online',connection);addEventListener('offline',connection);connection();
 addEventListener('pagehide',()=>{if(scheduler.running){stop('Page closed');clearTimeout(saveTimer);const snapshot=structuredClone(state);saveChain=saveChain.catch(()=>{}).then(()=>write(snapshot));}});
-let reg;
-if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').then(r=>{reg=r;const waiting=()=>{$('#update').hidden=!r.waiting;};waiting();r.addEventListener('updatefound',()=>r.installing?.addEventListener('statechange',waiting));return navigator.serviceWorker.ready;}).then(()=>{$('#offlineStatus').textContent='Offline resources cached. Installed under this URL.';}).catch(()=>{$('#offlineStatus').textContent='Offline installation failed. Use HTTPS or localhost and reload online.';});}else $('#offlineStatus').textContent='Service workers unavailable in this browser.';
-$('#update').onclick=()=>{if(scheduler.running)return notify('Stop playback before updating.','Warningsound');if(reg?.waiting){navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload(),{once:true});reg.waiting.postMessage('ACTIVATE');}};
+installUpdateManager({
+ serviceWorker:navigator.serviceWorker,
+ button:$('#update'),status:$('#offlineStatus'),notify,
+ isBusy:()=>scheduler.running||starting||restoring||soundUI.isBusy(),
+ reload:()=>location.reload(),online:()=>navigator.onLine
+});
 function frame(){if(scheduler.running){for(const event of scheduler.position()){$$(`[data-channel="${event.channel}"] .playing, .step.playing[data-channel="${event.channel}"]`).forEach(n=>n.classList.remove('playing'));$$(`[data-channel="${event.channel}"][data-index="${event.index}"]`).forEach(n=>(n.querySelector('.point')||n).classList.add('playing'));$('#playStatus').textContent=event.count?`COUNT-IN · ${-event.bar}`:`${event.mode==='polyrhythm'?'CYCLE':'BAR'} ${event.bar+1} · ${event.phase}`;tempoReadout(event);$('#dial').classList.toggle('gap-phase',event.phase==='GAP');}const elapsed=Math.max(0,audio.ctx.currentTime-scheduler.trainingStart);const seconds=Math.floor(scheduler.settings.duration?Math.max(0,scheduler.settings.duration-elapsed):elapsed);$('#clock').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}requestAnimationFrame(frame);}
 try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();storageStatus().catch(()=>{});frame();

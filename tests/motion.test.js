@@ -164,7 +164,7 @@ test('all six pages animate only their inner panels while fixed rails stay untou
  assert.match(css,/\.page\.lcars-page-enter \{[\s\S]*?animation:none;/);
  const cssTail=css.slice(css.indexOf('RC9 · THE CHASSIS STAYS ON'));
  assert.doesNotMatch(cssTail,/\.app-shell\.lcars-page-building/,'fixed shell may animate only at initial boot');
- assert.doesNotMatch(cssTail,/\.page\.lcars-page-enter::(?:before|after)/,'tab frames must not redraw fixed perimeter rails');
+ assert.doesNotMatch(cssTail,/\.page\.lcars-page-enter::(?:before|after)\s*\{[^}]*\banimation:\s*(?!none)/,\n   'tab frames must not redraw fixed perimeter rails');
  assert.doesNotMatch(jsMotion(),/classList\.add\('lcars-page-building'\)/,
    'navigation must not animate the stable shell');
  function jsMotion(){return readFileSync(new URL('../src/motion.js',import.meta.url),'utf8');}

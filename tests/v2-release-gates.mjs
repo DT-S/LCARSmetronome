@@ -134,6 +134,7 @@ try{
    });
    assert.equal(waiting,'installed');
    await page.waitForFunction(()=>!document.querySelector('#update').hidden);
+   await page.locator('[data-tab="settings"]').click();
    await page.locator('#update').click();
    await page.waitForFunction(async()=>{
     const reg=await navigator.serviceWorker.getRegistration();

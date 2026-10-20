@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,readdirSync,existsSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 
 // Prevent a repeat of the v0.5.10 startup regression: a relative ESM import
 // may not point to a nonexisting file. Everything in src/ must also be
@@ -41,4 +43,13 @@ test('entry module and key runtime assets are present in app shell',()=>{
 test('the V2 branch keeps the existing persisted schema until an explicit migration',()=>{
   const model=readFileSync(new URL('../src/model.js',import.meta.url),'utf8');
   assert.match(model,/version:5/);
+});
+
+test('all executable JavaScript modules parse as valid ECMAScript',()=>{
+  for(const moduleName of runtimeModules){
+    const file=fileURLToPath(new URL(moduleName,sourceRoot));
+    assert.doesNotThrow(()=>{
+      execFileSync(process.execPath,['--check',file],{stdio:'pipe'});
+    },`Broken JS syntax in ${moduleName}`);
+  }
 });

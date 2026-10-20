@@ -42,7 +42,7 @@ export function createDiaryUI(getState,save,notify,isRecording=()=>false){
    closeEditor();save();render();
   }
   closeDanger();
-  notify(count?`${count} practice session${count===1?'':'s'} deleted. Export a backup before further cleanup.`:'No matching sessions remain.',count?'Acceptsound':'Warningsound');
+  notify(count?`${count} practice session${count===1?'':'s'} permanently deleted.`:'No matching sessions remain.',count?'Acceptsound':'Warningsound');
  };
  deleteDialog.addEventListener('close',()=>{
   deleteScope=null;deleteCutoff=0;

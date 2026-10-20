@@ -77,7 +77,7 @@ function renderPatterns(){
   for(const [channel,key,r] of [[0,'outer',212],[1,'inner',149]]){
     svg+=`<circle class="hit-ring" data-ring="${channel}" cx="250" cy="250" r="${r}"/>`;
     state[key].forEach((s,i)=>{const a=i/state[key].length*Math.PI*2-Math.PI/2,x=250+Math.cos(a)*r,y=250+Math.sin(a)*r;
-      svg+=`<g data-channel="${channel}" data-index="${i}" tabindex="0" role="button" aria-label="${key} ${i+1}: ${names[s]}"><path data-ring="${channel}" class="point beat-arc state${s}" d="${beatArcPath(r,i,state[key].length)}"/><text class="node-label" x="${x}" y="${y}">${s===3?'–':i+1}</text></g>`;
+      svg+=`<g data-channel="${channel}" data-index="${i}" style="--boot-delay:${560+channel*45+i*19}ms" tabindex="0" role="button" aria-label="${key} ${i+1}: ${names[s]}"><path data-ring="${channel}" class="point beat-arc state${s}" d="${beatArcPath(r,i,state[key].length)}"/><text class="node-label" x="${x}" y="${y}">${s===3?'–':i+1}</text></g>`;
     });
   }
   $('#rings').innerHTML=svg;
@@ -299,4 +299,4 @@ installUpdateManager({
  reload:()=>location.reload(),online:()=>navigator.onLine
 });
 function frame(){if(scheduler.running){for(const event of scheduler.position()){$$(`[data-channel="${event.channel}"] .playing, .step.playing[data-channel="${event.channel}"]`).forEach(n=>n.classList.remove('playing'));$$(`[data-channel="${event.channel}"][data-index="${event.index}"]`).forEach(n=>(n.querySelector('.point')||n).classList.add('playing'));$('#playStatus').textContent=event.count?`COUNT-IN · ${-event.bar}`:`${event.mode==='polyrhythm'?'CYCLE':'BAR'} ${event.bar+1} · ${event.phase}`;tempoReadout(event);$('#dial').classList.toggle('gap-phase',event.phase==='GAP');}const elapsed=Math.max(0,audio.ctx.currentTime-scheduler.trainingStart);const seconds=Math.floor(scheduler.settings.duration?Math.max(0,scheduler.settings.duration-elapsed):elapsed);$('#clock').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}requestAnimationFrame(frame);}
-try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();storageStatus().catch(()=>{});frame();
+try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();motion.boot();storageStatus().catch(()=>{});frame();

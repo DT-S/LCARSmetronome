@@ -740,3 +740,185 @@
   .app-shell > aside .rail-end {height:42px;}
   .app-shell::after {height:24px;}
 }
+
+
+/* ================================================================
+   DESKTOP XL · RHYTHM CORE STAGE (preview)
+   CSS-only. The circular SVG, gestures, scheduler and mobile PADD
+   are untouched. Every decorative rail is pointer-events:none.
+   Min-height gate keeps short landscape windows on the tested layout.
+   ================================================================ */
+@media (min-width:1440px) and (min-height:780px) {
+  /* Only alter the scrolling workspace while the metronome page is shown:
+     Presets, Diary, Analytics and System retain their own page layouts. */
+  .app-shell > main:has(#metronome:not([hidden])) {
+    display:flex;
+    flex-direction:column;
+  }
+  #metronome.page:not([hidden]) {
+    display:flex;
+    flex-direction:column;
+    flex:1 0 auto;
+    min-height:calc(100% - 45px);
+    min-width:0;
+  }
+  #metronome .instrument-layout {
+    flex:1 1 auto;
+    display:grid;
+    grid-template-columns:minmax(0,1.55fr) minmax(355px,.95fr);
+    gap:clamp(18px,2.1vw,40px);
+    align-items:stretch;
+    min-height:0;
+    margin-top:clamp(10px,1.6vh,24px);
+  }
+
+  /* Full-height U-shaped LCARS cheek around the sequencer. */
+  #metronome .instrument {
+    box-sizing:border-box;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    position:relative;
+    width:100%;
+    max-width:none;
+    min-width:0;
+    min-height:0;
+    height:100%;
+    margin:0;
+    padding:clamp(14px,1.5vh,24px) clamp(18px,1.5vw,32px)
+            clamp(12px,1.4vh,22px) clamp(17px,1.3vw,28px);
+    border-left:clamp(18px,1.3vw,30px) solid var(--padd-amber);
+    border-top:clamp(10px,.85vw,17px) solid var(--padd-amber);
+    border-bottom:clamp(10px,.85vw,17px) solid var(--padd-peach);
+    border-radius:clamp(28px,2.5vw,48px) 0 0 clamp(28px,2.5vw,48px);
+    background:#000;
+  }
+  #metronome .instrument::before {
+    content:'47-ALPHA';
+    position:absolute;
+    top:50%;
+    left:calc(-1 * clamp(18px,1.3vw,30px));
+    transform:translateY(-50%);
+    width:clamp(18px,1.3vw,30px);
+    height:66px;
+    display:flex;align-items:center;justify-content:center;
+    writing-mode:vertical-rl;
+    font:900 clamp(7px,.48vw,10px)/1 ui-monospace,monospace;
+    letter-spacing:.02em;
+    color:var(--padd-orange);
+    background:#000;
+    pointer-events:none;
+  }
+  #metronome .instrument::after {
+    content:'';
+    pointer-events:none;
+    position:absolute;
+    right:0;
+    top:calc(-1 * clamp(10px,.85vw,17px));
+    bottom:calc(-1 * clamp(10px,.85vw,17px));
+    width:clamp(18px,2vw,38px);
+    border-left:clamp(4px,.42vw,8px) solid #000;
+    background:
+      linear-gradient(var(--padd-amber),var(--padd-amber)) top / 100% clamp(10px,.85vw,17px) no-repeat,
+      linear-gradient(var(--padd-peach),var(--padd-peach)) bottom / 100% clamp(10px,.85vw,17px) no-repeat;
+    border-radius:0 12px 12px 0;
+  }
+
+  /* Bigger ring, constrained by the viewport height as well as column width.
+     The ring is still a square; hit-target SVG geometry is unchanged. */
+  #metronome #dial:not([hidden]) {
+    order:1;
+    box-sizing:border-box;
+    flex:0 1 auto;
+    width:min(100%,max(410px,calc(100dvh - 540px)),760px);
+    max-width:none;
+    max-height:min(66vh,760px);
+    aspect-ratio:1;
+    height:auto;
+    margin:auto;
+    padding:5px 0;
+  }
+  #metronome #linear:not([hidden]) {
+    order:1;
+    min-width:0;
+    width:100%;
+    max-width:100%;
+    margin:auto 0;
+    padding:10px 0;
+  }
+  /* If a view is hidden, keep the browser's native hidden behavior. */
+  #metronome #dial[hidden],#metronome #linear[hidden] {display:none!important;}
+
+  /* Keep the working controls together near the bottom of the left stage. */
+  #metronome .legend {
+    order:2;
+    flex:0 0 auto;
+    margin:4px 0 8px;
+    padding:9px 0 5px;
+    border-top:clamp(5px,.48vw,8px) solid var(--padd-blue);
+  }
+  #metronome .play-status {
+    order:3;
+    flex:0 0 auto;
+    margin:0 0 8px;
+  }
+  #metronome .pattern-counts {
+    order:4;
+    flex:0 0 auto;
+    margin:0 0 10px;
+    padding-top:7px;
+    border-top:clamp(5px,.48vw,8px) solid var(--padd-tan);
+  }
+  #metronome .transport {
+    order:5;
+    flex:0 0 auto;
+    margin:0;
+  }
+
+  /* Full-height panel rail: the black negative space remains intentional. */
+  #metronome .side-controls {
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+    height:100%;
+    gap:clamp(11px,1.3vh,22px);
+    padding:0;
+  }
+  #metronome .side-controls > .panel {
+    box-sizing:border-box;
+    min-width:0;
+    margin:0;
+    padding:10px 9px 14px 16px;
+    border-left:clamp(17px,1.2vw,26px) solid var(--panel-accent,var(--padd-lavender));
+    border-top:clamp(9px,.7vw,14px) solid var(--panel-accent,var(--padd-lavender));
+    border-bottom:clamp(9px,.7vw,14px) solid var(--panel-accent,var(--padd-lavender));
+    border-radius:34px 0 0 34px;
+  }
+  #metronome .side-controls > .panel:nth-of-type(2) {
+    --panel-accent:var(--padd-peach);
+  }
+  #metronome .side-controls > .operation-info {
+    flex:0 0 auto;
+    margin-top:auto;
+    padding:10px 10px 5px 14px;
+    border-top:clamp(11px,.85vw,16px) solid var(--padd-tan);
+    border-left:clamp(17px,1.2vw,26px) solid var(--padd-tan);
+    border-radius:30px 0 0 0;
+  }
+
+  /* The existing status rail now anchors the bottom of the real screen. */
+  .app-shell > main:has(#metronome:not([hidden])) > footer {
+    flex:0 0 auto;
+    margin-top:auto;
+    padding-top:10px;
+  }
+}
+
+/* Tall desktop: let the circular display grow substantially, capped at 760px
+   before touching status, transport, or practice controls. */
+@media (min-width:1600px) and (min-height:1200px) {
+  #metronome #dial:not([hidden]) {
+    width:min(100%,calc(100dvh - 570px),760px);
+    max-height:65vh;
+  }
+}

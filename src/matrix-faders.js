@@ -175,7 +175,7 @@ export function buildMatrixFaders(index,channel,{onChange}){
    };
    surface.addEventListener('pointerdown',event=>{
     if(event.button!==0||event.isPrimary===false||pointer||event.target.closest?.('button'))return;
-    const rect=surface.getBoundingClientRect();
+    const rect=(fine?surface:instrument).getBoundingClientRect();
     if(rect.width<=0)return;
     event.preventDefault();
     pointer={id:event.pointerId,x:event.clientX,startX:event.clientX,
@@ -190,7 +190,7 @@ export function buildMatrixFaders(index,channel,{onChange}){
     event.preventDefault();
     if(fine)set(matrixFineValue(pointer.startValue,event.clientX-pointer.startX,kind));
     else {
-     const rect=surface.getBoundingClientRect();
+     const rect=(fine?surface:instrument).getBoundingClientRect();
      set(matrixValue(kind,(event.clientX-rect.left)/rect.width));
     }
    });

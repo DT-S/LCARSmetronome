@@ -85,7 +85,7 @@ try{
       `${label}: transport escaped the LCARS stage ${JSON.stringify(stage)}`);
     assert.ok(stage.side.bottom>stage.side.top+350,`${label}: short side frame`);
     assert.ok(parseFloat(stage.stageRule)>=18,`${label}: desktop cheek rail is missing`);
-    assert.ok(stage.mainScroll<210,`${label}: unnecessarily tall main overflow ${JSON.stringify(stage)}`);
+    assert.ok(stage.footer.top>=stage.instrument.bottom-3,`${label}: controls intersect the footer ${JSON.stringify(stage)}`);
    }
    await page.screenshot({path:path.join(screenshots,`${label}-metronome.png`)});
    await page.locator('#view').click();
@@ -184,6 +184,23 @@ try{
       assert.ok(bounds.mainWidth>120,`${label}: UI scale ${scale} makes content too narrow`);
      }
     }
+   }
+   if(label==='desktop-wide'){
+    // User's large-monitor setup uses reduced in-app interface scale.
+    // Capture the actual LCARS stage there as a release preview.
+    await page.locator('[data-tab="settings"]').click();
+    await page.locator('#scaleButtons button[data-ui-scale="0.7"]').click();
+    await page.locator('[data-tab="metronome"]').click();
+    await page.screenshot({path:path.join(screenshots,'desktop-wide-stage-70pct.png')});
+    const frame=await page.evaluate(()=>{
+      const rect=q=>{const r=document.querySelector(q).getBoundingClientRect();
+        return {top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+      return {instrument:rect('#metronome .instrument'),dial:rect('#dial'),
+        footer:rect('main > footer'),main:rect('main')};
+    });
+    assert.ok(frame.footer.top>=frame.instrument.bottom-4,
+      `70% desktop: footer overlaps stage ${JSON.stringify(frame)}`);
+    assert.ok(frame.dial.width>250,'70% desktop: circular ring too small');
    }
    assert.deepEqual(errors,[],`${label}: errors or missing assets`);
    console.log(`PASS ${label} (${width}x${height})`);

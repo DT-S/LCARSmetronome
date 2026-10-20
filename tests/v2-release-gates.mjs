@@ -1,0 +1,179 @@
+// P7 release candidate E2E: actual SW cache, offline restart, IndexedDB,
+// downloadable JSON, restore, explicit update and cross-engine boot checks.
+// Run with: node tests/v2-release-gates.mjs (Playwright installed in CI).
+import {createServer} from 'node:http';
+import {createReadStream,existsSync,mkdirSync} from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+import {chromium,firefox} from 'playwright';
+
+const root=path.resolve(fileURLToPath(new URL('../',import.meta.url)));
+const screenshots=path.join(root,'artifacts','v2-release');
+mkdirSync(screenshots,{recursive:true});
+const mime={'.js':'text/javascript','.css':'text/css','.html':'text/html',
+ '.json':'application/json','.webmanifest':'application/manifest+json',
+ '.svg':'image/svg+xml','.png':'image/png','.mp3':'audio/mpeg'};
+let serveOldWorker=false,fail=0;
+const oldWorker="const KEY='lcars-core-/-old-p7-release';self.addEventListener('install',e=>e.waitUntil(caches.open(KEY)));self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));";
+const server=createServer((req,res)=>{
+ const pathname=new URL(req.url,'http://localhost').pathname;
+ if(pathname==='/sw.js'&&serveOldWorker){
+  res.writeHead(200,{'Content-Type':'text/javascript','Cache-Control':'no-store'});
+  res.end(oldWorker);return;
+ }
+ const rel=decodeURIComponent(pathname)==='/'?'index.html':decodeURIComponent(pathname).slice(1);
+ const full=path.resolve(root,rel);
+ if(!full.startsWith(root+path.sep)||!existsSync(full)){res.writeHead(404);res.end('Not found');return;}
+ res.writeHead(200,{'Content-Type':mime[path.extname(full)]||'application/octet-stream',
+  'Cache-Control':pathname==='/sw.js'?'no-store':'no-cache'});
+ createReadStream(full).pipe(res);
+});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const base='http://127.0.0.1:'+server.address().port;
+const output=(label,fn)=>fn().then(()=>console.log('PASS P7 '+label)).catch(err=>{
+ fail++;console.error('FAIL P7 '+label,err);
+});
+const waitReady=async page=>{
+ await page.waitForFunction(()=>Boolean(navigator.serviceWorker?.controller),{timeout:20000});
+ await page.waitForFunction(()=>document.querySelector('#rings [data-index]')!==null,{timeout:20000});
+};
+let browser;
+try{
+ browser=await chromium.launch({headless:true});
+ await output('Chromium persistence, export/restore and offline PWA restart',async()=>{
+  const context=await browser.newContext({acceptDownloads:true,viewport:{width:390,height:844}});
+  const page=await context.newPage(),errors=[];
+  page.on('pageerror',err=>errors.push(err.message));
+  try{
+   await page.goto(base,{waitUntil:'networkidle'});
+   await waitReady(page);
+   const cached=await page.evaluate(async()=>{
+    const reg=await navigator.serviceWorker.ready;
+    const keys=await caches.keys();
+    const cache=await caches.open(keys.find(k=>k.includes('lcars-core-v2-dev-p6-motion-1')));
+    return {scope:reg.scope,keys,html:Boolean(await cache.match('./index.html')),
+      module: Boolean(await cache.match('./src/app.js')),
+      styles: Boolean(await cache.match('./v2-motion.css')),
+      audio: Boolean(await cache.match('./assets/audio/ui/Acceptsound.mp3'))};
+   });
+   assert.ok(cached.scope.startsWith(base));
+   assert.ok(cached.html&&cached.module&&cached.styles&&cached.audio,'offline cache incomplete');
+   assert.equal(await page.locator('#tempoValue').textContent(),'120');
+   await page.locator('#plus').click();await page.locator('#plus').click();
+   assert.equal(await page.locator('#tempoValue').textContent(),'122');
+   await page.waitForFunction(()=>document.querySelector('#saveStatus').textContent==='SAVED ON THIS DEVICE');
+   await page.locator('[data-tab="settings"]').click();
+   const downloadPromise=page.waitForEvent('download');
+   await page.locator('#export').click();
+   const download=await downloadPromise;
+   assert.match(download.suggestedFilename(),/^lcars-backup-\d{4}-\d\d-\d\d\.json$/);
+   const buffer=await import('node:fs/promises').then(fs=>fs.readFile(await download.path()));
+   const backup=JSON.parse(buffer.toString());
+   assert.equal(backup.version,5);
+   assert.equal(backup.bpm,122);
+   assert.equal(backup.channels.length,2);
+   assert.ok(Array.isArray(backup.customSounds)&&Array.isArray(backup.diary.entries));
+   await context.setOffline(true);
+   await page.reload({waitUntil:'domcontentloaded'});
+   await waitReady(page);
+   assert.equal(await page.locator('#tempoValue').textContent(),'122');
+   for(const tab of ['audio','presets','diary','analytics','settings','metronome']){
+    await page.locator('[data-tab="'+tab+'"]').click();
+    assert.equal(await page.locator('#'+tab).isVisible(),true,'offline '+tab+' inaccessible');
+   }
+   await page.screenshot({path:path.join(screenshots,'p7-chromium-offline.png')});
+   await page.close();
+   const restarted=await context.newPage();
+   await restarted.goto(base,{waitUntil:'domcontentloaded'});
+   await waitReady(restarted);
+   assert.equal(await restarted.locator('#tempoValue').textContent(),'122','new tab lost IndexedDB');
+   await context.setOffline(false);
+   await restarted.locator('#minus').click();
+   assert.equal(await restarted.locator('#tempoValue').textContent(),'121');
+   await restarted.waitForFunction(()=>document.querySelector('#saveStatus').textContent==='SAVED ON THIS DEVICE');
+   await restarted.locator('[data-tab="settings"]').click();
+   restarted.on('dialog',dialog=>dialog.accept());
+   await restarted.locator('#import').setInputFiles({name:'rhythm-padd-backup.json',
+    mimeType:'application/json',buffer});
+   await restarted.waitForFunction(()=>document.querySelector('#tempoValue').textContent==='122',{timeout:20000});
+   await restarted.waitForFunction(()=>document.querySelector('#saveStatus').textContent==='SAVED ON THIS DEVICE');
+   await restarted.reload({waitUntil:'domcontentloaded'});
+   assert.equal(await restarted.locator('#tempoValue').textContent(),'122','backup did not persist after reload');
+   assert.deepEqual(errors,[]);
+   await restarted.close();
+  }finally{await context.close();}
+ });
+ await output('Chromium production service-worker replacement',async()=>{
+  serveOldWorker=true;
+  const context=await browser.newContext({viewport:{width:390,height:844}});
+  const page=await context.newPage(),errors=[];
+  page.on('pageerror',err=>errors.push(err.message));
+  try{
+   await page.goto(base,{waitUntil:'networkidle'});
+   await waitReady(page);
+   assert.ok(await page.evaluate(async()=> (await caches.keys()).includes('lcars-core-/-old-p7-release')));
+   // The old worker owns an active client. Updating should reach WAITING,
+   // and the existing "INSTALL UPDATE & RELOAD" button must promote it.
+   serveOldWorker=false;
+   const waiting=await page.evaluate(async()=>{
+    const reg=await navigator.serviceWorker.getRegistration();
+    await reg.update();
+    await new Promise((resolve,reject)=>{
+     if(reg.waiting)return resolve();
+     const timeout=setTimeout(()=>reject(Error('new SW never reached waiting')),15000);
+     const poll=()=>{
+      if(reg.waiting){clearTimeout(timeout);resolve();}
+      else setTimeout(poll,80);
+     };
+     poll();
+    });
+    return reg.waiting?.state;
+   });
+   assert.equal(waiting,'installed');
+   await page.waitForFunction(()=>!document.querySelector('#update').hidden);
+   await page.locator('#update').click();
+   await page.waitForFunction(async()=>{
+    const reg=await navigator.serviceWorker.getRegistration();
+    return reg?.active?.scriptURL.endsWith('/sw.js')&&
+      (await caches.keys()).some(k=>k.includes('lcars-core-v2-dev-p6-motion-1'))&&
+      !(await caches.keys()).includes('lcars-core-/-old-p7-release');
+   },{timeout:20000});
+   await page.waitForSelector('#rings [data-index]',{timeout:20000});
+   await context.setOffline(true);
+   await page.reload({waitUntil:'domcontentloaded'});
+   assert.ok(await page.locator('#rings [data-index]').count()>0);
+   assert.deepEqual(errors,[]);
+  }finally{serveOldWorker=false;await context.close();}
+ });
+ await browser.close();browser=null;
+ // Firefox is an independent browser-engine check, not a claim of having
+ // personally tested Arch Linux or iOS Safari hardware.
+ browser=await firefox.launch({headless:true});
+ await output('Firefox engine responsive navigation and persistence',async()=>{
+  const context=await browser.newContext({viewport:{width:1280,height:800}});
+  const page=await context.newPage(),errors=[];
+  page.on('pageerror',err=>errors.push(err.message));
+  try{
+   await page.goto(base,{waitUntil:'networkidle'});
+   await page.waitForSelector('#rings [data-index]',{timeout:20000});
+   assert.equal(await page.locator('#modeButtons button').count(),8);
+   await page.locator('#plus').click();
+   assert.equal(await page.locator('#tempoValue').textContent(),'121');
+   await page.waitForFunction(()=>document.querySelector('#saveStatus').textContent==='SAVED ON THIS DEVICE');
+   for(const tab of ['audio','presets','diary','analytics','settings','metronome']){
+    await page.locator('[data-tab="'+tab+'"]').click();
+    assert.equal(await page.locator('#'+tab).isVisible(),true);
+   }
+   await page.reload({waitUntil:'domcontentloaded'});
+   await page.waitForSelector('#rings [data-index]');
+   assert.equal(await page.locator('#tempoValue').textContent(),'121');
+   await page.screenshot({path:path.join(screenshots,'p7-firefox-desktop.png')});
+   assert.deepEqual(errors,[]);
+  }finally{await context.close();}
+ });
+}finally{
+ if(browser)await browser.close();
+ await new Promise(resolve=>server.close(resolve));
+}
+if(fail)process.exitCode=1;

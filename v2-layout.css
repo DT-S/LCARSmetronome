@@ -758,31 +758,32 @@
   #metronome.page:not([hidden]) {
     display:flex;
     flex-direction:column;
-    /* Zero flex basis prevents the circular control's intrinsic width from
-       growing the entire page past the available scroll-well height. */
-    flex:1 1 0;
-    min-height:0;
+    /* Fill the well when possible. If the real controls need more height,
+       allow the page to grow and scroll instead of overlapping the footer. */
+    flex:1 0 auto;
+    min-height:calc(100% - 45px);
     min-width:0;
   }
   #metronome .instrument-layout {
-    /* Occupy available page space, never derive height from the dial. */
-    flex:1 1 0;
-    height:0;
+    /* Its minimum is the actual content height: no clipping or collision
+       when a user selects 100% interface scaling on a shorter desktop. */
+    flex:1 0 auto;
+    height:auto;
     display:grid;
     grid-template-columns:minmax(0,1.55fr) minmax(355px,.95fr);
-    grid-template-rows:minmax(0,1fr); /* Do not let child min-content enlarge the stage. */
+    grid-template-rows:auto;
     gap:clamp(18px,2.1vw,40px);
     align-items:stretch;
-    min-height:0;
+    min-height:min-content;
     margin-top:clamp(10px,1.6vh,24px);
   }
 
   /* Full-height U-shaped LCARS cheek around the sequencer. */
   #metronome .instrument {
     box-sizing:border-box;
-    display:grid;
-    grid-template-rows:minmax(0,1fr) auto auto auto auto;
-    align-items:stretch;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
     position:relative;
     width:100%;
     max-width:none;
@@ -834,16 +835,13 @@
   #metronome #dial:not([hidden]) {
     order:1;
     box-sizing:border-box;
-    grid-row:1;
-    width:auto;
-    max-width:min(100%,760px);
-    height:100%;
-    max-height:760px;
-    min-height:0;
+    flex:0 0 auto;
+    width:min(100%,55vh,760px);
+    max-width:100%;
+    height:auto;
+    max-height:none;
     aspect-ratio:1;
-    justify-self:center;
-    align-self:center;
-    margin:0;
+    margin:auto;
     padding:0;
   }
   #metronome #linear:not([hidden]) {

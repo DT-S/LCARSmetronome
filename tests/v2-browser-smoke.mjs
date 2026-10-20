@@ -599,7 +599,7 @@ try{
     assert.equal(await target.evaluate(el=>el.classList.contains('lcars-page-enter')),true,
       tab+' did not receive the menu-build effect');
     assert.match(await target.locator(':scope > .section-heading').evaluate(el=>getComputedStyle(el).animationName),
-      /lcars-tab-frame/,tab+' structural header not animated');
+      /lcars-page-plate/,tab+' structural header not animated');
     await page.screenshot({path:path.join(screenshots,`menu-build-${tab}.png`)});
    }
    // Fast repeated navigation must cancel previous timers and classes.

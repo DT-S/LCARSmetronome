@@ -1,5 +1,9 @@
 // Rhythm PADD V2 / P6 – state-triggered visual motion only.
 // Never called by the audio frame, scheduler or chart value calculations.
+export const LCARS_BOOT_DURATION_MS=1450;
+export function shouldLaunchBoot({reducedMotion=false,metronomeVisible=true}={}){
+ return !reducedMotion&&metronomeVisible;
+}
 export function shouldTransition(previous,next){
  return typeof next==='string'&&next.length>0&&previous!==next;
 }
@@ -21,7 +25,25 @@ export function createMotionController(root=document){
    if(event.target===page)clear(page,'lcars-page-enter');
   });
  }
- let lastPage=pages.find(p=>!p.hidden)?.id||'metronome';
+ const shell=root.querySelector('.app-shell');
+ let bootStarted=false,bootTimer=null;
+ function finishBoot(){
+  if(bootTimer!==null){clearTimeout(bootTimer);bootTimer=null;}
+  shell?.classList.remove('lcars-booting');
+ }
+ // Called after the initial stored state has been validated and rendered.
+ // An ordinary page switch or rerender never replays the boot choreography.
+ function boot(){
+  if(bootStarted)return false;
+  bootStarted=true;
+  const metronome=root.getElementById('metronome');
+  const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!shell||!shouldLaunchBoot({reducedMotion:reduce,metronomeVisible:!!metronome&&!metronome.hidden}))return false;
+  shell.classList.add('lcars-booting');
+  bootTimer=setTimeout(finishBoot,LCARS_BOOT_DURATION_MS);
+  return true;
+ }
+  let lastPage=pages.find(p=>!p.hidden)?.id||'metronome';
  function page(nextId){
   if(!shouldTransition(lastPage,nextId))return false;
   const next=root.getElementById(nextId);
@@ -69,5 +91,5 @@ export function createMotionController(root=document){
   button.addEventListener('animationend',end);
   button.addEventListener('animationcancel',end);
  }
- return {page,view,mode,status};
+ return {page,view,mode,status,boot,finishBoot};
 }

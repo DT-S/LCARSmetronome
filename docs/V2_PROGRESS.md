@@ -127,3 +127,10 @@
 - Die morphende Führung ist bewusst `aria-hidden`, `pointer-events:none`; bei `prefers-reduced-motion` gibt es keine Übergänge und sofortige Rückkehr.
 - Browser-Suite prüft Touch-Positionierung, Pointer-Cancel, Rückgabe der Originalbuttons sowie die tatsächliche Vorwärts-/Rückwärtsanimation in Chromium; erster CI-Nachweis ausstehend.
 - Keine Änderungen an Audio-Scheduler, Datenmodell, Linear View oder V2-P5.
+
+### P4b – Abgenommen im automatisierten Browsercheck
+- [GitHub Actions 39347394768](https://github.com/DT-S/LCARSmetronome/actions/runs/39347394768): **SUCCESS**, Node-Regressions und Chromium-Browser-Smoke, 9/9 Bildschirmgrößen.
+- Simulierte Touch-Drags für Tempo und Beats: korrekte Position **über dem ursprünglichen Button**, Source während der Morph-Animation verborgen und nach Loslassen/`pointercancel` wiederhergestellt.
+- Getrennter Browsercheck mit Bewegung prüft Öffnen, Endgröße, Zentrierung, Rückanimation und unveränderte Button-Geometrie.
+- Nach visueller Screenshot-Abnahme wurden die kurzen Titel (`OUTER BEATS`, `SUBDIVISIONS`, `COUNT-IN`, `DURATION`) sowie Schriftgröße/-familie/-farbe des Ausgangsbuttons für die Rücktransformation übernommen.
+- Echte iPhone-Safari-Abnahme weiterhin offen; P5 und P6 bewusst nicht begonnen.

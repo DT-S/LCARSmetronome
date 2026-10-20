@@ -74,7 +74,7 @@
 - [ ] Stufen mit klar definierten Intervallen; Zoom/hohe Werte dürfen die Anzeige nicht überfüllen. Wert-Clamping beibehalten.
 - **Fertig wenn:** schnell ablesbare Schritte, keine Steuerkonflikte oder doppelten Änderungsereignisse.
 
-**P4b Feinschliff:** Die Führung morphiert aus dem bestehenden Value-Button unter dem Finger und schrumpft danach wieder zurück. Touch-/Motion-Regressionstests ergänzen die P4-Abnahme; echte Safari-Geräteabnahme noch offen.
+**P4b Feinschliff abgeschlossen (automatisiert):** Die Führung morphiert aus dem Value-Button direkt unter dem Finger und klappt wieder zurück. [9/9 Auflösungen sowie Touch-/Morph-Tests grün](https://github.com/DT-S/LCARSmetronome/actions/runs/39347394768). Echte Safari-Geräteabnahme noch offen.
 
 ### P5 – Linear View: Beat-Gesten
 - [ ] **Tap** auf Beat-Button verändert weiter nur seinen Akzentzustand.

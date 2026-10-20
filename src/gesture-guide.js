@@ -57,7 +57,10 @@ export function createGestureGuide(doc=document){
   root.dataset.sourceText=String(current);
   ladderSteps(current,min,max).forEach((tick,i)=>{
    const row=rows[i];
-   row.item.hidden=!tick.available;
+   // Keep all 13 grid tracks occupied. Hiding DOM rows collapses their
+   // tracks near max=20, making the highlighted center rung move.
+   row.item.hidden=false;
+   row.item.classList.toggle('is-outside',!tick.available);
    row.item.classList.toggle('is-current',tick.active);
    row.item.classList.toggle('is-major',tick.major);
    row.number.textContent=tick.available&&(tick.active||tick.major)?String(tick.value):'';

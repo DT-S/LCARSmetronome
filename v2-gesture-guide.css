@@ -130,3 +130,7 @@
 @media (prefers-reduced-motion:reduce){
  .gesture-guide,.gesture-guide::before,.gesture-guide-body{transition:none!important;}
 }
+
+/* The 13 rungs are permanent spatial slots. At 1 and 16–20, invalid
+   steps remain invisible yet still reserve their grid row. */
+.gesture-guide-rung.is-outside {visibility:hidden!important;pointer-events:none;}

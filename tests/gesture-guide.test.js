@@ -33,3 +33,16 @@ test('P4 morph stays on screen at bottom and both horizontal edges',()=>{
  const small=ladderMorphGeometry({left:10,top:10,width:50,height:45},320,280);
  assert.ok(small.to.left>=8&&small.to.top>=8);
 });
+
+test('upper-bound value slots preserve the center rung (16–20)',()=>{
+ for(const n of [1,2,15,16,17,18,19,20]){
+  const steps=ladderSteps(n,1,20);
+  assert.equal(steps.length,13);
+  assert.equal(steps.findIndex(step=>step.active),6);
+  assert.equal(steps[6].value,n);
+  assert.equal(steps[6].available,true);
+  assert.equal(steps.filter(step=>step.available).length,
+   Math.min(20,n+6)-Math.max(1,n-6)+1);
+ }
+ assert.equal(ladderSteps(20,1,20).filter(step=>!step.available).length,6);
+});

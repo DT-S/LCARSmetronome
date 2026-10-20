@@ -88,12 +88,12 @@
 
 ### P6 – LCARS-Motion-System und Plotter
 
-**Status:** Transitions and factual chart probes implemented in code; Node/Chromium and real-device QA remain open.
-- [ ] Seitenwechsel: unaufdringlicher Aufbau/Slide von links nach rechts (~150–250 ms), keine navigationsblockierende Wartezeit.
-- [ ] Aktive Modi, Umschalten zwischen Circular/Linear und Statuswechsel erhalten kleine Animationen; starke Blinkeffekte vermeiden.
-- [ ] Statistik-Plots: dezente Linien-/Markierungsbewegung nur als dekorativer Akzent, **keine simulierten Messwerte**.
-- [ ] `prefers-reduced-motion: reduce` deaktiviert nicht notwendige Effekte vollständig.
-- [ ] Motion nur bei Zustandswechsel; keine permanente Neuberechnung/Reflows pro Audio-Frame.
+**Status:** P6 implementiert und [vollständige Node-/Chromium-Regression erfolgreich](https://github.com/DT-S/LCARSmetronome/actions/runs/39351420336); echte Safari-/Firefox-/Audio-Praxisprüfung als P7-Gate weiterhin offen.
+- [x] Seitenwechsel: unaufdringlicher Aufbau/Slide von links nach rechts (~150–250 ms), keine navigationsblockierende Wartezeit.
+- [x] Aktive Modi, Umschalten zwischen Circular/Linear und Statuswechsel erhalten kleine Animationen; starke Blinkeffekte vermeiden.
+- [x] Statistik-Plots: dezente Linien-/Markierungsbewegung nur als dekorativer Akzent, **keine simulierten Messwerte**.
+- [x] `prefers-reduced-motion: reduce` deaktiviert nicht notwendige Effekte vollständig.
+- [x] Motion nur bei Zustandswechsel; keine permanente Neuberechnung/Reflows pro Audio-Frame.
 - **Fertig wenn:** Navigation und Diagramme ruhig, hochwertig, verständlich, flüssig und auditiv unverändert bleiben.
 
 ### P7 – Release-Kandidat, Geräteprüfung, Freigabe

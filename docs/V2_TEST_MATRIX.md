@@ -99,3 +99,12 @@ Der erste vollständige Lauf `39336109612` bestand alle 5 bisherigen Ziele, inkl
 
 ## P5 – Abschließender Browser-Beleg
 [Erfolgreiche GitHub Actions Run 39348800249](https://github.com/DT-S/LCARSmetronome/actions/runs/39348800249). Alle neun Chromium-Zielauflösungen bestanden, außerdem Touch-Taps, direktes vertikales Scrubbing, stabile Pointer-Capture/Re-Renders, 3:5 / 3:7 / 20:20, ausgewogenes Row-Wrapping, Pointer-Cancel-Rollback, 1–20-Clamping, Desktop-Keyboard/Mouse. Das ist keine reale iOS- oder Firefox-Hardwareprüfung.
+
+## P6 – Bestätigter automatisierter Abschluss (20.10.2026)
+
+- [Erfolgreiche GitHub Actions: 39351420336](https://github.com/DT-S/LCARSmetronome/actions/runs/39351420336): beide Jobs (`node-regressions`, `browser-smoke`) erfolgreich. 9/9 Chromium-Zielauflösungen zwischen 320×740 und 1920×1080 bestanden; bestehende Audio-Matrix, P4- und P5-Gesten ebenfalls grün.
+- **Navigation:** Wechsel auf andere Seite startet genau einen ~210-ms-Aufbau von links; derselbe Tab wiederholt die Animation nicht. Der Titel-/Seiteninhalt bleibt sofort zugänglich und die Scrollposition wird weiterhin zurückgesetzt.
+- **Instrumente:** Circular/Linear jeweils mit ~195-ms-Einblendung; aktive Operating Modes bekommen eine einzelne ~220-ms-Bestätigung, Start/Stop eine ~230-ms-Bestätigung. Keine periodische Animation und kein zusätzlicher Code im Audio-`requestAnimationFrame`.
+- **Plotter:** Echter Messpunktfokus/Touch/Hover positioniert einmalig zwei dünne Kreuzlinien auf den tatsächlichen x-/y-Werten, hebt nur diesen Marker hervor und zeigt die unveränderte Datenbeschreibung. Linien-/Balkenaufbau nur beim Neubau des Plots, und bei mehr als 120 Punkten keine massenweisen Marker-Animationen.
+- **Explizit entfernt/vermieden:** Keine Scanlines, keine animierten SYS-Streifen, kein blinkendes Idle-Telemetrie-Display, keine zufälligen Messwerte. `prefers-reduced-motion: reduce` deaktiviert nicht notwendige Animationen vollständig (Browsercheck).
+- **P6 im Code + CI abgeschlossen**, aber nicht endgültig für echte Geräte freigegeben. Offene P7-Gates: Safari auf iPhone/iPad, Arch Firefox, Offline-Start/Updates, Accessibility und Audio-/Latenzhörtest. Der vom Nutzer erwähnte kleine Bug bleibt wie gewünscht für später vorgemerkt, ohne Ursachenbehauptung. Version bleibt auf `main` unangetastet.

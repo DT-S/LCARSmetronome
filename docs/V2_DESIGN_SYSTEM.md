@@ -69,3 +69,10 @@ Es gibt zurzeit viele historisch gewachsene `@media(max-width:640px)` und Sonder
 
 ## Originalfunktion bleibt
 Circular Drag, Zoom, Number-Dials, Touch-Hover-Feedback, Mute/Solo, Pan-L/C/R, Sound-Raster, JSON/CSV, Zeitstatus, Persistenz und Offline-Installation bleiben erhalten. Animationen beeinflussen keine geschedulten Audiosamples.
+
+## P6 konkreter Motion-Vertrag
+- `src/motion.js` wird ausschließlich bei Nutzeraktionen aufgerufen: neue Tabs, instrumentale Ansicht, Modus- oder Transportstatus. State und Audio-Scheduling hängen nicht von CSS-Ereignissen ab.
+- `v2-motion.css`: 210-ms-Seitenreveal, 195-ms-Ansichtswechsel, 220–230-ms-Zustandsquittung. Keine animierten SYS-Fascia-Elemente, keine Scanlines und keine Dauerloops.
+- `src/charts.js` legt ein Fadenkreuz direkt auf existierende Messpunkte, die lediglich `pointerenter`/`pointerdown`/`focus` auswählen. Die Crosshair-Position wird aus den vorhandenen x/y-Skalierungsfunktionen berechnet. Die eigentlichen gespeicherten Daten, Labels und Plots werden nicht verändert.
+- Bei Datensätzen über 120 markierten Punkten wird die Einzelpunktanimation ausgelassen, ohne die Datenpunkte zu reduzieren.
+- Alle visuellen Zustände sind mit `prefers-reduced-motion` ohne Animation nutzbar; kein Fokus- oder Pointerverhalten hängt von einer Animationsdauer ab.

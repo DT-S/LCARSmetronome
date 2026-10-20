@@ -210,6 +210,59 @@ try{
    await page.screenshot({path:path.join(screenshots,`${label}-FAILED.png`)}).catch(()=>{});
   }finally{await page.close();}
  }
+ // Launch choreography tested with real CSS motion, including 5 frame captures.
+ {
+  const page=await browser.newPage({viewport:{width:1920,height:1080},
+   reducedMotion:'no-preference',deviceScaleFactor:1});
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  try{
+   await page.goto(origin,{waitUntil:'domcontentloaded'});
+   await page.waitForFunction(()=>document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
+    null,{timeout:12000});
+   await page.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:12000});
+   const animations=await page.evaluate(()=>{
+    const dial=document.querySelector('#dial').getBoundingClientRect();
+    return {ring:getComputedStyle(document.querySelector('#rings circle.track')).animationName,
+      nav:getComputedStyle(document.querySelector('aside nav .nav')).animationName,
+      aspect:dial.width/dial.height};
+   });
+   assert.match(animations.ring,/lcars-launch-ring/);
+   assert.match(animations.nav,/lcars-launch-pop/);
+   assert.ok(Math.abs(animations.aspect-1)<.04,'Circular sequencer must remain round during launch');
+   await page.screenshot({path:path.join(screenshots,'launch-01-structural.png')});
+   await page.waitForTimeout(230);
+   await page.screenshot({path:path.join(screenshots,'launch-02-navigation.png')});
+   await page.waitForTimeout(230);
+   await page.screenshot({path:path.join(screenshots,'launch-03-sequencer.png')});
+   await page.waitForTimeout(260);
+   await page.screenshot({path:path.join(screenshots,'launch-04-details.png')});
+   await page.waitForFunction(()=>!document.querySelector('.app-shell').classList.contains('lcars-booting'),
+    null,{timeout:4000});
+   await page.screenshot({path:path.join(screenshots,'launch-05-ready.png')});
+   await page.locator('[data-tab="audio"]').click();
+   await page.locator('[data-tab="metronome"]').click();
+   assert.equal(await page.locator('.app-shell.lcars-booting').count(),0,'Page navigation must not replay launch');
+   await page.reload({waitUntil:'domcontentloaded'});
+   await page.waitForFunction(()=>document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
+    null,{timeout:12000});
+   assert.deepEqual(errors,[]);
+   console.log('PASS LCARS 5-phase launch, navigation guard and reload');
+  }catch(error){fail++;console.error('FAIL LCARS launch',error);
+   await page.screenshot({path:path.join(screenshots,'launch-FAILED.png')}).catch(()=>{});
+  }finally{await page.close();}
+ }
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  try{
+   await page.goto(origin,{waitUntil:'domcontentloaded'});
+   await page.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:12000});
+   assert.equal(await page.locator('.app-shell.lcars-booting').count(),0,'Reduced motion skips launch');
+   assert.ok(await page.locator('#start').isVisible());
+   console.log('PASS reduced-motion launch skip');
+  }catch(error){fail++;console.error('FAIL reduced-motion launch skip',error);}
+  finally{await page.close();}
+ }
  // Real Chromium synthetic touch gestures (not just calling a helper).
  // A 40px move near the rail must be coarser than the same move after the
  // finger shifts away vertically; each must update the channel's range.

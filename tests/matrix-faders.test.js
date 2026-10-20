@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {MATRIX_SEGMENTS,MATRIX_TICKS,matrixClamp,matrixValue,matrixFraction,matrixFineValue,matrixFormat} from '../src/matrix-faders.js';
 
-test('source-derived segmented control has 20 bands and 35 fine ticks',()=>{
- assert.equal(MATRIX_SEGMENTS,20);
+test('source-derived segmented control has 24 LED bands and 35 fine ticks',()=>{
+ assert.equal(MATRIX_SEGMENTS,24);
  assert.equal(MATRIX_TICKS,35);
 });
 test('scrub absolute positions map exactly to the real channels',()=>{

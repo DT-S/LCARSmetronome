@@ -758,8 +758,8 @@
   #metronome.page:not([hidden]) {
     display:flex;
     flex-direction:column;
-    flex:1 0 auto;
-    min-height:calc(100% - 45px);
+    flex:1 1 auto;
+    min-height:0;
     min-width:0;
   }
   #metronome .instrument-layout {
@@ -775,9 +775,9 @@
   /* Full-height U-shaped LCARS cheek around the sequencer. */
   #metronome .instrument {
     box-sizing:border-box;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
+    display:grid;
+    grid-template-rows:minmax(0,1fr) auto auto auto auto;
+    align-items:stretch;
     position:relative;
     width:100%;
     max-width:none;
@@ -829,14 +829,17 @@
   #metronome #dial:not([hidden]) {
     order:1;
     box-sizing:border-box;
-    flex:0 1 auto;
-    width:min(100%,max(410px,calc(100dvh - 540px)),760px);
-    max-width:none;
-    max-height:min(66vh,760px);
+    grid-row:1;
+    width:auto;
+    max-width:min(100%,760px);
+    height:100%;
+    max-height:760px;
+    min-height:0;
     aspect-ratio:1;
-    height:auto;
-    margin:auto;
-    padding:5px 0;
+    justify-self:center;
+    align-self:center;
+    margin:0;
+    padding:0;
   }
   #metronome #linear:not([hidden]) {
     order:1;
@@ -914,11 +917,3 @@
   }
 }
 
-/* Tall desktop: let the circular display grow substantially, capped at 760px
-   before touching status, transport, or practice controls. */
-@media (min-width:1600px) and (min-height:1200px) {
-  #metronome #dial:not([hidden]) {
-    width:min(100%,calc(100dvh - 570px),760px);
-    max-height:65vh;
-  }
-}

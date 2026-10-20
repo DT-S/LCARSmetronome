@@ -1,6 +1,7 @@
 // Rhythm PADD V2 / P6 – state-triggered visual motion only.
 // Never called by the audio frame, scheduler or chart value calculations.
 export const LCARS_BOOT_DURATION_MS=1450;
+export const LCARS_PAGE_BUILD_DURATION_MS=960;
 export function shouldLaunchBoot({reducedMotion=false,metronomeVisible=true}={}){
  return !reducedMotion&&metronomeVisible;
 }
@@ -17,14 +18,14 @@ export function createMotionController(root=document){
   void node.offsetWidth; // only one layout flush per explicit user transition
   node.classList.add(cssClass);
  };
- for(const page of pages){
-  page.addEventListener('animationend',event=>{
-   if(event.target===page&&event.animationName==='lcars-page-build')clear(page,'lcars-page-enter');
-  });
-  page.addEventListener('animationcancel',event=>{
-   if(event.target===page)clear(page,'lcars-page-enter');
-  });
- }
+ // Page build is a staggered multi-element sequence, not a single 210ms
+ // animationend. A timer owns cleanup after the FINAL detail comes online.
+ const pageTimers=new Map();
+ const finishPage=node=>{
+  const timer=pageTimers.get(node);
+  if(timer!==undefined){clearTimeout(timer);pageTimers.delete(node);}
+  clear(node,'lcars-page-enter');
+ };
  const shell=root.querySelector('.app-shell');
  let bootStarted=false,bootTimer=null;
  function finishBoot(){
@@ -50,8 +51,13 @@ export function createMotionController(root=document){
   if(!next||next.hidden)return false;
   lastPage=nextId;
   finishBoot(); // User-initiated navigation cancels any remaining launch choreography.
-  for(const item of pages)if(item!==next)clear(item,'lcars-page-enter');
-  run(next,'lcars-page-enter');
+  for(const item of pages)finishPage(item);
+  // Respect OS motion preference for every switch, not only initial boot.
+  const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce){
+   run(next,'lcars-page-enter');
+   pageTimers.set(next,setTimeout(()=>finishPage(next),LCARS_PAGE_BUILD_DURATION_MS));
+  }
   return true;
  }
  function view(next){

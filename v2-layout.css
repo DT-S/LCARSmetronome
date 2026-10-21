@@ -920,3 +920,114 @@
   }
 }
 
+
+/* ==========================================================================
+   RC12 · LIVE LINEAR TEMPO CONSOLE
+   Exact same BPM engine/gestures as Circular, but purpose-built for the
+   horizontal view. No second tempo state; both controls stay synchronized.
+   ========================================================================== */
+#metronome #linear .linear-tempo-console {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(96px,160px) 56px;
+  min-width:0;
+  width:100%;
+  gap:5px;
+  align-items:stretch;
+  margin:0 0 18px;
+  border-top:6px solid var(--padd-amber);
+  border-left:12px solid var(--padd-amber);
+  border-bottom:5px solid var(--padd-peach);
+  border-radius:25px 0 0 25px;
+  padding:7px 4px 7px 8px;
+  background:#09070c;
+  touch-action:none;
+}
+#metronome #linear .linear-tempo-id {
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-end;
+  min-width:0;padding:5px 6px;
+  color:var(--padd-amber);text-align:right;
+  font:900 clamp(11px,1.4vw,19px)/1.1 Impact,'Arial Narrow',Arial,sans-serif;
+  letter-spacing:.04em;
+}
+#metronome #linear .linear-tempo-code {
+  color:var(--padd-lavender);
+  font:800 clamp(8px,.9vw,12px)/1.2 ui-monospace,Consolas,monospace;
+  margin-bottom:6px;
+}
+#metronome #linear .linear-tempo-hint {
+  margin-top:6px;max-width:100%;
+  font:700 clamp(8px,.85vw,11px)/1.2 'Arial Narrow',Arial,sans-serif;
+  color:var(--padd-peach);
+  letter-spacing:0;
+}
+#metronome #linear .linear-tempo-control {
+  display:flex;align-items:center;justify-content:center;
+  min-width:0;min-height:78px;
+  background:var(--padd-orange);
+  border-radius:12px 0 0 12px;
+}
+#metronome #linear #linearTempoValue,
+#metronome #linear #linearBpm:not([hidden]) {
+  display:block;width:100%;height:100%;min-width:0;
+  padding:4px 2px;border:0;border-radius:12px 0 0 12px;
+  background:transparent;color:#060405;
+  text-align:center;
+  font:900 clamp(36px,4.8vw,64px)/1 Impact,'Arial Narrow',Arial,sans-serif;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:0;touch-action:none;cursor:ns-resize;
+}
+#metronome #linear #linearBpm:not([hidden]) {
+  font-family:Arial,sans-serif;font-size:clamp(26px,3.2vw,38px);
+  background:#000;color:var(--padd-orange);
+  border:2px solid var(--padd-orange);
+  border-radius:10px;outline-offset:0;
+}
+#metronome #linear .linear-tempo-steps {
+  display:grid;grid-template-rows:1fr 1fr;gap:5px;min-width:0;
+}
+#metronome #linear .linear-tempo-steps button {
+  min-height:34px;min-width:0;padding:0 4px;
+  border:0;border-radius:0 15px 0 0;
+  background:var(--padd-lavender);color:#000;
+  font:900 25px/1 Impact,Arial,sans-serif;touch-action:manipulation;
+}
+#metronome #linear .linear-tempo-steps button:first-child {
+  border-radius:0 0 15px 0;background:var(--padd-peach);
+}
+@media (max-width:640px) {
+  #metronome #linear {padding-top:4px;}
+  #metronome #linear .linear-tempo-console {
+    grid-template-columns:minmax(0,1fr) minmax(90px,115px) 41px;
+    border-left-width:8px;border-top-width:5px;border-bottom-width:4px;
+    padding:4px;gap:3px;margin-bottom:12px;
+  }
+  #metronome #linear .linear-tempo-id {font-size:11px;padding:2px 4px;}
+  #metronome #linear .linear-tempo-code {font-size:8px;margin-bottom:3px;}
+  #metronome #linear .linear-tempo-hint {font-size:8px;margin-top:4px;}
+  #metronome #linear .linear-tempo-control {min-height:67px;}
+  #metronome #linear #linearTempoValue {font-size:39px;}
+  #metronome #linear #linearBpm:not([hidden]) {font-size:23px;}
+  #metronome #linear .linear-tempo-steps button {min-height:28px;font-size:20px;}
+}
+/* Tablet ergonomics: conserve vertical room and place the main transport
+   immediately after operating modes, ahead of the decorative beat display.
+   At the top of the scroll well START and TAP remain visible even on short
+   iPad landscape viewports.  No effect on phones or XL desktop stages. */
+@media (min-width:641px) and (max-width:1139px) {
+  #metronome #dial:not([hidden]) {
+    width:min(100%,43dvh,420px);
+    max-width:100%;
+    aspect-ratio:1;
+    margin:4px auto 8px;
+  }
+  #metronome .transport {
+    order:0;
+    margin:0 0 10px;
+  }
+  #metronome .instrument {
+    gap:0;
+  }
+  #metronome .legend {margin-top:2px;margin-bottom:6px;}
+  #metronome .play-status {margin-bottom:6px;}
+  #metronome .pattern-counts {margin-bottom:8px;}
+}

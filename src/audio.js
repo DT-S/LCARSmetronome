@@ -1,11 +1,10 @@
 import {decodeBytes} from './custom-sounds.js';
 import {synthesize,SOUNDS} from './synth.js';
+import {UI_CUE_ASSETS} from './ui-cues.js';
 export const METRONOME_GAIN=2;
-// Future original/licensed menu-build audio goes in this independent slot.
-// Set this to './assets/audio/ui/lcars-menu-build.mp3' when the file exists,
-// and also add that file to sw.js precache to preserve offline playback.
+// This separate slot now uses the supplied real menu/window-change sample.
 export const LCARS_MENU_BUILD_SLOT='lcars-menu-build';
-export const LCARS_MENU_BUILD_ASSET=null;
+export const LCARS_MENU_BUILD_ASSET='./assets/audio/ui/menu_or_window_change.mp3';
 import {audible} from './model.js';
 export class AudioEngine {
   constructor(){this.buffers=new Map();this.active=new Set();this.sampleStatus=[];}
@@ -24,11 +23,25 @@ export class AudioEngine {
     await this.ctx.resume();
   }
   async load(){
-    const ui=['switchingmenus','hoversound','Acceptsound','invalidsound','Warningsound','buttonpress'];
-    const entries=ui.map(n=>[n,`./assets/audio/ui/${n}.mp3`]);
-    if(LCARS_MENU_BUILD_ASSET)entries.push([LCARS_MENU_BUILD_SLOT,LCARS_MENU_BUILD_ASSET]);
-
-    await Promise.all(entries.map(async([key,path])=>{try{const r=await fetch(path);if(!r.ok)throw Error();const data=await r.arrayBuffer();if(data.byteLength===0)throw Error();this.buffers.set(key,await this.ctx.decodeAudioData(data));}catch{this.sampleStatus.push(key);}}));
+    // Decode the exact 15 uploaded cues. Legacy sounds remain available only
+    // as fallbacks and for generic successful notifications (Acceptsound).
+    const newEntries=Object.entries(UI_CUE_ASSETS).map(([name,file])=>
+      [name,'./assets/audio/ui/'+file]);
+    const legacy=['switchingmenus','hoversound','Acceptsound',
+      'invalidsound','Warningsound','buttonpress'].map(name=>
+      ['legacy-'+name,'./assets/audio/ui/'+name+'.mp3']);
+    await Promise.all([...newEntries,...legacy].map(async([key,path])=>{
+      try{
+        const response=await fetch(path);
+        if(!response.ok)throw Error('HTTP '+response.status);
+        const bytes=await response.arrayBuffer();
+        if(!bytes.byteLength)throw Error('Empty sound');
+        this.buffers.set(key,await this.ctx.decodeAudioData(bytes));
+      }catch{this.sampleStatus.push(key);}
+    }));
+    // Preserve the old Acceptsound key for existing positive toasts.
+    const accepted=this.buffers.get('legacy-Acceptsound');
+    if(accepted)this.buffers.set('Acceptsound',accepted);
     for(const kind of Object.keys(SOUNDS).filter(k=>k!=='auto'))for(let state=0;state<3;state++){
       const data=synthesize(kind,state,this.ctx.sampleRate),buffer=this.ctx.createBuffer(1,data.length,this.ctx.sampleRate);buffer.copyToChannel(data,0);this.buffers.set(`synth-${kind}-${state}`,buffer);
     }
@@ -50,9 +63,17 @@ export class AudioEngine {
     this.active.add(source);source.onended=()=>{this.active.delete(source);source.disconnect();source._env?.disconnect();};
   }
   ui(name,s){if(!this.ctx||this.ctx.state!=='running'||!s.uiEnabled)return;
-    // Placeholder uses the existing short menu cue until a dedicated sample
-    // is installed; no missing-asset fetch, second beep or network dependency.
-    const b=this.buffers.get(name)||(name===LCARS_MENU_BUILD_SLOT?this.buffers.get('switchingmenus'):null);
-    if(!b)return;const source=this.ctx.createBufferSource();source.buffer=b;source.connect(this.uiGain);source.start();source.onended=()=>source.disconnect();}
+    const fallback=name===LCARS_MENU_BUILD_SLOT?'legacy-switchingmenus':
+      name==='lcars-launch'?'legacy-switchingmenus':
+      name==='keypress-increase'||name==='keypress-decrease'||name==='option-toggle'?'legacy-buttonpress':
+      name==='consolewarning'||name==='denied'?'legacy-Warningsound':
+      name==='erase-accepted'||name==='windowcloses'||name==='update-restart'?'legacy-Acceptsound':
+      'legacy-'+name;
+    const b=this.buffers.get(name)||this.buffers.get(fallback)||
+      (name===LCARS_MENU_BUILD_SLOT?this.buffers.get('switchingmenus'):null);
+    if(!b)return;
+    const source=this.ctx.createBufferSource();source.buffer=b;
+    source.connect(this.uiGain);source.start();
+    source.onended=()=>source.disconnect();}
   cancel(){for(const node of this.active){try{node.stop();}catch{}}this.active.clear();}
 }

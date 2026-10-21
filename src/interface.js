@@ -1,3 +1,4 @@
+import {classifyControlCue} from './ui-cues.js';
 export const UI_SCALES=[.7,.8,.9,1,1.1];
 export const defaultInterfaceScale = isCompactViewport => isCompactViewport ? .9 : 1;
 
@@ -68,10 +69,7 @@ export function installSegmentCorners(root){
 }
 
 export function activationSound(control){
- // Separate menu-build sample slot, currently backed by the original menu tone.
- if(control.dataset.tab)return control.classList.contains('active')?'buttonpress':'lcars-menu-build';
- if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'switchingmenus';
- return 'buttonpress';
+ return classifyControlCue(control);
 }
 // Treat Tap Tempo like a percussion pad: touch contact is the beat.
 // A following pointer-generated click is ignored, while keyboard activation stays.
@@ -109,6 +107,18 @@ export function installFeedback(root,{unlock,audio,state}){
  root.addEventListener('pointerup',clear,{capture:true});root.addEventListener('pointercancel',clear,{capture:true});
  root.addEventListener('pointermove',e=>{if(press&&e.pointerId===press.id&&Math.hypot(e.clientX-press.x,e.clientY-press.y)>12)clear();},{passive:true});
  root.addEventListener('pointerover',e=>{const c=controlFor(e.target);if(e.pointerType==='mouse'&&c?.id!=='tap'&&c&&!c.contains(e.relatedTarget)&&state().hoverEnabled&&performance.now()-hoverAt>100){hoverAt=performance.now();audio.ui('hoversound',state());}});
+ // Arrow keys on native numeric inputs are real +/- operations, unlike
+ // clicking a slider surface. Do not disturb its drag/beat audio timing.
+ let lastArrow=0;
+ root.addEventListener('keydown',e=>{
+  if(e.repeat&&performance.now()-lastArrow<85)return;
+  if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;
+  if(!e.target?.matches?.('input[type=number],button[role=spinbutton]'))return;
+  lastArrow=performance.now();
+  unlock().then(()=>audio.loading).then(()=>
+    audio.ui(e.key==='ArrowUp'?'keypress-increase':'keypress-decrease',state())
+  ).catch(()=>{});
+ });
  root.addEventListener('click',e=>{
   const c=controlFor(e.target);if(!c)return;
   if(c.id==='tap'&&e.detail>0)return; // Already sounded on pointerdown.

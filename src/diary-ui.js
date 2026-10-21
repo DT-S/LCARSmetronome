@@ -8,7 +8,7 @@ const button=(label,fn)=>{const b=el('button','',label);b.type='button';b.onclic
 function field(label,input){const l=el('label','diary-field');l.append(el('span','field-name',label),input);return l;}
 function textInput(value,max=80){const i=el('input');i.value=value;i.maxLength=max;return i;}
 function metric(label,value){const n=el('div','stat-tile');n.append(el('span','',label),el('strong','',value));return n;}
-export function createDiaryUI(getState,save,notify,isRecording=()=>false){
+export function createDiaryUI(getState,save,notify,isRecording=()=>false,playCue=()=>{}){
  let editing=null,range=30,category='',exercise='',source='all',day='',limit=30;
  const diary=()=>getState().diary;
  const deleteDialog=document.querySelector('#diaryDeleteDialog');
@@ -30,9 +30,12 @@ export function createDiaryUI(getState,save,notify,isRecording=()=>false){
    :'ERASE RECENT RECORDS? Only sessions that ended within the preceding 60 seconds will be deleted. Older records remain.';
   confirmDanger.textContent=scope==='all'?'ERASE ALL':'DELETE RECENT';
   deleteDialog.showModal();
+  playCue('consolewarning');
   cancelDanger.focus({preventScroll:true});
  }
  cancelDanger.onclick=closeDanger;
+ deleteDialog.addEventListener('cancel',()=>playCue('windowcloses'));
+
  confirmDanger.onclick=()=>{
   if(!deleteScope)return;
   if(isRecording()){closeDanger();notify('Stop playback before deleting practice records.','Warningsound');return;}
@@ -42,7 +45,7 @@ export function createDiaryUI(getState,save,notify,isRecording=()=>false){
    closeEditor();save();render();
   }
   closeDanger();
-  notify(count?`${count} practice session${count===1?'':'s'} permanently deleted.`:'No matching sessions remain.',count?'Acceptsound':'Warningsound');
+  notify(count?`${count} practice session${count===1?'':'s'} permanently deleted.`:'No matching sessions remain.',count?'erase-accepted':'Warningsound');
  };
  deleteDialog.addEventListener('close',()=>{
   deleteScope=null;deleteCutoff=0;

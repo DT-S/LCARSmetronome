@@ -28,7 +28,8 @@ const audio=new AudioEngine();let state=fresh(),linear=false,saveTimer,saveChain
 // The first launch uses 90% on phones; existing saved user preferences still win.
 state.uiScale=defaultInterfaceScale(matchMedia('(max-width:640px)').matches);
 const scheduler=new Scheduler(audio,(message,endTime)=>{stop(message,endTime);notify(message,'Warningsound');});
-const diaryUI=createDiaryUI(()=>state,save,notify,()=>scheduler.running||starting||restoring);
+const diaryUI=createDiaryUI(()=>state,save,notify,()=>scheduler.running||starting||restoring,
+  cue=>audio.ui(cue,state));
 const soundUI=customSoundUI({state:()=>state,audio,unlock,changed,render,notify,running:()=>scheduler.running||starting||restoring});
 function notify(message,sound='Acceptsound'){const n=$('#notice');n.textContent=message;n.classList.add('visible');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>n.classList.remove('visible'),5000);audio.ui(sound,state);}
 async function unlock(){await audio.unlock();audio.mix(state);audio.ctx.onstatechange=()=>{if(scheduler.running&&audio.ctx.state!=='running')stop('Audio interrupted. Restart when ready.');};}
@@ -314,4 +315,22 @@ installUpdateManager({
  reload:()=>location.reload(),online:()=>navigator.onLine
 });
 function frame(){if(scheduler.running){for(const event of scheduler.position()){$$(`[data-channel="${event.channel}"] .playing, .step.playing[data-channel="${event.channel}"]`).forEach(n=>n.classList.remove('playing'));$$(`[data-channel="${event.channel}"][data-index="${event.index}"]`).forEach(n=>(n.querySelector('.point')||n).classList.add('playing'));$('#playStatus').textContent=event.count?`COUNT-IN · ${-event.bar}`:`${event.mode==='polyrhythm'?'CYCLE':'BAR'} ${event.bar+1} · ${event.phase}`;tempoReadout(event);$('#dial').classList.toggle('gap-phase',event.phase==='GAP');}const elapsed=Math.max(0,audio.ctx.currentTime-scheduler.trainingStart);const seconds=Math.floor(scheduler.settings.duration?Math.max(0,scheduler.settings.duration-elapsed):elapsed);$('#clock').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}requestAnimationFrame(frame);}
-try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();motion.boot();storageStatus().catch(()=>{});frame();
+try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();
+const isLaunching=motion.boot();
+if(isLaunching){
+ // iOS/WebKit blocks unprompted sound on a cold launch. If the user starts
+ // interacting during the structural build, unlock sound on that gesture;
+ // never unexpectedly play the intro long after the animation has finished.
+ let launchAttempted=false;
+ const startLaunchCue=()=>{
+  if(launchAttempted||!document.querySelector('.app-shell')?.classList.contains('lcars-booting'))return;
+  launchAttempted=true;
+  unlock().then(()=>audio.loading).then(()=>{
+   if(document.querySelector('.app-shell')?.classList.contains('lcars-booting'))
+    audio.ui('lcars-launch',state);
+  }).catch(()=>{});
+ };
+ document.addEventListener('pointerdown',startLaunchCue,{once:true,capture:true});
+ document.addEventListener('keydown',startLaunchCue,{once:true,capture:true});
+}
+storageStatus().catch(()=>{});frame();

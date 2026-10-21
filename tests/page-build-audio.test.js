@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {AudioEngine,LCARS_MENU_BUILD_SLOT,LCARS_MENU_BUILD_ASSET} from '../src/audio.js';
 import {activationSound} from '../src/interface.js';
 
-test('LCARS page-build cue has a separate future sample slot with no missing-file fetch',()=>{
+test('LCARS page-build cue now uses the uploaded original dedicated sample',()=>{
  assert.equal(LCARS_MENU_BUILD_SLOT,'lcars-menu-build');
- assert.equal(LCARS_MENU_BUILD_ASSET,null);
+ assert.equal(LCARS_MENU_BUILD_ASSET,'./assets/audio/ui/menu_or_window_change.mp3');
  assert.equal(activationSound({
   dataset:{tab:'audio'},classList:{contains:()=>false}
  }),LCARS_MENU_BUILD_SLOT);

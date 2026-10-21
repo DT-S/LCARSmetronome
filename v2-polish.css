@@ -236,3 +236,44 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
   }
   #analyticsContent .panel .field-name {font-size:16px;}
 }
+
+/* RC17: LCARS SFX diagnostics. One compact preview button per installed
+   user-provided sound. These are not instrument/metronome sound choices. */
+#uiSoundPreviewButtons.sound-previews {
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));
+ gap:5px;
+ width:100%;
+ min-width:0;
+ margin:12px 0 5px;
+}
+#uiSoundPreviewButtons.sound-previews button {
+ flex:none;
+ min-width:0;
+ min-height:45px;
+ border:0;
+ border-radius:0 16px 16px 0;
+ padding:9px 8px;
+ font-family:inherit;
+ font-size:clamp(11px,.98vw,13px);
+ font-weight:900;
+ letter-spacing:0;
+ line-height:1.2;
+ white-space:normal;
+ overflow-wrap:anywhere;
+ text-align:center;
+ background:var(--padd-lavender,#9ba0dc);
+ color:#0b070a;
+}
+#uiSoundPreviewButtons.sound-previews button:nth-child(3n+2){
+ background:var(--padd-peach,#d4847c);
+}
+#uiSoundPreviewButtons.sound-previews button:nth-child(3n){
+ background:var(--padd-amber,#f5c967);
+}
+@media (max-width:640px) {
+ #uiSoundPreviewButtons.sound-previews {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+ #uiSoundPreviewButtons.sound-previews button {font-size:12px;}
+}

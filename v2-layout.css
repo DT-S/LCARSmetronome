@@ -1016,3 +1016,39 @@
   #metronome .play-status {margin-bottom:6px;}
   #metronome .pattern-counts {margin-bottom:8px;}
 }
+
+
+/* RC14: one proportional top-bus text anchor for tablet + desktop too.
+   The LCARS title always sits inside the orange section of the existing
+   header::after rail, using its actual flex-grid geometry. No hardcoded
+   wordmark pixel offsets and no changes to outer framework proportions. */
+@media (min-width:641px) {
+  .app-shell > header .heading {
+    left:calc(var(--v2-sidebar) + var(--v2-gutter));
+    right:0;
+    top:0;
+    height:clamp(18px,2.2vw,25px);
+    padding:0;
+    margin:0;
+    pointer-events:none;
+  }
+  .app-shell > header .heading h1 {
+    display:grid;
+    grid-template-columns:13% 65% 22%;
+    align-items:center;
+    height:100%;
+    margin:0;
+  }
+  .app-shell > header .heading h1 .mobile-title {
+    position:static;
+    grid-column:2;
+    width:max-content;
+    max-width:100%;
+    margin:0;
+    padding:0;
+    color:#000;
+    font:900 clamp(12px,1.7vw,19px)/1 Arial,Helvetica,sans-serif;
+    letter-spacing:0;
+    white-space:nowrap;
+  }
+}

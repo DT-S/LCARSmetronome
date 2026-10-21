@@ -8,7 +8,7 @@ self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request
  // Source files are network-first when online, but still available from the
  // versioned local cache offline. This also heals stale Safari PWA assets.
  if(/\.(?:js|css)$/.test(new URL(e.request.url).pathname)){
-  try{const fresh=await fetch(e.request,{cache:'no-store'});if(fresh.ok){await c.put(e.request,fresh.clone());return fresh;}}catch{}
+  try{const fresh=await fetch(e.request,{cache:'no-store'});if(fresh.ok){try{await c.put(e.request,fresh.clone());}catch{}return fresh;}}catch{}
   return cached||new Response('Offline code resource unavailable',{status:503});
  }
  if(cached)return cached;try{return await fetch(e.request);}catch{return new Response('Offline resource unavailable',{status:503});}})());});

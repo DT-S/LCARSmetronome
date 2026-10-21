@@ -96,6 +96,17 @@ try{
    await launch.locator('[data-set-theme="voyager"]').click();
    await launch.locator('#lcarsInitialize').click();
    await launch.waitForFunction(()=>document.querySelector('#lcarsStartup').hidden);
+   // The initialization click is never allowed to trigger a second splash
+   // build. On both desktop and iPhone-sized viewports the main shell starts
+   // unfolding as soon as the splash leaves.
+   const bootState=await launch.evaluate(()=>({
+    hidden:document.querySelector('#lcarsStartup').hidden,
+    boot:document.querySelector('.app-shell').classList.contains('lcars-booting'),
+    top:getComputedStyle(document.querySelector('.app-shell > header'),'::after').animationName
+   }));
+   assert.equal(bootState.hidden,true);
+   assert.equal(bootState.boot,true,'main console must start constructing on click');
+   assert.match(bootState.top,/lcars-rc22-open-x/);
    assert.equal(await launch.locator('#mobileBuildVersion').textContent(),'CORE 2.0.0 RC22');
    assert.equal(await launch.locator('#desktopBuildVersion').textContent(),'CORE 2.0.0 RC22');
    assert.equal(await launch.locator('#start').isVisible(),true);

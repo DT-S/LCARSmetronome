@@ -180,8 +180,8 @@ test('RC10 view reassembly is one-shot per toggle, cancellable and reduced-motio
  const classes=()=>{const all=new Set();return {
   add:v=>all.add(v),remove:v=>all.delete(v),contains:v=>all.has(v)
  };};
- const dial={hidden:false,offsetWidth:410,classList:classes()};
- const linear={hidden:true,offsetWidth:410,classList:classes()};
+ const dial={id:'dial',hidden:false,offsetWidth:410,classList:classes()};
+ const linear={id:'linear',hidden:true,offsetWidth:410,classList:classes()};
  const metronome={id:'metronome',hidden:false,offsetWidth:640,classList:classes()};
  const audio={id:'audio',hidden:true,offsetWidth:640,classList:classes()};
  const shell={classList:classes()};

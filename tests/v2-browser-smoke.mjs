@@ -985,7 +985,7 @@ try{
    assert.equal(linearData.active,true);
    assert.equal(linearData.building,true);
    assert.equal(linearData.wrapper,'none');
-   assert.match(linearData.title,/lcars-content-title/);
+   assert.match(linearData.title,/lcars-linear-element-online/);
    assert.match(linearData.first,/lcars-view-beat/);
    assert.match(linearData.next,/lcars-view-beat/);
    assert.ok(linearData.nextDelay>linearData.firstDelay,
@@ -1153,7 +1153,7 @@ try{
   const errors=[];linearPage.on('pageerror',e=>errors.push(e.message));
   try{
    await linearPage.goto(origin,{waitUntil:'domcontentloaded'});
-   await linearPage.waitForSelector('#linear .pattern-row[data-channel="1"] .step',{timeout:12000});
+   await linearPage.waitForSelector('#linear .pattern-row[data-channel="1"] .step',{state:'attached',timeout:12000});
    await linearPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),null,{timeout:3500});
    const original=Number(await linearPage.locator('#tempoValue').textContent());
    const beforeHeader=await linearPage.locator('.app-shell > header').boundingBox();

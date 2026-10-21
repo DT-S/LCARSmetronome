@@ -69,7 +69,8 @@ export class AudioEngine {
       name==='consolewarning'||name==='denied'?'legacy-Warningsound':
       name==='erase-accepted'||name==='windowcloses'||name==='update-restart'?'legacy-Acceptsound':
       'legacy-'+name;
-    const b=this.buffers.get(name)||this.buffers.get(fallback);
+    const b=this.buffers.get(name)||this.buffers.get(fallback)||
+      (name===LCARS_MENU_BUILD_SLOT?this.buffers.get('switchingmenus'):null);
     if(!b)return;
     const source=this.ctx.createBufferSource();source.buffer=b;
     source.connect(this.uiGain);source.start();

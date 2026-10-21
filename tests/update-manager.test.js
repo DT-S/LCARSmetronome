@@ -69,3 +69,11 @@ test('service worker precaches update manager and bypasses stale navigation HTML
  assert.match(sw,/cache:'no-store'/);
  assert.match(sw,/self\.skipWaiting\(\)/);
 });
+
+test('RC22 PWA source assets refresh online and retain offline fallback',()=>{
+ const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
+ assert.match(sw,/Source files are network-first/);
+ assert.match(sw,/c.put\(e.request,fresh.clone\(\)\)/);
+ assert.match(sw,/return cached\|\|new Response\('Offline code resource unavailable'/);
+ assert.match(sw,/v2-boot-reveal\.css/);
+});

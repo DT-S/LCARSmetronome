@@ -333,3 +333,35 @@ test('RC15 Linear tempo and real beats are staggered for both entry routes',()=>
  assert.doesNotMatch(section,/(?:translate[XYZ]?|scale[XYZ]?)\(/);
  assert.match(section,/prefers-reduced-motion:reduce/);
 });
+
+test('RC22 mobile animation override bypasses OS reduce preference deliberately',()=>{
+ const previous=globalThis.matchMedia;
+ const classes=()=>{const values=new Set();return {
+  add:v=>values.add(v),remove:v=>values.delete(v),contains:v=>values.has(v)
+ };};
+ const metronome={id:'metronome',hidden:false,classList:classes()};
+ const shell={classList:classes()};
+ const root={
+  documentElement:{dataset:{lcarsMotion:'force'}},
+  querySelectorAll:q=>q==='.page'?[metronome]:[],
+  querySelector:q=>q==='.app-shell'?shell:null,
+  getElementById:id=>id==='metronome'?metronome:null
+ };
+ const currentSet=globalThis.setTimeout,currentClear=globalThis.clearTimeout;
+ try{
+  globalThis.matchMedia=()=>({matches:true});
+  globalThis.setTimeout=()=>99;
+  globalThis.clearTimeout=()=>{};
+  const motion=createMotionController(root);
+  assert.equal(motion.boot(),true);
+  assert.equal(shell.classList.contains('lcars-booting'),true);
+  motion.finishBoot();
+  assert.equal(shell.classList.contains('lcars-booting'),false);
+  root.documentElement.dataset.lcarsMotion='system';
+  const normal=createMotionController(root);
+  assert.equal(normal.boot(),false);
+ }finally{
+  if(previous===undefined)delete globalThis.matchMedia;else globalThis.matchMedia=previous;
+  globalThis.setTimeout=currentSet;globalThis.clearTimeout=currentClear;
+ }
+});

@@ -96,6 +96,19 @@ try{
    await launch.locator('[data-set-theme="voyager"]').click();
    await launch.locator('#lcarsInitialize').click();
    await launch.waitForFunction(()=>document.querySelector('#lcarsStartup').hidden);
+   // The initialization click is never allowed to trigger a second splash
+   // build. On both desktop and iPhone-sized viewports the main shell starts
+   // unfolding as soon as the splash leaves.
+   const bootState=await launch.evaluate(()=>({
+    hidden:document.querySelector('#lcarsStartup').hidden,
+    boot:document.querySelector('.app-shell').classList.contains('lcars-booting'),
+    top:getComputedStyle(document.querySelector('.app-shell > header'),'::after').animationName
+   }));
+   assert.equal(bootState.hidden,true);
+   assert.equal(bootState.boot,true,'main console must start constructing on click');
+   assert.match(bootState.top,/lcars-rc22-open-x/);
+   assert.equal(await launch.locator('#mobileBuildVersion').textContent(),'CORE 2.0.0 RC22');
+   assert.equal(await launch.locator('#desktopBuildVersion').textContent(),'CORE 2.0.0 RC22');
    assert.equal(await launch.locator('#start').isVisible(),true);
    console.log('PASS Voyager LCARS startup appearance',width);
   }catch(error){
@@ -482,7 +495,7 @@ try{
       aspect:dial.width/dial.height};
    });
    assert.match(animations.ring,/lcars-launch-ring/);
-   assert.match(animations.nav,/lcars-launch-pop/);
+   assert.match(animations.nav,/lcars-rc22-open-x/);
    assert.ok(Math.abs(animations.aspect-1)<.04,'Circular sequencer must remain round during launch');
    await page.screenshot({path:path.join(screenshots,'launch-01-structural.png')});
    await page.waitForTimeout(230);
@@ -517,6 +530,33 @@ try{
    assert.ok(await page.locator('#start').isVisible());
    console.log('PASS reduced-motion launch skip');
   }catch(error){fail++;console.error('FAIL reduced-motion launch skip',error);}
+  finally{await page.close();}
+ }
+ // Deliberately forcing full LCARS motion must work on an iPhone-sized
+ // viewport even if the device advertises Reduce Motion.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  try{
+   await page.goto(origin,{waitUntil:'domcontentloaded'});
+   await page.waitForFunction(()=>document.querySelector('#lcarsStartup')?.dataset.ready==='true');
+   await page.evaluate(()=>{
+    const checkbox=document.querySelector('#forceMotion');
+    checkbox.checked=true;
+    checkbox.dispatchEvent(new Event('change',{bubbles:true}));
+   });
+   assert.match(await page.locator('#motionInfo').textContent(),/DEVICE OVERRIDE/);
+   await page.locator('#lcarsInitialize').click();
+   const state=await page.evaluate(()=>({
+    hidden:document.querySelector('#lcarsStartup').hidden,
+    boot:document.querySelector('.app-shell').classList.contains('lcars-booting'),
+    rail:getComputedStyle(document.querySelector('.app-shell > header'),'::after').animationName
+   }));
+   assert.equal(state.hidden,true);
+   assert.equal(state.boot,true);
+   assert.match(state.rail,/lcars-rc22-open-x/);
+   assert.equal(await page.locator('#mobileBuildVersion').isVisible(),true);
+   console.log('PASS RC22 iPhone motion override and visible build');
+  }catch(error){fail++;console.error('FAIL RC22 mobile motion override',error);}
   finally{await page.close();}
  }
  // Real Chromium synthetic touch gestures (not just calling a helper).

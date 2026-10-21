@@ -56,7 +56,13 @@ test('visible accessible LCARS startup includes real logo and an opt-out control
  assert.match(css,/\.lcars-subbrand-label/);
  assert.match(html,/id="launchScreen" type="checkbox"/);
  assert.match(app,/if\(state\.launchScreen\)/);
- assert.match(app,/await Promise\.race/);
- assert.match(app,/motion\.boot\(\); \/\/ Real animation/);
+ assert.doesNotMatch(app,/await Promise\.race/);
+ assert.match(app,/const launched=motion\.boot\(\)/);
+ assert.ok(app.indexOf('startup.hidden=true;')<
+  app.indexOf('const launched=motion.boot()'),'splash must leave before app construction begins');
+ assert.match(html,/id="mobileBuildVersion" class="mobile-build-version"/);
+ assert.match(html,/id="forceMotion" type="checkbox"/);
+ assert.match(html,/id="motionInfo"/);
+ assert.match(app,/startup\.hidden=true;[\s\S]*const launched=motion\.boot\(\)/);
  assert.match(sw,/\.\/v2-startup\.css/);
 });

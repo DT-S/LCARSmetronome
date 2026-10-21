@@ -13,6 +13,8 @@ export function shouldTransition(previous,next){
  return typeof next==='string'&&next.length>0&&previous!==next;
 }
 export function createMotionController(root=document){
+ const prefersReducedMotion=()=>root.documentElement?.dataset?.lcarsMotion!=='force'&&
+   typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
  const pages=[...root.querySelectorAll('.page')];
  const clear=(node,cssClass)=>node?.classList.remove(cssClass);
  const run=(node,cssClass)=>{
@@ -44,7 +46,7 @@ export function createMotionController(root=document){
   if(bootStarted)return false;
   bootStarted=true;
   const metronome=root.getElementById('metronome');
-  const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce=prefersReducedMotion();
   if(!shell||!shouldLaunchBoot({reducedMotion:reduce,metronomeVisible:!!metronome&&!metronome.hidden}))return false;
   shell.classList.add('lcars-booting');
   bootTimer=setTimeout(finishBoot,LCARS_BOOT_DURATION_MS);
@@ -60,7 +62,7 @@ export function createMotionController(root=document){
   finishView(); // No stale view animation when a different page opens.
   for(const item of pages)finishPage(item);
   // Respect OS motion preference for every switch, not only initial boot.
-  const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce=prefersReducedMotion();
   if(!reduce){
    run(next,'lcars-page-enter');
    // A real navigation into an already-selected Linear View must run the
@@ -86,7 +88,7 @@ export function createMotionController(root=document){
   // mode selection, tempo and transport must never animate again.
   finishView();
   if(!next||next.hidden)return false;
-  const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce=prefersReducedMotion();
   if(reduce)return false;
   activeView=next;
   run(next,'lcars-view-enter');

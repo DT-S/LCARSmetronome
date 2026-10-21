@@ -120,9 +120,9 @@
  animation:none!important;
 }
 @media(prefers-reduced-motion:reduce){
- .xy-plot-stage.is-scanning::after,
- .xy-plot :is(.chart-line,.chart-area,.chart-bar,.chart-dot,.chart-grid-line,.chart-line-pulse,.chart-probe-line.is-visible,.chart-inspected){
+ html:not([data-lcars-motion="force"]) .xy-plot-stage.is-scanning::after,
+ html:not([data-lcars-motion="force"]) .xy-plot :is(.chart-line,.chart-area,.chart-bar,.chart-dot,.chart-grid-line,.chart-line-pulse,.chart-probe-line.is-visible,.chart-inspected){
   animation:none!important;transform:none!important;
  }
- .xy-plot .chart-probe-line{transition:none!important}
+ html:not([data-lcars-motion="force"]) .xy-plot .chart-probe-line{transition:none!important}
 }

@@ -81,17 +81,17 @@
   animation:none!important;
 }
 @media (prefers-reduced-motion:reduce){
-  .page.lcars-page-enter,
-  #metronome #dial.lcars-view-enter,
-  #metronome #linear.lcars-view-enter,
-  #modeButtons button.lcars-mode-ack,
-  #start.lcars-status-confirm,
-  .xy-plot .chart-line,
-  .xy-plot .chart-bar,
-  .xy-plot .chart-dot {
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter,
+  html:not([data-lcars-motion="force"]) #metronome #dial.lcars-view-enter,
+  html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter,
+  html:not([data-lcars-motion="force"]) #modeButtons button.lcars-mode-ack,
+  html:not([data-lcars-motion="force"]) #start.lcars-status-confirm,
+  html:not([data-lcars-motion="force"]) .xy-plot .chart-line,
+  html:not([data-lcars-motion="force"]) .xy-plot .chart-bar,
+  html:not([data-lcars-motion="force"]) .xy-plot .chart-dot {
     animation:none!important;transform:none!important;clip-path:none!important;
   }
-  .xy-plot .chart-probe-line {transition:none!important;}
+  html:not([data-lcars-motion="force"]) .xy-plot .chart-probe-line {transition:none!important;}
 }
 
 /* ==========================================================================
@@ -266,10 +266,10 @@
 /* Never suppress layout transforms from the original app when motion is
    reduced. Only disable the launch animations and their temporary masks. */
 @media (prefers-reduced-motion:reduce) {
-  .app-shell.lcars-booting *,
-  .app-shell.lcars-booting::after,
-  .app-shell.lcars-booting > header::before,
-  .app-shell.lcars-booting > header::after {
+  html:not([data-lcars-motion="force"]) .app-shell.lcars-booting *,
+  html:not([data-lcars-motion="force"]) .app-shell.lcars-booting::after,
+  html:not([data-lcars-motion="force"]) .app-shell.lcars-booting > header::before,
+  html:not([data-lcars-motion="force"]) .app-shell.lcars-booting > header::after {
     animation:none!important;
     clip-path:none!important;
   }
@@ -368,10 +368,10 @@
 /* JS skips its class entirely under reduced motion; this rule provides
    immediate visibility if OS preference changes during a transition. */
 @media (prefers-reduced-motion:reduce) {
-  .page.lcars-page-enter,
-  .page.lcars-page-enter *,
-  .page.lcars-page-enter::before,
-  .page.lcars-page-enter::after {
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter,
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter *,
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter::before,
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter::after {
     animation:none!important;
     clip-path:none!important;
   }
@@ -506,10 +506,10 @@
 }
 /* OS reduced-motion: skip this choreography without affecting page state. */
 @media (prefers-reduced-motion:reduce) {
-  .page.lcars-page-enter,
-  .page.lcars-page-enter *,
-  .page.lcars-page-enter::before,
-  .page.lcars-page-enter::after {
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter,
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter *,
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter::before,
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter::after {
     animation:none!important;
     clip-path:none!important;
   }
@@ -570,10 +570,10 @@
 }
 /* Motion preferences can change at any time and must reveal everything. */
 @media (prefers-reduced-motion:reduce) {
-  #metronome #dial.lcars-view-enter,
-  #metronome #linear.lcars-view-enter,
-  #metronome #dial.lcars-view-enter *,
-  #metronome #linear.lcars-view-enter * {
+  html:not([data-lcars-motion="force"]) #metronome #dial.lcars-view-enter,
+  html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter,
+  html:not([data-lcars-motion="force"]) #metronome #dial.lcars-view-enter *,
+  html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter * {
     animation:none!important;
     opacity:1;
     filter:none;
@@ -732,8 +732,8 @@
 /* A subsequent page switch removes .lcars-page-enter and restores all
    existing interactive scrubbing/LED animations without sticky classes. */
 @media (prefers-reduced-motion:reduce) {
-  #audio.lcars-page-enter #mixer *,
-  #audio.lcars-page-enter .master * {
+  html:not([data-lcars-motion="force"]) #audio.lcars-page-enter #mixer *,
+  html:not([data-lcars-motion="force"]) #audio.lcars-page-enter .master * {
     animation:none!important;
   }
 }
@@ -836,8 +836,8 @@
 /* iOS WebKit also honors reduced motion when the preference changes
    during a gesture. Never keep inputs or beat controls invisible. */
 @media (prefers-reduced-motion:reduce) {
-  #metronome #linear.lcars-view-enter,
-  #metronome #linear.lcars-view-enter * {
+  html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter,
+  html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter * {
     animation:none!important;
   }
 }

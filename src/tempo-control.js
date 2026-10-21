@@ -17,7 +17,18 @@ export function installTempoControl(surface,display,input,get,set,guide=null){
  });
  function end(e,cancel=false){if(!gesture||gesture.id!==e.pointerId)return;const g=gesture;gesture=null;clear();guide?.hide();if(surface.hasPointerCapture(e.pointerId))surface.releasePointerCapture(e.pointerId);if(cancel||g.moved){lastTap=null;return;}if(g.type!=='mouse'){const now=performance.now();if(lastTap&&now-lastTap.time<350&&Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<25){edit();return;}lastTap={time:now,x:e.clientX,y:e.clientY};}}
  surface.addEventListener('pointerup',e=>end(e));surface.addEventListener('pointercancel',e=>end(e,true));surface.addEventListener('lostpointercapture',()=>{gesture=null;clear();guide?.hide();});
+ // The nested numeric button still receives direct dblclick events in
+ // keyboard/synthetic activation and in existing regression tests.
  display.addEventListener('dblclick',e=>{e.preventDefault();edit();});
+ // Pointer capture is owned by the outer tempo surface. On desktop a
+ // double-click can consequently be retargeted to that surface instead of
+ // the nested numeric button. Accept it at the capture owner and exclude
+ // the +/- buttons, for BOTH the Circular and Linear tempo instruments.
+ surface.addEventListener('dblclick',e=>{
+  const button=e.target.closest?.('button');
+  if(button&&button!==display)return;
+  e.preventDefault();edit();
+ });
  display.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)){e.preventDefault();edit();}else if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();set(get()+(['ArrowUp','ArrowRight'].includes(e.key)?1:-1));sync();}});
  input.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();finish(e.key==='Escape');}});input.addEventListener('blur',()=>finish());sync();return {sync};
 }

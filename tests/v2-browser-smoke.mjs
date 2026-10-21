@@ -210,6 +210,73 @@ try{
    await page.screenshot({path:path.join(screenshots,`${label}-FAILED.png`)}).catch(()=>{});
   }finally{await page.close();}
  }
+
+ // RC12: real interactive Linear BPM, shared with Circular state; and an
+ // iPad-ready fixed bottom LCARS fascia at 70-100% interface zoom.
+ for(const [width,height,label] of [
+  [390,844,'iphone-13'],[768,1024,'ipad-portrait'],
+  [810,1080,'ipad-air'],[834,1194,'ipad-pro'],
+  [1024,768,'ipad-landscape'],[1112,834,'ipad-pro-landscape']
+ ]){
+  const p=await browser.newPage({viewport:{width,height},
+   hasTouch:true,isMobile:width<=640,reducedMotion:'reduce'});
+  const errors=[];p.on('pageerror',e=>errors.push(e.message));
+  try{
+   await p.goto(origin,{waitUntil:'networkidle'});
+   const original=Number(await p.locator('#tempoValue').textContent());
+   await p.locator('#view').click();
+   assert.equal(await p.locator('#linearTempoValue').isVisible(),true,`${label}: Linear BPM missing`);
+   await p.locator('#linearTempoPlus').click();
+   assert.equal(Number(await p.locator('#linearTempoValue').textContent()),original+1);
+   assert.equal(Number(await p.locator('#tempoValue').textContent()),original+1);
+   await p.locator('#linearTempoMinus').click();
+   assert.equal(Number(await p.locator('#linearTempoValue').textContent()),original);
+   await p.locator('#linearTempoValue').focus();await p.keyboard.press('ArrowUp');
+   assert.equal(Number(await p.locator('#tempoValue').textContent()),original+1);
+   await p.locator('#linearTempoValue').dblclick();
+   assert.equal(await p.locator('#linearBpm').isVisible(),true);
+   await p.locator('#linearBpm').fill('187');await p.locator('#linearBpm').press('Enter');
+   assert.equal(Number(await p.locator('#linearTempoValue').textContent()),187);
+   assert.equal(Number(await p.locator('#tempoValue').textContent()),187);
+   assert.equal(await p.locator('#linearTempoValue').getAttribute('aria-valuenow'),'187');
+   await p.locator('#view').click();
+   assert.equal(Number(await p.locator('#tempoValue').textContent()),187);
+   if(width>640){
+    for(const scale of [.7,.8,.9,1]){
+     await p.locator('[data-tab="settings"]').click();
+     await p.locator(`#scaleButtons button[data-ui-scale="${scale}"]`).click();
+     await p.locator('[data-tab="metronome"]').click();
+     if(await p.locator('#linear').isVisible())await p.locator('#view').click();
+     await p.evaluate(()=>{document.querySelector('main').scrollTop=0;});
+     await p.waitForTimeout(60);
+     const g=await p.evaluate(()=>{
+      const rect=q=>{const r=document.querySelector(q).getBoundingClientRect();
+       return {top:r.top,bottom:r.bottom,width:r.width};};
+      return {shell:rect('.app-shell'),main:rect('main'),
+       dial:rect('#dial'),tap:rect('#tap'),start:rect('#start'),
+       footerRail:getComputedStyle(document.querySelector('.app-shell'),'::after').content,
+       scrollTop:document.querySelector('main').scrollTop};
+     });
+     assert.ok(g.shell.bottom<=height+3&&g.shell.top>=-3,
+      `${label} scale ${scale}: bottom LCARS rail clipped ${JSON.stringify(g)}`);
+     assert.notEqual(g.footerRail,'none',`${label}: no footer rail`);
+     assert.ok(g.tap.top>=g.main.top-2&&g.tap.bottom<=g.main.bottom+2,
+      `${label} scale ${scale}: Tap Tempo below the fold ${JSON.stringify(g)}`);
+     assert.ok(g.start.top>=g.main.top-2&&g.start.bottom<=g.main.bottom+2,
+      `${label} scale ${scale}: Start below the fold ${JSON.stringify(g)}`);
+     assert.ok(g.dial.width>170&&g.dial.width<430,
+      `${label} scale ${scale}: circular dial not tablet-sized ${JSON.stringify(g)}`);
+     assert.equal(g.scrollTop,0);
+     if(scale===.8&&(width===768||width===1024))
+      await p.screenshot({path:path.join(screenshots,`rc12-${label}-80pct.png`)});
+    }
+   }
+   assert.deepEqual(errors,[]);
+   console.log(`PASS RC12 Linear BPM + iPad layout ${label}`);
+  }catch(e){fail++;console.error(`FAIL RC12 ${label}`,e);
+   await p.screenshot({path:path.join(screenshots,`rc12-${label}-FAILED.png`)}).catch(()=>{});
+  }finally{await p.close();}
+ }
  // Launch choreography tested with real CSS motion, including 5 frame captures.
  {
   const page=await browser.newPage({viewport:{width:1920,height:1080},

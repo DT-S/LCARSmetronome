@@ -112,7 +112,7 @@ function renderPatterns(){
       b.dataset.channel=String(channel);
       b.dataset.index=String(i);
       // Stable even on phones, where rows wrap into nested pattern-line groups.
-      b.style.setProperty('--view-delay',`${230+channel*185+i*24}ms`);
+      b.style.setProperty('--view-delay',`${820+channel*210+i*24}ms`);
       b.textContent=String(i+1);
       b.setAttribute('aria-label',`${label} ${i+1}: ${names[s]}`);
       return b;

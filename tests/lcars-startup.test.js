@@ -16,7 +16,7 @@ test('LCARS startup screen enabled by default, switch survives JSON backup and o
  }
 });
 
-test('loading rhythm presets never changes the user's startup-screen preference',()=>{
+test("loading rhythm presets never changes the user\'s startup-screen preference",()=>{
  const settings=fresh();settings.launchScreen=true;
  const current=fresh();current.launchScreen=false;
  const output=loadPreset(current,{name:'Preset',settings});

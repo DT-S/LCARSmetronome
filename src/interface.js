@@ -96,7 +96,7 @@ export function installTapTempo(button,onTap){
 }
 export function installFeedback(root,{unlock,audio,state}){
  const selector='button,summary,label.file-button,.sound-drop,input[type=checkbox],label:has(input[type=checkbox]),[role=button]';
- const controlFor=target=>{const c=target.closest?.(selector);if(c?.closest?.('#lcarsStartup'))return null;return c&&!c.disabled&&c.getAttribute('aria-disabled')!=='true'?c:null;};
+ const controlFor=target=>{const c=target.closest?.(selector);if(c?.id==='lcarsInitialize')return null;return c&&!c.disabled&&c.getAttribute('aria-disabled')!=='true'?c:null;};
  let press=null,hoverAt=0,labelClick=null;
  const clear=()=>{press?.control?.classList.remove('touch-pressed');press=null;};
  root.addEventListener('pointerdown',e=>{

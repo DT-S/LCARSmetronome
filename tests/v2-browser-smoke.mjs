@@ -955,6 +955,11 @@ try{
    await viewPage.screenshot({path:path.join(screenshots,`rc10-${width}-circular-rings.png`)});
    await viewPage.waitForFunction(()=>!document.querySelector('#dial').classList.contains('lcars-view-enter'),
     null,{timeout:2600});
+   // Chromium can asynchronously activate a freshly installed test SW as
+   // this isolated page context settles. Verify the final stable chassis,
+   // not a transient booting state from that unrelated page navigation.
+   await viewPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
+    null,{timeout:3200});
    const after=await viewPage.evaluate(()=>{
     const box=q=>{const r=document.querySelector(q).getBoundingClientRect();
       return [r.x,r.y,r.width,r.height].map(v=>Math.round(v));};

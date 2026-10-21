@@ -1329,6 +1329,65 @@ try{
    await p.screenshot({path:path.join(screenshots,`rc16-${label}-FAILED.png`)}).catch(()=>{});
   }finally{await p.close();}
  }
+
+ // RC17: real 56KB MP3 audio pack decoded by Web Audio, 15 distinct cues,
+ // and one and only one sample per preview. No external CDN/network needed.
+ for(const [width,height,label] of [
+  [390,844,'iphone'],[1024,768,'ipad-landscape'],[1440,900,'desktop']
+ ]){
+  const page=await browser.newPage({viewport:{width,height},hasTouch:width===390,
+   isMobile:width===390,reducedMotion:'no-preference'});
+  const failures=[];page.on('pageerror',e=>failures.push(e.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   const decoded=await page.evaluate(async()=>{
+    const res=await fetch('./assets/audio/ui/lcars-ui-20261021.mp3',{cache:'no-store'});
+    if(!res.ok)throw Error('Missing packaged UI MP3: '+res.status);
+    const bytes=await res.arrayBuffer();
+    const AudioCtx=window.AudioContext||window.webkitAudioContext,ctx=new AudioCtx();
+    const buffer=await ctx.decodeAudioData(bytes);
+    const info={bytes:bytes.byteLength,duration:buffer.duration,channels:buffer.numberOfChannels};
+    await ctx.close();return info;
+   });
+   assert.equal(decoded.bytes,56136,`${label}: UI sound pack differs from checked original`);
+   assert.ok(decoded.duration>9.2&&decoded.duration<9.45,
+    `${label}: decoded UI cue sprite has incorrect duration`);
+   await page.locator('[data-tab="settings"]').click();
+   await page.locator('#uiSoundDiagnostics summary').click();
+   assert.equal(await page.locator('#uiSoundPreviewButtons button').count(),15);
+   await page.evaluate(()=>{
+    window.__uiSoundStarts=[];
+    const original=AudioBufferSourceNode.prototype.start;
+    AudioBufferSourceNode.prototype.start=function(...args){
+     window.__uiSoundStarts.push(args);return original.apply(this,args);
+    };
+   });
+   await page.locator('[data-cue="keypress_increase"]').click();
+   await page.waitForFunction(()=>window.__uiSoundStarts.some(args=>args.length===3&&
+    Math.abs(args[1]-4.085964)<.002),null,{timeout:8000});
+   const playback=await page.evaluate(()=>window.__uiSoundStarts);
+   const plus=playback.filter(args=>args.length===3&&Math.abs(args[1]-4.085964)<.002);
+   assert.equal(plus.length,1,`${label}: duplicate click mixed with the preview`);
+   await page.locator('[data-cue="invalid_input"]').click();
+   await page.waitForFunction(()=>window.__uiSoundStarts.some(args=>args.length===3&&
+    Math.abs(args[1]-6.551995)<.002),null,{timeout:5000});
+   if(width===390)await page.screenshot({path:path.join(screenshots,'rc17-iphone-system-sounds.png')});
+   // Deliberate boot replay is triggered only by the user after audio unlock.
+   await page.locator('[data-cue="launchsound_Staggered_Entrance_Animation"]').click();
+   await page.waitForFunction(()=>document.querySelector('.app-shell').classList.contains('lcars-booting'),
+    null,{timeout:3000});
+   assert.equal(await page.locator('#metronome').isVisible(),true);
+   const launchPlayback=await page.evaluate(()=>window.__uiSoundStarts
+    .filter(args=>args.length===3&&Math.abs(args[1])<.002));
+   assert.equal(launchPlayback.length,1,`${label}: launch replay sound missing or doubled`);
+   await page.waitForFunction(()=>!document.querySelector('.app-shell').classList.contains('lcars-booting'),
+    null,{timeout:2500});
+   assert.deepEqual(failures,[],`${label}: console failures while decoding/playing samples`);
+   console.log(`PASS RC17 packaged sound cues + user-triggered LCARS launch ${label}`);
+  }catch(err){fail++;console.error(`FAIL RC17 UI sound pack ${label}`,err);
+   await page.screenshot({path:path.join(screenshots,`rc17-${label}-FAILED.png`)}).catch(()=>{});
+  }finally{await page.close();}
+ }
  // P7: cached PWA must relaunch with network disabled and preserve
  // user preferences in IndexedDB across a full browser page reload.
  {

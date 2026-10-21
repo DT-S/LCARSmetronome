@@ -172,7 +172,7 @@ test('all six pages animate only their inner panels while fixed rails stay untou
 
  assert.doesNotMatch(css,/\.page\.lcars-page-enter \{[^}]*translateX\(/,
   'never slide the complete page or its hit targets horizontally');
- assert.match(sw,/lcars-core-v2-rc9-static-chassis/);
+ assert.match(sw,/const CACHE=PREFIX\+'lcars-core-v2-rc\d+-/); // Cache rotates with release.
 });
 
 test('RC10 view reassembly is one-shot per toggle, cancellable and reduced-motion-safe',()=>{

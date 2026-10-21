@@ -12,6 +12,7 @@ import {createMotionController} from './motion.js';
 import {customSoundUI} from './custom-sounds.js';
 import {createDiaryUI} from './diary-ui.js';
 import {SOUNDS} from './synth.js';
+import {UI_CUES} from './ui-cues.js';
 import {enhanceNumber,syncNumbers} from './number-control.js';
 import {renderTraining,syncSwing} from './training-ui.js';
 import {fresh,clamp,resize,validate,MODES,presetSettings,loadPreset} from './model.js';
@@ -30,7 +31,7 @@ state.uiScale=defaultInterfaceScale(matchMedia('(max-width:640px)').matches);
 const scheduler=new Scheduler(audio,(message,endTime)=>{stop(message,endTime);notify(message,'Warningsound');});
 const diaryUI=createDiaryUI(()=>state,save,notify,()=>scheduler.running||starting||restoring);
 const soundUI=customSoundUI({state:()=>state,audio,unlock,changed,render,notify,running:()=>scheduler.running||starting||restoring});
-function notify(message,sound='Acceptsound'){const n=$('#notice');n.textContent=message;n.classList.add('visible');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>n.classList.remove('visible'),5000);audio.ui(sound,state);}
+function notify(message,sound='Acceptsound'){const n=$('#notice');n.textContent=message;n.classList.add('visible');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>n.classList.remove('visible'),5000);if(sound)audio.ui(sound,state);}
 async function unlock(){await audio.unlock();audio.mix(state);audio.ctx.onstatechange=()=>{if(scheduler.running&&audio.ctx.state!=='running')stop('Audio interrupted. Restart when ready.');};}
 function save(){clearTimeout(saveTimer);$('#saveStatus').textContent='SAVING…';saveTimer=setTimeout(()=>{const snapshot=structuredClone(state);saveChain=saveChain.catch(()=>{}).then(()=>write(snapshot)).then(()=>{$('#saveStatus').textContent='SAVED ON THIS DEVICE';}).catch(()=>{$('#saveStatus').textContent='SAVE FAILED · EXPORT BACKUP';notify('Local save failed. Export a JSON backup.','Warningsound');});},200);}
 function changed(){audio.mix(state);scheduler.update(state);save();}
@@ -41,10 +42,16 @@ for(const [value,label] of Object.entries(shortModes)){
  const b=document.createElement('button');b.type='button';b.dataset.mode=value;b.textContent=label;b.title=MODES[value];b.onclick=()=>{const change=state.mode!==value;state.mode=value;render();changed();if(change)motion.mode(b);};$('#modeButtons').append(b);
 }
 let lastFaderTone=0;
-function faderTouchFeedback(){
+function faderTouchFeedback(next,previous){
  if(state.haptic)navigator.vibrate?.(5); // iOS may not expose vibration.
  const now=performance.now();
- if(now-lastFaderTone>95){lastFaderTone=now;audio.ui('hoversound',state);}
+ if(now-lastFaderTone>95){
+  lastFaderTone=now;
+  const cue=Number.isFinite(next)&&Number.isFinite(previous)
+   ?next>previous?'keypress_increase':next<previous?'keypress_decrease':'hovering'
+   :'hovering';
+  audio.ui(cue,state);
+ }
 }
 $('#swing').oninput=e=>{state.swing=Number(e.target.value)/100;syncSwing(state);changed();};
 mountLcarsSlider($('#swing'),{kind:'swing',title:'SHUFFLE / SWING',code:'42-S9',onValueChange:faderTouchFeedback});
@@ -198,10 +205,11 @@ function renderMixer(){
     let panButtons=[];
     // The source demo only supplies the look/interaction, not a new audio bus.
     const matrix=buildMatrixFaders(i,c,{onChange:(kind,value,{gesture=false}={})=>{
+      const previous=c[kind];
       if(kind==='pan')setChannelPan(c,value,matrix.inputs.pan,panButtons);
       else c.volume=value;
       matrix.sync();changed();
-      if(gesture)faderTouchFeedback();
+      if(gesture)faderTouchFeedback(value,previous);
     }});
     panel.append(matrix.root);
     const panGroup=document.createElement('div');
@@ -280,6 +288,37 @@ for(const k of ['master','uiVolume']){
    code:k==='master'?'GAIN-M':'GAIN-UI',onValueChange:faderTouchFeedback});
 }
 for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};
+// The launch cue cannot autoplay on iOS until the user has interacted.
+// All fifteen original cues can be auditioned under the System tab.
+const cueLabels={
+ launchsound_Staggered_Entrance_Animation:'STAGGERED LAUNCH',
+ menu_or_window_change:'MENU / WINDOW CHANGE',
+ modechange:'MODE CHANGE',
+ option_toggle_or_secondary_menu_pops_up:'OPTION / WINDOW OPEN',
+ windowcloses:'WINDOW CLOSE',
+ hovering:'HOVER',
+ keypress_standart:'STANDARD KEYPRESS',
+ keypress_increase:'INCREASE',
+ keypress_decrease:'DECREASE',
+ caution:'CAUTION',
+ consolewarning:'CONSOLE WARNING',
+ denied:'DENIED',
+ invalid_input:'INVALID INPUT',
+ erase_accepted:'ERASE ACCEPTED',
+ 'update&restart':'UPDATE / RESTART'
+};
+for(const cue of Object.keys(UI_CUES)){
+ const preview=document.createElement('button');
+ preview.type='button';
+ preview.textContent=cueLabels[cue]||cue.toUpperCase();
+ preview.dataset.cue=cue;
+ preview.onclick=async()=>{
+  if(!state.uiEnabled)return notify('Enable UI SOUNDS to preview the LCARS sound pack.',null);
+  try{await unlock();await audio.loading;audio.ui(cue,state);}
+  catch{notify('Audio preview unavailable.','consolewarning');}
+ };
+ $('#uiSoundPreviewButtons').append(preview);
+}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();$('main').scrollTop=0;motion.page(b.dataset.tab);});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};
 $('#export').onclick=()=>{download(`lcars-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(state,null,2));notify('Backup exported.');};
@@ -304,7 +343,7 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.targe
 installFeedback(document,{unlock,audio,state:()=>state});
 installSegmentCorners(document.querySelector('.app-shell'));
 async function storageStatus(){const yes=await navigator.storage?.persisted?.();$('#storageStatus').textContent=yes?'Persistent storage granted. Keep exporting backups.':'Best-effort storage. Export regular backups.';}
-$('#persist').onclick=async()=>{try{const ok=await navigator.storage?.persist?.();await storageStatus();notify(ok?'Persistent storage granted.':'Browser did not grant persistent storage.','Warningsound');}catch{notify('Storage request unavailable.','Warningsound');}};
+$('#persist').onclick=async()=>{try{const ok=await navigator.storage?.persist?.();await storageStatus();notify(ok?'Persistent storage granted.':'Browser did not grant persistent storage.',ok?'Acceptsound':'denied');}catch{notify('Storage request unavailable.','Warningsound');}};
 const connection=()=>$('#connection').textContent=navigator.onLine?'LOCAL SYSTEM':'OFFLINE SYSTEM';addEventListener('online',connection);addEventListener('offline',connection);connection();
 addEventListener('pagehide',()=>{if(scheduler.running){stop('Page closed');clearTimeout(saveTimer);const snapshot=structuredClone(state);saveChain=saveChain.catch(()=>{}).then(()=>write(snapshot));}});
 installUpdateManager({
@@ -314,4 +353,4 @@ installUpdateManager({
  reload:()=>location.reload(),online:()=>navigator.onLine
 });
 function frame(){if(scheduler.running){for(const event of scheduler.position()){$$(`[data-channel="${event.channel}"] .playing, .step.playing[data-channel="${event.channel}"]`).forEach(n=>n.classList.remove('playing'));$$(`[data-channel="${event.channel}"][data-index="${event.index}"]`).forEach(n=>(n.querySelector('.point')||n).classList.add('playing'));$('#playStatus').textContent=event.count?`COUNT-IN · ${-event.bar}`:`${event.mode==='polyrhythm'?'CYCLE':'BAR'} ${event.bar+1} · ${event.phase}`;tempoReadout(event);$('#dial').classList.toggle('gap-phase',event.phase==='GAP');}const elapsed=Math.max(0,audio.ctx.currentTime-scheduler.trainingStart);const seconds=Math.floor(scheduler.settings.duration?Math.max(0,scheduler.settings.duration-elapsed):elapsed);$('#clock').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}requestAnimationFrame(frame);}
-try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();motion.boot();storageStatus().catch(()=>{});frame();
+try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','consolewarning');$('#saveStatus').textContent='STORAGE ERROR';}render();motion.boot();storageStatus().catch(()=>{});frame();

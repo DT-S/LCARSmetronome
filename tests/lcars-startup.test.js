@@ -1,0 +1,54 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {fresh,validate,loadPreset} from '../src/model.js';
+import {playControlCue} from '../src/interface.js';
+
+test('LCARS startup screen enabled by default, switch survives JSON backup and old backups',()=>{
+ const next=fresh();
+ assert.equal(next.launchScreen,true);
+ next.launchScreen=false;
+ assert.equal(validate(JSON.parse(JSON.stringify(next))).launchScreen,false);
+ const older={...fresh()};delete older.launchScreen;
+ assert.equal(validate(older).launchScreen,true);
+ for(const incorrect of [null,12,'off']){
+  assert.throws(()=>validate({...fresh(),launchScreen:incorrect}),/LCARS startup screen/);
+ }
+});
+
+test("loading rhythm presets never changes the user\'s startup-screen preference",()=>{
+ const settings=fresh();settings.launchScreen=true;
+ const current=fresh();current.launchScreen=false;
+ const output=loadPreset(current,{name:'Preset',settings});
+ assert.equal(output.launchScreen,false);
+});
+
+test('navigation adds the tactile keypress without losing the window-change sample',()=>{
+ const heard=[];
+ const audio={ui:(...args)=>heard.push(args)};
+ const nav={dataset:{tab:'audio'},classList:{contains:()=>false}};
+ playControlCue(nav,audio,{uiEnabled:true});
+ assert.deepEqual(heard.map(x=>x[0]),['buttonpress','lcars-menu-build']);
+ assert.equal(heard[1][2],.055);
+ heard.length=0;
+ const active={dataset:{tab:'audio'},classList:{contains:()=>true}};
+ playControlCue(active,audio,{uiEnabled:true});
+ assert.deepEqual(heard.map(x=>x[0]),['buttonpress']);
+ heard.length=0;
+ playControlCue({id:'view',dataset:{},classList:{contains:()=>false}},audio,{uiEnabled:true});
+ assert.deepEqual(heard.map(x=>x[0]),['switchingmenus']);
+});
+
+test('visible accessible LCARS startup includes real logo and an opt-out control',()=>{
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
+ assert.match(html,/id="lcarsStartup"/);
+ assert.match(html,/id="lcarsInitialize"[^>]*>INITIALIZE LCARS/);
+ assert.match(html,/assets\/icon\.svg/);
+ assert.match(html,/id="launchScreen" type="checkbox"/);
+ assert.match(app,/if\(state\.launchScreen\)/);
+ assert.match(app,/await Promise\.race/);
+ assert.match(app,/motion\.boot\(\); \/\/ Real animation/);
+ assert.match(sw,/\.\/v2-startup\.css/);
+});

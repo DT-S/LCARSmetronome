@@ -37,6 +37,14 @@ const targets=[
  {width:1920,height:1080,label:'desktop-wide'}
 ];
 let fail=0;
+async function initializeLCARS(page){
+ await page.waitForFunction(()=>document.querySelector('#lcarsStartup')?.dataset.ready==='true',{timeout:20000});
+ const gate=page.locator('#lcarsInitialize');
+ if(await gate.isVisible()){
+  await gate.click();
+  await page.waitForFunction(()=>document.querySelector('#lcarsStartup').hidden,{timeout:15000});
+ }
+}
 try{
  for(const {width,height,label} of targets){
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1,reducedMotion:'reduce'});
@@ -45,6 +53,7 @@ try{
   page.on('response',response=>{if(response.status()>=400)errors.push(`${response.status()} ${response.url()}`);});
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:20000});
    assert.equal(await page.locator('#modeButtons button').count(),8,`${label}: operating modes`);
    const dims=await page.evaluate(()=>{
@@ -223,6 +232,7 @@ try{
   const errors=[];p.on('pageerror',e=>errors.push(e.message));
   try{
    await p.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(p);
    const original=Number(await p.locator('#tempoValue').textContent());
    await p.locator('#view').click();
    assert.equal(await p.locator('#linearTempoValue').isVisible(),true,`${label}: Linear BPM missing`);
@@ -290,6 +300,7 @@ try{
   const errors=[];mobile.on('pageerror',e=>errors.push(e.message));
   try{
    await mobile.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(mobile);
    for(const scale of [.7,.9,1.1]){
     await mobile.locator('[data-tab="settings"]').click();
     await mobile.locator(`#scaleButtons button[data-ui-scale="${scale}"]`).click();
@@ -363,6 +374,7 @@ try{
   const faults=[];page.on('pageerror',e=>faults.push(e.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    for(const scale of [.7,1,1.1]){
     await page.locator('[data-tab="settings"]').click();
     await page.locator(`#scaleButtons button[data-ui-scale="${scale}"]`).click();
@@ -403,6 +415,7 @@ try{
   page.on('pageerror',error=>errors.push(error.message));
   try{
    await page.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(page);
    await page.waitForFunction(()=>document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
     null,{timeout:12000});
    await page.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:12000});
@@ -429,6 +442,7 @@ try{
    await page.locator('[data-tab="metronome"]').click();
    assert.equal(await page.locator('.app-shell.lcars-booting').count(),0,'Page navigation must not replay launch');
    await page.reload({waitUntil:'domcontentloaded'});
+   await initializeLCARS(page);
    await page.waitForFunction(()=>document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
     null,{timeout:12000});
    assert.deepEqual(errors,[]);
@@ -441,6 +455,7 @@ try{
   const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
   try{
    await page.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(page);
    await page.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:12000});
    assert.equal(await page.locator('.app-shell.lcars-booting').count(),0,'Reduced motion skips launch');
    assert.ok(await page.locator('#start').isVisible());
@@ -458,6 +473,7 @@ try{
   page.on('pageerror',error=>errors.push(error.message));
   try {
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.locator('[data-tab="audio"]').click();
    await page.waitForSelector('#mixer .pan-scale button',{timeout:15000});
    const pan=page.locator('#mixer input[data-field="pan"]').first();
@@ -514,6 +530,7 @@ try{
   page.on('pageerror',error=>errors.push(error.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    const guide=page.locator('.gesture-guide');
    assert.equal(await guide.count(),1,'P4 guide not installed');
    const session=await page.context().newCDPSession(page);
@@ -583,6 +600,7 @@ try{
   page.on('pageerror',e=>errors.push(e.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    const button=page.locator('#tempoValue'),guide=page.locator('.gesture-guide');
    await button.scrollIntoViewIfNeeded();
    const source=await button.boundingBox();
@@ -621,6 +639,7 @@ try{
   page.on('pageerror',error=>errors.push(error.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.locator('#view').click();
    const outer=page.locator('#linear .pattern-row[data-channel="0"]');
    const inner=page.locator('#linear .pattern-row[data-channel="1"]');
@@ -720,6 +739,7 @@ try{
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.locator('#view').click();
    const outer=page.locator('#linear .pattern-row[data-channel="0"]');
    const first=outer.locator('button.step').first();
@@ -751,6 +771,7 @@ try{
   page.on('pageerror',e=>errors.push(e.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    const audio=page.locator('#audio');
    await page.locator('[data-tab="audio"]').click();
    assert.equal(await audio.evaluate(el=>el.classList.contains('lcars-page-enter')),true,
@@ -858,6 +879,7 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.locator('[data-tab="audio"]').click();
    assert.equal(await page.locator('#audio').evaluate(el=>getComputedStyle(el).animationName),'none',
     'reduced-motion setting failed for page animation');
@@ -879,6 +901,7 @@ try{
   tabPage.on('pageerror',e=>failures.push(e.message));
   try{
    await tabPage.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(tabPage);
    // domcontentloaded can precede async module initialization. Wait for
    // real generated rhythm nodes before checking startup completion.
    await tabPage.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:10000});
@@ -953,6 +976,7 @@ try{
   const errors=[];viewPage.on('pageerror',e=>errors.push(e.message));
   try{
    await viewPage.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(viewPage);
    // domcontentloaded can precede async module initialization. Wait for
    // real generated rhythm nodes before checking startup completion.
    await viewPage.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:10000});
@@ -1051,6 +1075,7 @@ try{
   const reduced=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
   try{
    await reduced.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(reduced);
    await reduced.locator('#view').click();
    assert.equal(await reduced.locator('#linear.lcars-view-enter').count(),0,
     'reduced motion must not start Linear view assembly');
@@ -1068,6 +1093,7 @@ try{
   const faults=[];audioPage.on('pageerror',e=>faults.push(e.message));
   try{
    await audioPage.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(audioPage);
    // domcontentloaded can precede async module initialization. Wait for
    // real generated rhythm nodes before checking startup completion.
    await audioPage.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:10000});
@@ -1134,6 +1160,7 @@ try{
   const reduced=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
   try{
    await reduced.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(reduced);
    await reduced.locator('[data-tab="audio"]').click();
    assert.equal(await reduced.locator('#audio.lcars-page-enter').count(),0,
     'reduced motion should bypass mixer build');
@@ -1153,6 +1180,7 @@ try{
   const errors=[];linearPage.on('pageerror',e=>errors.push(e.message));
   try{
    await linearPage.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(linearPage);
    await linearPage.waitForSelector('#linear .pattern-row[data-channel="1"] .step',{state:'attached',timeout:12000});
    await linearPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),null,{timeout:3500});
    const original=Number(await linearPage.locator('#tempoValue').textContent());
@@ -1237,6 +1265,7 @@ try{
   const reduced=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
   try{
    await reduced.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(reduced);
    await reduced.locator('#view').click();
    await reduced.locator('[data-tab="settings"]').click();
    await reduced.locator('[data-tab="metronome"]').click();
@@ -1265,6 +1294,7 @@ try{
   const errors=[];p.on('pageerror',e=>errors.push(e.message));
   try{
    await p.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(p);
    await p.locator('[data-tab="analytics"]').click();
    // Use a temporary example only for the chart rendering assertion.
    await p.evaluate(async()=>{
@@ -1338,6 +1368,7 @@ try{
   const failures=[];p.on('pageerror',e=>failures.push(e.message));
   try{
    await p.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(p);
    const result=await p.evaluate(async()=>{
     const {AudioEngine}=await import('./src/audio.js');
     const {UI_CUE_ASSETS}=await import('./src/ui-cues.js');
@@ -1371,6 +1402,7 @@ try{
   page.on('pageerror',e=>errors.push(e.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.waitForSelector('#rings [data-channel="0"][data-index]');
    await page.waitForFunction(async()=>Boolean(await navigator.serviceWorker?.ready.then(r=>r.active)));
    await page.waitForFunction(async()=>Boolean(await caches.match('./index.html')));
@@ -1392,6 +1424,7 @@ try{
    assert.equal(snapshot.uiVolume,.42);
    await context.setOffline(true);
    await page.reload({waitUntil:'load'});
+   await initializeLCARS(page);
    await page.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:15000});
    await page.locator('[data-tab="settings"]').click();
    assert.equal(await page.locator('#uiEnabled').isChecked(),false,
@@ -1419,6 +1452,7 @@ try{
   page.on('pageerror',e=>errors.push(e.message));
   try{
    await page.goto(origin,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.waitForSelector('#rings [data-channel="0"][data-index]');
    const gestures=await page.evaluate(()=>{
     return {html:getComputedStyle(document.documentElement).touchAction,

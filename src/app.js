@@ -186,7 +186,7 @@ function applyScale(){
  $('#scaleReadout').textContent=Math.round(state.uiScale*100)+'%';
 }
 for(const scale of UI_SCALES){const b=document.createElement('button');b.type='button';b.dataset.uiScale=scale;b.textContent=Math.round(scale*100)+'%';b.onclick=()=>{state.uiScale=scale;applyScale();save();};$('#scaleButtons').append(b);}
-function render(){applyScale();for(const k of ['bpm','beats','subdivisions','countIn','duration','master','uiVolume'])$('#'+k).value=state[k];for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).checked=state[k];$$('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===state.mode));
+function render(){applyScale();for(const k of ['bpm','beats','subdivisions','countIn','duration','master','uiVolume'])$('#'+k).value=state[k];for(const k of ['uiEnabled','hoverEnabled','haptic','launchScreen'])$('#'+k).checked=state[k];$$('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===state.mode));
   const poly=['polyrhythm','polymeter'].includes(state.mode);
   $('#outerLabel').textContent=poly?'OUTER PATTERN LENGTH':'QUARTERS PER BAR';
   $('#innerLabel').textContent=poly?'INNER PATTERN LENGTH':'SUBDIVISIONS / QUARTER';
@@ -281,7 +281,7 @@ for(const k of ['master','uiVolume']){
  mountLcarsSlider(input,{kind:'volume',title:k==='master'?'MASTER / OUTPUT':'UI / VOLUME',
    code:k==='master'?'GAIN-M':'GAIN-UI',onValueChange:faderTouchFeedback});
 }
-for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};
+for(const k of ['uiEnabled','hoverEnabled','haptic','launchScreen'])$('#'+k).onchange=e=>{state[k]=e.target.checked;changed();};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();$('main').scrollTop=0;motion.page(b.dataset.tab);});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};
 $('#export').onclick=()=>{download(`lcars-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(state,null,2));notify('Backup exported.');};
@@ -317,10 +317,51 @@ installUpdateManager({
 });
 function frame(){if(scheduler.running){for(const event of scheduler.position()){$$(`[data-channel="${event.channel}"] .playing, .step.playing[data-channel="${event.channel}"]`).forEach(n=>n.classList.remove('playing'));$$(`[data-channel="${event.channel}"][data-index="${event.index}"]`).forEach(n=>(n.querySelector('.point')||n).classList.add('playing'));$('#playStatus').textContent=event.count?`COUNT-IN · ${-event.bar}`:`${event.mode==='polyrhythm'?'CYCLE':'BAR'} ${event.bar+1} · ${event.phase}`;tempoReadout(event);$('#dial').classList.toggle('gap-phase',event.phase==='GAP');}const elapsed=Math.max(0,audio.ctx.currentTime-scheduler.trainingStart);const seconds=Math.floor(scheduler.settings.duration?Math.max(0,scheduler.settings.duration-elapsed):elapsed);$('#clock').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}requestAnimationFrame(frame);}
 try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();
-const isLaunching=motion.boot();
-if(isLaunching)armLaunchCue({
- root:document,audio,unlock,getState:()=>state,
- isBooting:()=>document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
- bootDurationMs:LCARS_BOOT_DURATION_MS
-});
+const startup=$('#lcarsStartup'),initialize=$('#lcarsInitialize');
+function bootDirect(){
+ const isLaunching=motion.boot();
+ if(isLaunching)armLaunchCue({
+  root:document,audio,unlock,getState:()=>state,
+  isBooting:()=>document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
+  bootDurationMs:LCARS_BOOT_DURATION_MS
+ });
+}
+if(state.launchScreen){
+ const shell=$('.app-shell');
+ shell.inert=true; // No keyboard or pointer interaction behind the modal.
+ startup.hidden=false;
+ initialize.focus({preventScroll:true});
+ initialize.addEventListener('click',async()=>{
+  if(initialize.disabled)return;
+  initialize.disabled=true;
+  initialize.textContent='INITIALIZING LCARS…';
+  // The unlock call begins synchronously in this actual user click, before
+  // any awaiting, so Firefox/WebKit may grant WebAudio playback.
+  if(state.uiEnabled){
+   let timeout;
+   try{
+    const ready=unlock();
+    await Promise.race([
+     Promise.all([ready,audio.launchReady]),
+     new Promise(resolve=>{timeout=setTimeout(resolve,1800);})
+    ]);
+   }catch{}finally{clearTimeout(timeout);}
+  }
+  startup.hidden=true;
+  shell.inert=false;
+  motion.boot(); // Real animation starts only after the initialization gesture.
+  if(state.uiEnabled && audio.ctx?.state==='running' && audio.buffers.has('lcars-launch')){
+   audio.mix(state);
+   audio.ui('lcars-launch',state);
+  }else if(state.uiEnabled){
+   // A blocked browser or slow decoder must never trap the user on the splash.
+   armLaunchCue({
+    root:document,audio,unlock,getState:()=>state,
+    isBooting:()=>document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
+    bootDurationMs:LCARS_BOOT_DURATION_MS
+   });
+  }
+ },{once:true});
+}else bootDirect();
+startup.dataset.ready='true';
 storageStatus().catch(()=>{});frame();

@@ -1,0 +1,49 @@
+/* Optional immersive LCARS initialization screen (not affected by UI zoom). */
+.lcars-start-screen[hidden]{display:none!important}
+.lcars-start-screen{
+ position:fixed;inset:0;z-index:1000;display:flex;flex-direction:column;overflow:auto;
+ box-sizing:border-box;min-height:100%;background:#000;color:#ffcc99;
+ padding:max(18px,env(safe-area-inset-top)) clamp(16px,4vw,72px) max(18px,env(safe-area-inset-bottom));
+ font-family:"Arial Narrow","Liberation Sans Narrow",Arial,sans-serif;
+}
+.lcars-start-rail,.lcars-start-bottom{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;
+ background:#c9a4de;color:#08070c;padding:12px 22px;border-radius:28px 28px 4px 4px;
+ font-size:clamp(11px,1.5vw,15px);font-weight:900;letter-spacing:.12em;
+}
+.lcars-start-rail{border-radius:36px 6px 6px 6px;min-height:30px}
+.lcars-start-bottom{border-radius:6px 6px 36px 6px;background:#f0ad73;min-height:22px}
+.lcars-start-console{
+ width:min(100%,590px);margin:auto;min-height:0;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;text-align:center;gap:clamp(12px,3vh,28px);
+ padding:clamp(26px,5vh,56px) 0;
+}
+.lcars-start-kicker,.lcars-start-footer{color:#d2a5df;font-weight:800;letter-spacing:.2em;font-size:clamp(10px,2vw,14px)}
+.lcars-start-logo{
+ width:clamp(106px,21vmin,190px);height:auto;aspect-ratio:1;
+ filter:drop-shadow(0 0 22px rgba(184,141,220,.2));
+}
+.lcars-start-console h2{
+ font:900 clamp(30px,6vw,58px)/1.08 Impact,"Arial Narrow",sans-serif;
+ margin:0;color:#f8b871;letter-spacing:.04em;
+}
+.lcars-start-console h2 span{color:#d2a5df}
+#lcarsStartupNote{margin:0;color:#bdaec9;font-weight:700;font-size:clamp(11px,1.8vw,14px);letter-spacing:.055em}
+.lcars-start-activate{
+ width:min(100%,420px);min-height:clamp(66px,10vh,94px);border:0;
+ border-radius:28px 6px 28px 6px;background:#edb47d;color:#060409;cursor:pointer;
+ font:900 clamp(18px,3vw,29px)/1.12 Impact,"Arial Narrow",sans-serif;
+ letter-spacing:.07em;transition:filter .14s,transform .14s;
+}
+.lcars-start-activate:hover{filter:brightness(1.12)}
+.lcars-start-activate:active{transform:scale(.985)}
+.lcars-start-activate:focus-visible{outline:3px solid #d2a5df;outline-offset:5px}
+.lcars-start-activate:disabled{cursor:progress;opacity:.75}
+@media(max-width:640px){
+ .lcars-start-screen{padding-left:14px;padding-right:14px}
+ .lcars-start-rail,.lcars-start-bottom{padding:10px 14px}
+ .lcars-start-console{gap:20px}
+}
+@media(prefers-reduced-motion:reduce){
+ .lcars-start-activate{transition:none}
+}

@@ -251,5 +251,5 @@ test('RC10 rebuilds individual view beats without any outer LCARS chassis animat
   'view switch must not touch startup shell');
  assert.doesNotMatch(newRules,/animation:[^;]*infinite/);
  assert.match(newRules,/prefers-reduced-motion:reduce/);
- assert.match(sw,/lcars-core-v2-rc10-view-assembly/);
+ assert.match(sw,/const CACHE=PREFIX\+'lcars-core-v2-rc\d+-/);
 });

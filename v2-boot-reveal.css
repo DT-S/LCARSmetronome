@@ -28,13 +28,33 @@
  transform-origin:center top;
  animation:lcars-rc22-open-y 480ms cubic-bezier(.22,1,.36,1) 155ms both;
 }
+/* Keep the REAL instrument and buttons at full hit-test geometry at all
+   times. Only their non-interactive fascia is allowed to pull open. */
 .app-shell.lcars-booting #metronome .instrument{
- animation:lcars-rc22-expand-panel 580ms cubic-bezier(.22,1,.36,1) 230ms both;
+ animation:lcars-launch-border 560ms ease-out 230ms both;
+}
+.app-shell.lcars-booting #metronome .instrument::before,
+.app-shell.lcars-booting #metronome .instrument::after{
+ transform-origin:left center;pointer-events:none;
+ animation:lcars-rc22-open-x 540ms cubic-bezier(.22,1,.36,1) 275ms both;
 }
 .app-shell.lcars-booting #metronome .side-controls > .panel{
- animation:lcars-rc22-expand-panel 530ms cubic-bezier(.22,1,.36,1) 310ms both;
+ position:relative;
+ animation:lcars-launch-panel-border 560ms ease-out 310ms both;
 }
-.app-shell.lcars-booting #metronome .side-controls > .panel:nth-of-type(2){animation-delay:400ms}
+.app-shell.lcars-booting #metronome .side-controls > .panel::after{
+ content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+ border-radius:inherit;
+ background:linear-gradient(90deg,rgba(204,153,204,.28),rgba(255,153,0,.06) 70%,transparent);
+ transform-origin:left center;
+ animation:lcars-rc22-open-x 530ms cubic-bezier(.22,1,.36,1) 310ms both;
+}
+.app-shell.lcars-booting #metronome .side-controls > .panel:nth-of-type(2){
+ animation-delay:400ms;
+}
+.app-shell.lcars-booting #metronome .side-controls > .panel:nth-of-type(2)::after{
+ animation-delay:400ms;
+}
 .app-shell.lcars-booting > aside nav .nav{
  transform-origin:left center;
  animation:lcars-rc22-open-x 280ms cubic-bezier(.22,1,.36,1) var(--rc22-nav-delay,280ms) both;

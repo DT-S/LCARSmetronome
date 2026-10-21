@@ -495,7 +495,7 @@ try{
       aspect:dial.width/dial.height};
    });
    assert.match(animations.ring,/lcars-launch-ring/);
-   assert.match(animations.nav,/lcars-launch-pop/);
+   assert.match(animations.nav,/lcars-rc22-open-x/);
    assert.ok(Math.abs(animations.aspect-1)<.04,'Circular sequencer must remain round during launch');
    await page.screenshot({path:path.join(screenshots,'launch-01-structural.png')});
    await page.waitForTimeout(230);

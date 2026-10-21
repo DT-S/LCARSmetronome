@@ -619,49 +619,49 @@
     html:not([data-lcars-motion="force"]) .emblem-ring-inner,
     html:not([data-lcars-motion="force"]) .emblem-pulse-core,
     html:not([data-lcars-motion="force"]) .emblem-pendulum,
-    .lcars-studio-dot {
+    html:not([data-lcars-motion="force"]) .lcars-studio-dot {
       animation: none !important;
     }
   }
 
 /* Integration and legibility corrections */
-.lcars-start-screen { isolation:isolate;min-height:100dvh;overflow-x:hidden;overflow-y:auto; }
-.lcars-start-screen[hidden] {display:none!important}
-.lcars-start-console,.lcars-console-frame{min-width:0;}
-.lcars-console-frame{max-width:min(100%,680px)}
-.lcars-title-stack{gap:clamp(10px,1.5vh,16px)}
-.lcars-start-console h2{line-height:1.12;white-space:normal}
-.lcars-subbrand-bar{width:min(100%,520px);max-width:100%;min-height:26px;line-height:1.25;padding:5px 12px;font-size:clamp(10px,1.25vw,15px);text-wrap:balance}
-.lcars-studio-badge{max-width:100%;font-size:clamp(10px,1.1vw,13px);white-space:nowrap}
-.lcars-start-activate{max-width:100%;touch-action:manipulation}
-.lcars-start-activate #lcarsInitText{min-width:0;text-align:center}
-.lcars-start-activate .btn-sub{flex-shrink:0}
-.lcars-side-block{touch-action:manipulation}
-.lcars-side-block:focus-visible{outline:3px solid var(--padd-cream);outline-offset:3px}
+html:not([data-lcars-motion="force"]) .lcars-start-screen { isolation:isolate;min-height:100dvh;overflow-x:hidden;overflow-y:auto; }
+html:not([data-lcars-motion="force"]) .lcars-start-screen[hidden] {display:none!important}
+html:not([data-lcars-motion="force"]) .lcars-start-console,.lcars-console-frame{min-width:0;}
+html:not([data-lcars-motion="force"]) .lcars-console-frame{max-width:min(100%,680px)}
+html:not([data-lcars-motion="force"]) .lcars-title-stack{gap:clamp(10px,1.5vh,16px)}
+html:not([data-lcars-motion="force"]) .lcars-start-console h2{line-height:1.12;white-space:normal}
+html:not([data-lcars-motion="force"]) .lcars-subbrand-bar{width:min(100%,520px);max-width:100%;min-height:26px;line-height:1.25;padding:5px 12px;font-size:clamp(10px,1.25vw,15px);text-wrap:balance}
+html:not([data-lcars-motion="force"]) .lcars-studio-badge{max-width:100%;font-size:clamp(10px,1.1vw,13px);white-space:nowrap}
+html:not([data-lcars-motion="force"]) .lcars-start-activate{max-width:100%;touch-action:manipulation}
+html:not([data-lcars-motion="force"]) .lcars-start-activate #lcarsInitText{min-width:0;text-align:center}
+html:not([data-lcars-motion="force"]) .lcars-start-activate .btn-sub{flex-shrink:0}
+html:not([data-lcars-motion="force"]) .lcars-side-block{touch-action:manipulation}
+html:not([data-lcars-motion="force"]) .lcars-side-block:focus-visible{outline:3px solid var(--padd-cream);outline-offset:3px}
 @media(max-width:640px){
- .lcars-start-screen{padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));--elbow-w:clamp(55px,16vw,74px)}
- .lcars-start-top,.lcars-start-body,.lcars-start-bottom-wrap{column-gap:5px}
- .lcars-side-block{min-height:38px!important;padding:5px 4px;font-size:clamp(7px,2vw,10px)}
- .lcars-side-block small{font-size:7px}
- .lcars-side-filler{padding:4px;font-size:7px}
- .lcars-sub-title{font-size:clamp(9px,2.5vw,12px);line-height:1.3}
- .lcars-start-console{padding:3px}
- .lcars-console-frame{gap:clamp(7px,1vh,12px);padding:10px 7px}
- .lcars-start-kicker{font-size:clamp(8px,2vw,10px);letter-spacing:.05em}
- .lcars-start-kicker::before,.lcars-start-kicker::after{width:12px;height:2px}
- .lcars-start-console h2{font-size:clamp(25px,7vw,36px);letter-spacing:.015em}
- .lcars-emblem-wrap{width:clamp(95px,28vw,152px)}
- .lcars-subbrand-bar{font-size:clamp(8px,2vw,11px);letter-spacing:.035em;min-height:23px;padding:3px 7px}
- .lcars-studio-badge{font-size:9px;letter-spacing:.08em;padding:3px 6px}
- #lcarsStartupNote{font-size:clamp(9px,2vw,11px);letter-spacing:0}
- .lcars-activate-wrap{width:min(100%,360px)}
- .lcars-start-activate{min-height:55px;padding:7px 8px;font-size:clamp(14px,4vw,19px);letter-spacing:.02em}
- .lcars-start-activate .btn-sub{font-size:8px;padding:4px}
- .lcars-start-footer{font-size:8px;letter-spacing:.04em;line-height:1.4}
- .lcars-rail-segments .lcars-seg{font-size:8px;padding:0 4px}
- .lcars-top-subbar{padding-left:2px}
- .lcars-bottom-segments .lcars-seg{font-size:7px;padding:0 4px}
- .lcars-elbow-top,.lcars-elbow-bottom{font-size:9px}
+ html:not([data-lcars-motion="force"]) .lcars-start-screen{padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));--elbow-w:clamp(55px,16vw,74px)}
+ html:not([data-lcars-motion="force"]) .lcars-start-top,.lcars-start-body,.lcars-start-bottom-wrap{column-gap:5px}
+ html:not([data-lcars-motion="force"]) .lcars-side-block{min-height:38px!important;padding:5px 4px;font-size:clamp(7px,2vw,10px)}
+ html:not([data-lcars-motion="force"]) .lcars-side-block small{font-size:7px}
+ html:not([data-lcars-motion="force"]) .lcars-side-filler{padding:4px;font-size:7px}
+ html:not([data-lcars-motion="force"]) .lcars-sub-title{font-size:clamp(9px,2.5vw,12px);line-height:1.3}
+ html:not([data-lcars-motion="force"]) .lcars-start-console{padding:3px}
+ html:not([data-lcars-motion="force"]) .lcars-console-frame{gap:clamp(7px,1vh,12px);padding:10px 7px}
+ html:not([data-lcars-motion="force"]) .lcars-start-kicker{font-size:clamp(8px,2vw,10px);letter-spacing:.05em}
+ html:not([data-lcars-motion="force"]) .lcars-start-kicker::before,.lcars-start-kicker::after{width:12px;height:2px}
+ html:not([data-lcars-motion="force"]) .lcars-start-console h2{font-size:clamp(25px,7vw,36px);letter-spacing:.015em}
+ html:not([data-lcars-motion="force"]) .lcars-emblem-wrap{width:clamp(95px,28vw,152px)}
+ html:not([data-lcars-motion="force"]) .lcars-subbrand-bar{font-size:clamp(8px,2vw,11px);letter-spacing:.035em;min-height:23px;padding:3px 7px}
+ html:not([data-lcars-motion="force"]) .lcars-studio-badge{font-size:9px;letter-spacing:.08em;padding:3px 6px}
+ html:not([data-lcars-motion="force"]) #lcarsStartupNote{font-size:clamp(9px,2vw,11px);letter-spacing:0}
+ html:not([data-lcars-motion="force"]) .lcars-activate-wrap{width:min(100%,360px)}
+ html:not([data-lcars-motion="force"]) .lcars-start-activate{min-height:55px;padding:7px 8px;font-size:clamp(14px,4vw,19px);letter-spacing:.02em}
+ html:not([data-lcars-motion="force"]) .lcars-start-activate .btn-sub{font-size:8px;padding:4px}
+ html:not([data-lcars-motion="force"]) .lcars-start-footer{font-size:8px;letter-spacing:.04em;line-height:1.4}
+ html:not([data-lcars-motion="force"]) .lcars-rail-segments .lcars-seg{font-size:8px;padding:0 4px}
+ html:not([data-lcars-motion="force"]) .lcars-top-subbar{padding-left:2px}
+ html:not([data-lcars-motion="force"]) .lcars-bottom-segments .lcars-seg{font-size:7px;padding:0 4px}
+ html:not([data-lcars-motion="force"]) .lcars-elbow-top,.lcars-elbow-bottom{font-size:9px}
 }
 @media(max-height:520px) and (orientation:landscape){
  .lcars-start-screen{overflow-y:auto}

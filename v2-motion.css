@@ -88,10 +88,10 @@
   html:not([data-lcars-motion="force"]) #start.lcars-status-confirm,
   html:not([data-lcars-motion="force"]) .xy-plot .chart-line,
   html:not([data-lcars-motion="force"]) .xy-plot .chart-bar,
-  .xy-plot .chart-dot {
+  html:not([data-lcars-motion="force"]) .xy-plot .chart-dot {
     animation:none!important;transform:none!important;clip-path:none!important;
   }
-  .xy-plot .chart-probe-line {transition:none!important;}
+  html:not([data-lcars-motion="force"]) .xy-plot .chart-probe-line {transition:none!important;}
 }
 
 /* ==========================================================================
@@ -269,7 +269,7 @@
   html:not([data-lcars-motion="force"]) .app-shell.lcars-booting *,
   html:not([data-lcars-motion="force"]) .app-shell.lcars-booting::after,
   html:not([data-lcars-motion="force"]) .app-shell.lcars-booting > header::before,
-  .app-shell.lcars-booting > header::after {
+  html:not([data-lcars-motion="force"]) .app-shell.lcars-booting > header::after {
     animation:none!important;
     clip-path:none!important;
   }
@@ -371,7 +371,7 @@
   html:not([data-lcars-motion="force"]) .page.lcars-page-enter,
   html:not([data-lcars-motion="force"]) .page.lcars-page-enter *,
   html:not([data-lcars-motion="force"]) .page.lcars-page-enter::before,
-  .page.lcars-page-enter::after {
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter::after {
     animation:none!important;
     clip-path:none!important;
   }
@@ -509,7 +509,7 @@
   html:not([data-lcars-motion="force"]) .page.lcars-page-enter,
   html:not([data-lcars-motion="force"]) .page.lcars-page-enter *,
   html:not([data-lcars-motion="force"]) .page.lcars-page-enter::before,
-  .page.lcars-page-enter::after {
+  html:not([data-lcars-motion="force"]) .page.lcars-page-enter::after {
     animation:none!important;
     clip-path:none!important;
   }
@@ -573,7 +573,7 @@
   html:not([data-lcars-motion="force"]) #metronome #dial.lcars-view-enter,
   html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter,
   html:not([data-lcars-motion="force"]) #metronome #dial.lcars-view-enter *,
-  #metronome #linear.lcars-view-enter * {
+  html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter * {
     animation:none!important;
     opacity:1;
     filter:none;
@@ -733,7 +733,7 @@
    existing interactive scrubbing/LED animations without sticky classes. */
 @media (prefers-reduced-motion:reduce) {
   html:not([data-lcars-motion="force"]) #audio.lcars-page-enter #mixer *,
-  #audio.lcars-page-enter .master * {
+  html:not([data-lcars-motion="force"]) #audio.lcars-page-enter .master * {
     animation:none!important;
   }
 }
@@ -837,7 +837,7 @@
    during a gesture. Never keep inputs or beat controls invisible. */
 @media (prefers-reduced-motion:reduce) {
   html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter,
-  #metronome #linear.lcars-view-enter * {
+  html:not([data-lcars-motion="force"]) #metronome #linear.lcars-view-enter * {
     animation:none!important;
   }
 }

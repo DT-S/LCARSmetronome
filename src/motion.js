@@ -2,6 +2,7 @@
 // Never called by the audio frame, scheduler or chart value calculations.
 export const LCARS_BOOT_DURATION_MS=1450;
 export const LCARS_PAGE_BUILD_DURATION_MS=1200;
+export const LCARS_VIEW_BUILD_DURATION_MS=1200;
 export function shouldLaunchBoot({reducedMotion=false,metronomeVisible=true}={}){
  return !reducedMotion&&metronomeVisible;
 }
@@ -53,6 +54,7 @@ export function createMotionController(root=document){
   if(!next||next.hidden)return false;
   lastPage=nextId;
   finishBoot(); // User-initiated navigation cancels any remaining launch choreography.
+  finishView(); // No stale view animation when a different page opens.
   for(const item of pages)finishPage(item);
   // Respect OS motion preference for every switch, not only initial boot.
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -62,17 +64,25 @@ export function createMotionController(root=document){
   }
   return true;
  }
+ let activeView=null,viewTimer=null;
+ function finishView(){
+  if(viewTimer!==null){clearTimeout(viewTimer);viewTimer=null;}
+  clear(activeView,'lcars-view-enter');
+  activeView=null;
+ }
  function view(next){
-  if(!next||next.hidden)return;
+  // View switches are independent of tab navigation: the persistent panel,
+  // mode selection, tempo and transport must never animate again.
+  finishView();
+  if(!next||next.hidden)return false;
+  const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce)return false;
+  activeView=next;
   run(next,'lcars-view-enter');
-  const finish=e=>{
-   if(e.target!==next)return;
-   next.classList.remove('lcars-view-enter');
-   next.removeEventListener('animationend',finish);
-   next.removeEventListener('animationcancel',finish);
-  };
-  next.addEventListener('animationend',finish);
-  next.addEventListener('animationcancel',finish);
+  // Child beats have different delays, so animationend on the container
+  // would clean up too early. Use one bounded timer for the last beat.
+  viewTimer=setTimeout(finishView,LCARS_VIEW_BUILD_DURATION_MS);
+  return true;
  }
  function mode(button){
   if(!button)return;

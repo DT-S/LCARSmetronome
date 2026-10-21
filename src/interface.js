@@ -86,9 +86,9 @@ export function activationSound(control){
  if(id==='minus'||id==='linearTempoMinus')return 'keypress_decrease';
  const klass=typeof control.className==='string'?control.className:'';
  const label=(control.getAttribute?.('aria-label')||control.getAttribute?.('title')||'').toLowerCase();
- if(/(?:plus|increase|step-up|quick-right|jump-up)/i.test(klass)||/increase|volume up|pan right|\+1%|jump \+/.test(label))
+ if(/(?:plus|increase|step-up|quick-right|micro-right|jump-up)/i.test(klass)||/increase|volume up|pan right|\+1%|jump \+/.test(label))
   return 'keypress_increase';
- if(/(?:minus|decrease|step-down|quick-left|jump-down)/i.test(klass)||/decrease|volume down|pan left|-1%|jump -/.test(label))
+ if(/(?:minus|decrease|step-down|quick-left|micro-left|jump-down)/i.test(klass)||/decrease|volume down|pan left|-1%|jump -/.test(label))
   return 'keypress_decrease';
  return 'buttonpress';
 }

@@ -4,4 +4,11 @@ const FILES=['./','./index.html','./style.css','./v2-layout.css','./v2-precision
 self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(FILES.map(file=>new Request(new URL(file,self.registration.scope),{cache:'reload'})));await self.skipWaiting();})()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith(PREFIX)&&k!==CACHE)await caches.delete(k);await self.clients.claim();})()));
 self.addEventListener('message',e=>{if(e.data==='ACTIVATE')self.skipWaiting();});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin)return;e.respondWith((async()=>{const c=await caches.open(CACHE),cached=await c.match(e.request);if(e.request.mode==='navigate'){try{const fresh=await fetch(e.request,{cache:'no-store'});if(fresh.ok)return fresh;}catch{}return cached||await c.match('./index.html')||new Response('Offline page unavailable',{status:503});}if(cached)return cached;try{return await fetch(e.request);}catch{return new Response('Offline resource unavailable',{status:503});}})());});
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).origin!==self.location.origin)return;e.respondWith((async()=>{const c=await caches.open(CACHE),cached=await c.match(e.request);if(e.request.mode==='navigate'){try{const fresh=await fetch(e.request,{cache:'no-store'});if(fresh.ok)return fresh;}catch{}return cached||await c.match('./index.html')||new Response('Offline page unavailable',{status:503});}
+ // Source files are network-first when online, but still available from the
+ // versioned local cache offline. This also heals stale Safari PWA assets.
+ if(/\\.(?:js|css)$/.test(new URL(e.request.url).pathname)){
+  try{const fresh=await fetch(e.request,{cache:'no-store'});if(fresh.ok){await c.put(e.request,fresh.clone());return fresh;}}catch{}
+  return cached||new Response('Offline code resource unavailable',{status:503});
+ }
+ if(cached)return cached;try{return await fetch(e.request);}catch{return new Response('Offline resource unavailable',{status:503});}})());});

@@ -96,6 +96,8 @@ try{
    await launch.locator('[data-set-theme="voyager"]').click();
    await launch.locator('#lcarsInitialize').click();
    await launch.waitForFunction(()=>document.querySelector('#lcarsStartup').hidden);
+   assert.equal(await launch.locator('#mobileBuildVersion').textContent(),'CORE 2.0.0 RC22');
+   assert.equal(await launch.locator('#desktopBuildVersion').textContent(),'CORE 2.0.0 RC22');
    assert.equal(await launch.locator('#start').isVisible(),true);
    console.log('PASS Voyager LCARS startup appearance',width);
   }catch(error){

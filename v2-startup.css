@@ -615,10 +615,10 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .emblem-ring-outer,
-    .emblem-ring-inner,
-    .emblem-pulse-core,
-    .emblem-pendulum,
+    html:not([data-lcars-motion="force"]) .emblem-ring-outer,
+    html:not([data-lcars-motion="force"]) .emblem-ring-inner,
+    html:not([data-lcars-motion="force"]) .emblem-pulse-core,
+    html:not([data-lcars-motion="force"]) .emblem-pendulum,
     .lcars-studio-dot {
       animation: none !important;
     }

@@ -30,15 +30,22 @@ export class AudioEngine {
     const legacy=['switchingmenus','hoversound','Acceptsound',
       'invalidsound','Warningsound','buttonpress'].map(name=>
       ['legacy-'+name,'./assets/audio/ui/'+name+'.mp3']);
-    await Promise.all([...newEntries,...legacy].map(async([key,path])=>{
-      try{
-        const response=await fetch(path);
-        if(!response.ok)throw Error('HTTP '+response.status);
-        const bytes=await response.arrayBuffer();
-        if(!bytes.byteLength)throw Error('Empty sound');
-        this.buffers.set(key,await this.ctx.decodeAudioData(bytes));
-      }catch{this.sampleStatus.push(key);}
-    }));
+    // Let the opening sample finish independently of the other 20 files.
+    // Waiting for the entire bank can miss the short startup animation.
+    const cueLoads=[...newEntries,...legacy].map(([key,path])=>{
+      const task=(async()=>{
+        try{
+          const response=await fetch(path);
+          if(!response.ok)throw Error('HTTP '+response.status);
+          const bytes=await response.arrayBuffer();
+          if(!bytes.byteLength)throw Error('Empty sound');
+          this.buffers.set(key,await this.ctx.decodeAudioData(bytes));
+        }catch{this.sampleStatus.push(key);}
+      })();
+      if(key==='lcars-launch')this.launchReady=task;
+      return task;
+    });
+    await Promise.all(cueLoads);
     // Preserve the old Acceptsound key for existing positive toasts.
     const accepted=this.buffers.get('legacy-Acceptsound');
     if(accepted)this.buffers.set('Acceptsound',accepted);

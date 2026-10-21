@@ -8,7 +8,8 @@ import {installViewportZoomGuard} from './viewport-zoom-guard.js';
 import {installLinearBeatGesture} from './linear-gesture.js';
 import {installTempoControl,radialTicks} from './tempo-control.js';
 import {createGestureGuide} from './gesture-guide.js';
-import {createMotionController} from './motion.js';
+import {createMotionController,LCARS_BOOT_DURATION_MS} from './motion.js';
+import {armLaunchCue} from './launch-cue.js';
 import {customSoundUI} from './custom-sounds.js';
 import {createDiaryUI} from './diary-ui.js';
 import {SOUNDS} from './synth.js';
@@ -317,20 +318,9 @@ installUpdateManager({
 function frame(){if(scheduler.running){for(const event of scheduler.position()){$$(`[data-channel="${event.channel}"] .playing, .step.playing[data-channel="${event.channel}"]`).forEach(n=>n.classList.remove('playing'));$$(`[data-channel="${event.channel}"][data-index="${event.index}"]`).forEach(n=>(n.querySelector('.point')||n).classList.add('playing'));$('#playStatus').textContent=event.count?`COUNT-IN · ${-event.bar}`:`${event.mode==='polyrhythm'?'CYCLE':'BAR'} ${event.bar+1} · ${event.phase}`;tempoReadout(event);$('#dial').classList.toggle('gap-phase',event.phase==='GAP');}const elapsed=Math.max(0,audio.ctx.currentTime-scheduler.trainingStart);const seconds=Math.floor(scheduler.settings.duration?Math.max(0,scheduler.settings.duration-elapsed):elapsed);$('#clock').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}requestAnimationFrame(frame);}
 try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();
 const isLaunching=motion.boot();
-if(isLaunching){
- // iOS/WebKit blocks unprompted sound on a cold launch. If the user starts
- // interacting during the structural build, unlock sound on that gesture;
- // never unexpectedly play the intro long after the animation has finished.
- let launchAttempted=false;
- const startLaunchCue=()=>{
-  if(launchAttempted||!document.querySelector('.app-shell')?.classList.contains('lcars-booting'))return;
-  launchAttempted=true;
-  unlock().then(()=>audio.loading).then(()=>{
-   if(document.querySelector('.app-shell')?.classList.contains('lcars-booting'))
-    audio.ui('lcars-launch',state);
-  }).catch(()=>{});
- };
- document.addEventListener('pointerdown',startLaunchCue,{once:true,capture:true});
- document.addEventListener('keydown',startLaunchCue,{once:true,capture:true});
-}
+if(isLaunching)armLaunchCue({
+ root:document,audio,unlock,getState:()=>state,
+ isBooting:()=>document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
+ bootDurationMs:LCARS_BOOT_DURATION_MS
+});
 storageStatus().catch(()=>{});frame();

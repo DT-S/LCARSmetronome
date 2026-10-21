@@ -117,6 +117,7 @@ export function installFeedback(root,{unlock,audio,state}){
   const token={id:e.pointerId,control:c,x:e.clientX,y:e.clientY};press=token;
   if(c&&e.pointerType!=='mouse')c.classList.add('touch-pressed');
   // Tap must beep once on contact: never play its normal hover sound.
+  if(c?.closest?.('#uiSoundPreviewButtons'))return; // Preview its own cue; never hover on top.
   if(c?.id==='tap'){
    unlock().then(()=>audio.loading).then(()=>audio.ui('buttonpress',state())).catch(()=>{});
    if(state().haptic)globalThis.navigator?.vibrate?.(8);
@@ -134,7 +135,9 @@ export function installFeedback(root,{unlock,audio,state}){
   // Labels generate another click on their input; sound only once.
   if(c.tagName==='LABEL'){if(e.target.tagName==='INPUT'&&labelClick?.control===c&&performance.now()-labelClick.time<80){labelClick=null;return;}if(e.target.tagName!=='INPUT')labelClick={control:c,time:performance.now()};}
   if(c.tagName==='LABEL'&&c.querySelector('input[type=checkbox]'))return;
-  if(c.closest('.sound-choices'))return; // These buttons already preview the instrument.
+  if(c.closest('.sound-choices')||c.closest?.('#uiSoundPreviewButtons'))return;
+  // The 15 diagnostic buttons play their exact assigned cue, once, in
+  // their own click callback. Never layer a generic keypress on top.
   const sound=activationSound(c); // Capture before tab/mode handlers mutate state.
   unlock().then(()=>audio.loading).then(()=>audio.ui(sound,state())).catch(()=>{});
   if(state().haptic)globalThis.navigator?.vibrate?.(8);

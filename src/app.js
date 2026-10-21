@@ -327,7 +327,10 @@ function bootDirect(){
  });
 }
 if(state.launchScreen){
+ const shell=$('.app-shell');
+ shell.inert=true; // No keyboard or pointer interaction behind the modal.
  startup.hidden=false;
+ initialize.focus({preventScroll:true});
  initialize.addEventListener('click',async()=>{
   if(initialize.disabled)return;
   initialize.disabled=true;
@@ -345,6 +348,7 @@ if(state.launchScreen){
    }catch{}finally{clearTimeout(timeout);}
   }
   startup.hidden=true;
+  shell.inert=false;
   motion.boot(); // Real animation starts only after the initialization gesture.
   if(state.uiEnabled && audio.ctx?.state==='running' && audio.buffers.has('lcars-launch')){
    audio.mix(state);

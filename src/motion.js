@@ -96,6 +96,19 @@ export function createMotionController(root=document){
    next.id==='linear'?LCARS_LINEAR_BUILD_DURATION_MS:LCARS_VIEW_BUILD_DURATION_MS);
   return true;
  }
+ // The real initial boot is one-shot. A user-triggered diagnostic can
+ // deliberately replay the same animation after the audio context is unlocked.
+ // Never restart a boot from ordinary navigation or a periodic render.
+ function replayBoot(){
+  const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const metronome=root.getElementById('metronome');
+  if(reduce||!shell||!metronome||metronome.hidden)return false;
+  finishBoot();finishView();
+  for(const item of pages)finishPage(item);
+  run(shell,'lcars-booting');
+  bootTimer=setTimeout(finishBoot,LCARS_BOOT_DURATION_MS);
+  return true;
+ }
  function mode(button){
   if(!button)return;
   button.classList.remove('lcars-mode-ack');
@@ -122,5 +135,5 @@ export function createMotionController(root=document){
   button.addEventListener('animationend',end);
   button.addEventListener('animationcancel',end);
  }
- return {page,view,mode,status,boot,finishBoot};
+ return {page,view,mode,status,boot,finishBoot,replayBoot};
 }

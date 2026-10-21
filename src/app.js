@@ -50,9 +50,14 @@ $('#swing').oninput=e=>{state.swing=Number(e.target.value)/100;syncSwing(state);
 mountLcarsSlider($('#swing'),{kind:'swing',title:'SHUFFLE / SWING',code:'42-S9',onValueChange:faderTouchFeedback});
 let heardTempo=null;
 function tempoReadout(event=null){
- $('#tempoValue').textContent=state.bpm;$('#tempoValue').setAttribute('aria-valuenow',state.bpm);
+ for(const selector of ['#tempoValue','#linearTempoValue']){
+   const button=$(selector);button.textContent=state.bpm;
+   button.setAttribute('aria-valuenow',state.bpm);
+   button.setAttribute('aria-valuetext',`${state.bpm} beats per minute`);
+  }
  if(event)heardTempo=event;
  const ramp=state.mode==='ramp';$('#rampReadout').hidden=!ramp;$('#tempo').classList.toggle('ramp-tempo',ramp);$('#tempoLabel').textContent=ramp?'START / BPM':'QUARTER / MIN';
+  $('#linearTempo .linear-tempo-id strong').textContent=ramp?'START TEMPO / BPM':'TEMPO / BPM';
  const active=scheduler.running&&heardTempo,now=active?heardTempo.bpm:state.bpm;
  $('#liveTempo').textContent=`${now} BPM`;
  const base=active&&heardTempo.mode==='ramp'?heardTempo.startBpm:state.bpm;
@@ -138,28 +143,31 @@ function layoutLinearPatterns(){
     row.replaceChildren(...lines);
   }
 }
-let stablePhoneViewport=0,stablePhoneWidth=0;
+// iOS Safari/standalone PWA can report a viewport smaller than 100dvh,
+ // particularly on older iPads with display zoom below 100%.
+ let stablePaddViewport=0,stablePaddWidth=0;
 function refreshMobileFrame(){
-  const shell=document.querySelector('.app-shell');
-  if(!matchMedia('(max-width: 640px)').matches){
-    shell.style.removeProperty('height');
-    stablePhoneViewport=0;stablePhoneWidth=0;
-    return;
-  }
-  // Keyboard resize must not collapse the LCARS outer frame.
-  const vv=window.visualViewport,width=document.documentElement.clientWidth;
-  if(Math.abs(width-stablePhoneWidth)>35)stablePhoneViewport=0;
-  stablePhoneWidth=width;
-  const measured=visibleViewportHeight(
-    window.innerHeight,
-    vv ? vv.height + Math.max(0,vv.offsetTop||0) : null,
-    document.documentElement.clientHeight
-  );
-  const active=document.activeElement;
-  const editorFocused=!!(active?.closest?.('#diaryEditor')&&active.matches('input,textarea,select'));
-  const height=keyboardSafeViewportHeight(measured,stablePhoneViewport,editorFocused);
-  if(height===measured)stablePhoneViewport=measured;
-  shell.style.height=`${mobileFrameHeight(height,state.uiScale)}px`;
+ const shell=document.querySelector('.app-shell');
+ const phone=matchMedia('(max-width:640px)').matches;
+ const tablet=matchMedia('(min-width:641px) and (max-width:1139px)').matches;
+ if(!phone&&!tablet){
+  shell.style.removeProperty('height');
+  stablePaddViewport=0;stablePaddWidth=0;
+  return;
+ }
+ const vv=window.visualViewport,width=document.documentElement.clientWidth;
+ if(Math.abs(width-stablePaddWidth)>35)stablePaddViewport=0;
+ stablePaddWidth=width;
+ const measured=visibleViewportHeight(window.innerHeight,
+   vv?vv.height+Math.max(0,vv.offsetTop||0):null,
+   document.documentElement.clientHeight);
+ const active=document.activeElement;
+ const editorFocused=!!(active?.closest?.('#diaryEditor')&&active.matches('input,textarea,select'));
+ const height=keyboardSafeViewportHeight(measured,stablePaddViewport,editorFocused);
+ if(height===measured)stablePaddViewport=measured;
+ // The PADD is CSS-zoomed. Use the actual usable viewport to size its
+ // outer frame rather than trusting 100dvh on older iOS PWA WebKit.
+ shell.style.height=`${mobileFrameHeight(height,state.uiScale)}px`;
 }
 window.addEventListener('resize',()=>{refreshMobileFrame();layoutLinearPatterns();},{passive:true});
 window.visualViewport?.addEventListener('resize',()=>{refreshMobileFrame();layoutLinearPatterns();},{passive:true});
@@ -260,7 +268,8 @@ function stop(message='READY',endTime=audio.ctx?.currentTime){
 $('#start').onclick=async()=>{if(starting||restoring)return;if(soundUI.isBusy())return notify('Wait for sound import to finish.','Warningsound');if(scheduler.running){stop();return;}starting=true;$('#start').disabled=true;try{await unlock();await audio.loading;await audio.loadCustom(state.customSounds);audio.mix(state);scheduler.start(state,state.diary.enabled?{exercise:state.diary.exercise,category:state.diary.category,preset:activePreset,minAutoLogSeconds:state.diary.minAutoLogSeconds}:null);$('#start').textContent='STOP';motion.status($('#start'));$('#playStatus').textContent='PLAYING';if(navigator.wakeLock)try{wakeLock=await navigator.wakeLock.request('screen');}catch{}}catch{notify('Audio could not start. Tap Start again.','invalidsound');}finally{starting=false;$('#start').disabled=false;}};
 for(const [k,min,max] of [['beats',1,20],['subdivisions',1,20],['countIn',0,8],['duration',0,3600]])$('#'+k).onchange=e=>number(k,Number(e.target.value),min,max);
 for(const id of ['beats','subdivisions','countIn','duration'])enhanceNumber($('#'+id),gestureGuide);
-$('#minus').onclick=()=>number('bpm',state.bpm-1,20,400);$('#plus').onclick=()=>number('bpm',state.bpm+1,20,400);
+for(const id of ['minus','linearTempoMinus'])$('#'+id).onclick=()=>number('bpm',state.bpm-1,20,400);
+for(const id of ['plus','linearTempoPlus'])$('#'+id).onclick=()=>number('bpm',state.bpm+1,20,400);
 let taps=[];installTapTempo($('#tap'),()=>{const t=performance.now();if(t-(taps.at(-1)||0)>3000)taps=[];taps.push(t);taps=taps.slice(-7);if(taps.length>=2)number('bpm',60000/((t-taps[0])/(taps.length-1)),20,400);$('#playStatus').textContent=taps.length<2?'TAP AGAIN':`TAPPED ${state.bpm} BPM`;});
 $('#view').onclick=()=>{linear=!linear;$('#dial').hidden=linear;$('#linear').hidden=!linear;$('#view').textContent=linear?'CIRCULAR VIEW':'LINEAR VIEW';if(linear)layoutLinearPatterns();motion.view(linear?$('#linear'):$('#dial'));};
 
@@ -285,7 +294,11 @@ function gesture(el,isTempo=false){let g=null,suppressClick=false;
   el.addEventListener('pointerup',e=>end(e));el.addEventListener('pointercancel',e=>end(e,true));el.addEventListener('lostpointercapture',()=>{g=null;});
   el.addEventListener('click',e=>{if(suppressClick){suppressClick=false;return;}if(isTempo)return;const p=e.target.closest('[data-index]');if(p)cycle(Number(p.dataset.channel),Number(p.dataset.index));});
 }
-gesture($('#rings'));installTempoControl($('#tempo'),$('#tempoValue'),$('#bpm'),()=>state.bpm,v=>number('bpm',v,20,400),gestureGuide);
+gesture($('#rings'));
+installTempoControl($('#tempo'),$('#tempoValue'),$('#bpm'),()=>state.bpm,
+ v=>number('bpm',v,20,400),gestureGuide);
+installTempoControl($('#linearTempo'),$('#linearTempoValue'),$('#linearBpm'),()=>state.bpm,
+ v=>number('bpm',v,20,400),gestureGuide);
 $('#rings').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const p=e.target.closest('[data-index]');if(p){e.preventDefault();const channel=p.dataset.channel,index=p.dataset.index;cycle(Number(channel),Number(index));$(`#rings [data-channel="${channel}"][data-index="${index}"]`)?.focus();}}});
 document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!e.target.closest('input,button,select,textarea,[role=button],dialog')){e.preventDefault();$('#start').click();}});
 installFeedback(document,{unlock,audio,state:()=>state});

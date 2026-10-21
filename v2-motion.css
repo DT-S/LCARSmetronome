@@ -684,13 +684,13 @@
 }
 /* Existing master/UI faders use the same shared 24-pill LCARS component,
    so their track, bracket and readout can boot in the same visual language. */
-#audio.lcars-page-enter .master > label {
-  animation:none; /* Avoid hiding the genuine stagger behind a parent fade. */
+#audio.lcars-page-enter .master > .lcars-slide {
+  animation:none; /* Real slider replaces the original label at mount. */
 }
-#audio.lcars-page-enter .master > label:nth-of-type(1) {
+#audio.lcars-page-enter .master > .lcars-slide:nth-of-type(1) {
   --audio-output-start:300ms;
 }
-#audio.lcars-page-enter .master > label:nth-of-type(2) {
+#audio.lcars-page-enter .master > .lcars-slide:nth-of-type(2) {
   --audio-output-start:505ms;
 }
 #audio.lcars-page-enter .master .lcars-slide-label {

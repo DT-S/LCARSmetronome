@@ -277,6 +277,65 @@ try{
    await p.screenshot({path:path.join(screenshots,`rc12-${label}-FAILED.png`)}).catch(()=>{});
   }finally{await p.close();}
  }
+
+ // RC13 mobile: the permanent RHYTHM PADD heading is readable INSIDE the
+ // amber/orange top rail, and Linear Start/Tap never require scrolling.
+ // Test scale changes too: CSS zoom changes visual and logical geometry.
+ for(const [width,height,name] of [
+  [320,640,'iphone-narrow'],[375,667,'iphone-short'],
+  [390,844,'iphone-13'],[430,932,'iphone-large']
+ ]){
+  const mobile=await browser.newPage({viewport:{width,height},
+   hasTouch:true,isMobile:true,reducedMotion:'reduce'});
+  const errors=[];mobile.on('pageerror',e=>errors.push(e.message));
+  try{
+   await mobile.goto(origin,{waitUntil:'networkidle'});
+   for(const scale of [.7,.9,1.1]){
+    await mobile.locator('[data-tab="settings"]').click();
+    await mobile.locator(`#scaleButtons button[data-ui-scale="${scale}"]`).click();
+    await mobile.locator('[data-tab="metronome"]').click();
+    if(await mobile.locator('#dial').isVisible())await mobile.locator('#view').click();
+    await mobile.evaluate(()=>{document.querySelector('main').scrollTop=0;});
+    await mobile.waitForTimeout(55);
+    const g=await mobile.evaluate(()=>{
+     const rect=q=>{const r=document.querySelector(q).getBoundingClientRect();
+      return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};};
+     const title=document.querySelector('.mobile-title');
+     return {header:rect('.app-shell > header'),title:rect('.mobile-title'),
+      main:rect('main'),tap:rect('#tap'),start:rect('#start'),
+      linear:rect('#linear'),railColor:getComputedStyle(title).color,
+      titleText:title.textContent,scrollTop:document.querySelector('main').scrollTop,
+      layout:document.querySelector('#linear').hidden?'circular':'linear'};
+    });
+    assert.equal(g.layout,'linear');
+    assert.match(g.titleText,/RHYTHM PADD/);
+    assert.equal(g.railColor,'rgb(0, 0, 0)',
+     `${name}/${scale}: upper bar title must be black on orange`);
+    assert.ok(g.header.height<=40*scale+2,`${name}/${scale}: black header row was not reclaimed ${JSON.stringify(g)}`);
+    assert.ok(g.title.top>=g.header.top-2&&g.title.bottom<=g.header.top+26*scale+2,
+     `${name}/${scale}: RHYTHM PADD is not inside the top rail ${JSON.stringify(g)}`);
+    assert.ok(g.title.right<=g.header.right+1,`${name}/${scale}: title clipped horizontally ${JSON.stringify(g)}`);
+    assert.ok(g.tap.top>=g.main.top-2&&g.tap.bottom<=g.main.bottom+2,
+     `${name}/${scale}: Tap Tempo requires scroll ${JSON.stringify(g)}`);
+    assert.ok(g.start.top>=g.main.top-2&&g.start.bottom<=g.main.bottom+2,
+     `${name}/${scale}: Start requires scroll ${JSON.stringify(g)}`);
+    assert.equal(g.scrollTop,0,`${name}/${scale}: transport visibility forced scroll`);
+    assert.ok(g.tap.top<g.linear.top,`${name}/${scale}: Linear transport not above beat view`);
+    if(name==='iphone-13'&&scale===.9)
+     await mobile.screenshot({path:path.join(screenshots,'rc13-iphone-linear-90pct.png')});
+    // Neither the stable LCARS title nor this layout should change
+    // when returning to the round sequencer view.
+    await mobile.locator('#view').click();
+    assert.equal(await mobile.locator('#dial').isVisible(),true);
+    const y=await mobile.locator('.mobile-title').boundingBox();
+    assert.ok(Math.abs(y.y-g.title.top)<3,`${name}/${scale}: title moved on view change`);
+   }
+   assert.deepEqual(errors,[]);
+   console.log(`PASS RC13 compact LCARS title + always-visible Linear transport ${name}`);
+  }catch(err){fail++;console.error(`FAIL RC13 iPhone viewport ${name}`,err);
+   await mobile.screenshot({path:path.join(screenshots,`rc13-${name}-FAILED.png`)}).catch(()=>{});
+  }finally{await mobile.close();}
+ }
  // Launch choreography tested with real CSS motion, including 5 frame captures.
  {
   const page=await browser.newPage({viewport:{width:1920,height:1080},

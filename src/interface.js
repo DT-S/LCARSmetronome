@@ -68,9 +68,28 @@ export function installSegmentCorners(root){
 }
 
 export function activationSound(control){
- // Separate menu-build sample slot, currently backed by the original menu tone.
+ const id=control.id||'';
+ if(id==='diaryClearAll'||id==='diaryClearRecent')return 'consolewarning';
+ if(id==='diaryDangerConfirm')return 'erase_accepted';
+ if(id==='diaryDangerCancel')return 'denied';
+ if(id==='update')return 'update&restart';
+ if(id==='view')return 'modechange';
  if(control.dataset.tab)return control.classList.contains('active')?'buttonpress':'lcars-menu-build';
- if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'switchingmenus';
+ if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'modechange';
+ if(control.tagName==='SUMMARY'){
+  const details=control.closest?.('details');
+  return details?.open?'windowcloses':'option_toggle_or_secondary_menu_pops_up';
+ }
+ if(control.matches?.('input[type=checkbox]')||control.getAttribute?.('role')==='switch')
+  return 'option_toggle_or_secondary_menu_pops_up';
+ if(id==='plus'||id==='linearTempoPlus')return 'keypress_increase';
+ if(id==='minus'||id==='linearTempoMinus')return 'keypress_decrease';
+ const klass=typeof control.className==='string'?control.className:'';
+ const label=(control.getAttribute?.('aria-label')||control.getAttribute?.('title')||'').toLowerCase();
+ if(/(?:plus|increase|step-up|quick-right|jump-up)/i.test(klass)||/increase|volume up|pan right|\+1%|jump \+/.test(label))
+  return 'keypress_increase';
+ if(/(?:minus|decrease|step-down|quick-left|jump-down)/i.test(klass)||/decrease|volume down|pan left|-1%|jump -/.test(label))
+  return 'keypress_decrease';
  return 'buttonpress';
 }
 // Treat Tap Tempo like a percussion pad: touch contact is the beat.

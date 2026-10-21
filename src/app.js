@@ -291,7 +291,7 @@ for(const k of ['uiEnabled','hoverEnabled','haptic'])$('#'+k).onchange=e=>{state
 // The launch cue cannot autoplay on iOS until the user has interacted.
 // All fifteen original cues can be auditioned under the System tab.
 const cueLabels={
- launchsound_Staggered_Entrance_Animation:'STAGGERED LAUNCH',
+ launchsound_Staggered_Entrance_Animation:'REPLAY LCARS LAUNCH',
  menu_or_window_change:'MENU / WINDOW CHANGE',
  modechange:'MODE CHANGE',
  option_toggle_or_secondary_menu_pops_up:'OPTION / WINDOW OPEN',
@@ -314,8 +314,19 @@ for(const cue of Object.keys(UI_CUES)){
  preview.dataset.cue=cue;
  preview.onclick=async()=>{
   if(!state.uiEnabled)return notify('Enable UI SOUNDS to preview the LCARS sound pack.',null);
-  try{await unlock();await audio.loading;audio.ui(cue,state);}
-  catch{notify('Audio preview unavailable.','consolewarning');}
+  try{
+   await unlock();await audio.loading;
+   if(cue==='launchsound_Staggered_Entrance_Animation'){
+    // iOS will not autoplay sound on Home Screen launch. Replay the real
+    // startup choreography only when explicitly requested by the user.
+    document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!=='metronome');
+    document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n.dataset.tab==='metronome'));
+    $('main').scrollTop=0;
+    motion.page('metronome');
+    motion.replayBoot();
+   }
+   audio.ui(cue,state);
+  }catch{notify('Audio preview unavailable.','consolewarning');}
  };
  $('#uiSoundPreviewButtons').append(preview);
 }

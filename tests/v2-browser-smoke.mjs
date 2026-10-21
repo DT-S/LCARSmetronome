@@ -1246,6 +1246,89 @@ try{
   }catch(e){fail++;console.error('FAIL RC15 Linear reduced-motion navigation',e);}
   finally{await reduced.close();}
  }
+
+ // RC16: real phone/tablet/desktop CSS readability for the exact controls
+ // shown in the supplied iPhone screenshots (DATA FILTERS, EXERCISE FILTER,
+ // EACH POINT note). A test-only chart fixture uses no persistent diary data.
+ const contrast=(foreground,background)=>{
+  const rgba=v=>(v.match(/[\d.]+/g)||[]).slice(0,3).map(Number);
+  const luminance=rgb=>rgb.map(c=>{const x=c/255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4;})
+   .reduce((acc,v,i)=>acc+v*[.2126,.7152,.0722][i],0);
+  const a=luminance(rgba(foreground)),b=luminance(rgba(background));
+  return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+ };
+ for(const [width,height,label] of [
+  [320,640,'iphone-small'],[390,844,'iphone-13'],
+  [768,1024,'ipad'],[1440,900,'desktop']
+ ]){
+  const p=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'});
+  const errors=[];p.on('pageerror',e=>errors.push(e.message));
+  try{
+   await p.goto(origin,{waitUntil:'networkidle'});
+   await p.locator('[data-tab="analytics"]').click();
+   // Use a temporary example only for the chart rendering assertion.
+   await p.evaluate(async()=>{
+    const {analyticsCharts}=await import('./src/charts.js');
+    const host=document.createElement('div');host.className='rc16-fixture';
+    const date=Date.now();
+    host.append(analyticsCharts([
+     {id:'contrast-fixture',start:date-3600000,end:date,seconds:180,
+      category:'Timing',exercise:'Example',peak:161,bpm:120,clean:null}
+    ],7));
+    document.querySelector('#analyticsContent').append(host);
+    host.querySelector('[data-kind="scatter"]').click();
+   });
+   const colors=await p.evaluate(()=>{
+    const read=q=>{const e=document.querySelector(q);if(!e)throw Error('missing '+q);
+     const s=getComputedStyle(e);
+     return {text:e.textContent,font:parseFloat(s.fontSize),foreground:s.color,
+      background:s.backgroundColor,width:e.clientWidth,scroll:e.scrollWidth};
+    };
+    return {
+     filters:read('#analyticsContent > .panel > h3'),
+     exercise:read('#analyticsContent .panel .field-name'),
+     note:read('.rc16-fixture .system-field:not(.chart-readout)'),
+     plotTitle:read('.rc16-fixture .panel > h3'),
+     readout:read('.rc16-fixture .chart-readout')
+    };
+   });
+   assert.match(colors.filters.text,/DATA FILTERS/);
+   assert.match(colors.exercise.text,/EXERCISE FILTER/);
+   assert.match(colors.note.text,/EACH POINT = ONE SESSION/);
+   for(const name of ['filters','exercise','note','plotTitle','readout']){
+    const item=colors[name];
+    assert.ok(contrast(item.foreground,item.background)>=4.5,
+     `${label}: ${name} has inaccessible pastel contrast ${JSON.stringify(item)}`);
+    assert.ok(item.width+2>=item.scroll,
+     `${label}: ${name} is horizontally clipped ${JSON.stringify(item)}`);
+   }
+   const minSize=width<=350?16:width<=640?17:16;
+   assert.ok(colors.filters.font>=minSize,`${label}: DATA FILTERS too small`);
+   assert.ok(colors.exercise.font>=16,`${label}: EXERCISE FILTER too small`);
+   assert.ok(colors.plotTitle.font>=minSize,`${label}: generic LCARS section title too small`);
+   await p.locator('[data-tab="diary"]').click();
+   const diaryTitle=await p.locator('#diary .panel > h3').first().evaluate(el=>{
+    const s=getComputedStyle(el);return {size:parseFloat(s.fontSize),color:s.color,background:s.backgroundColor};
+   });
+   assert.ok(diaryTitle.size>=minSize,`${label}: Diary section title inconsistent`);
+   assert.ok(contrast(diaryTitle.color,diaryTitle.background)>=4.5);
+   await p.locator('[data-tab="settings"]').click();
+   const settingsTitle=await p.locator('#settings .panel > h3').first().evaluate(el=>{
+    const s=getComputedStyle(el);return {size:parseFloat(s.fontSize),color:s.color,background:s.backgroundColor};
+   });
+   assert.ok(settingsTitle.size>=minSize,`${label}: System heading inconsistent`);
+   assert.ok(contrast(settingsTitle.color,settingsTitle.background)>=4.5);
+   if(width===390||width===1440){
+    await p.locator('[data-tab="analytics"]').click();
+    // Fixture is ephemeral, so render a screenshot of the actual filter panel.
+    await p.screenshot({path:path.join(screenshots,`rc16-${label}-analytics-readability.png`)});
+   }
+   assert.deepEqual(errors,[]);
+   console.log(`PASS RC16 contrast + consistent LCARS headings ${label}`);
+  }catch(err){fail++;console.error(`FAIL RC16 readability ${label}`,err);
+   await p.screenshot({path:path.join(screenshots,`rc16-${label}-FAILED.png`)}).catch(()=>{});
+  }finally{await p.close();}
+ }
  // P7: cached PWA must relaunch with network disabled and preserve
  // user preferences in IndexedDB across a full browser page reload.
  {

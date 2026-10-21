@@ -44,6 +44,6 @@ export function classifyControlCue(control){
       .some(name=>cl?.contains?.(name)))return 'keypress-decrease';
   if(control.tagName==='SUMMARY'||control.getAttribute?.('aria-expanded')!==null&&control.getAttribute?.('aria-expanded')!==undefined)
     return 'option-toggle';
-  if(control.type==='checkbox'||control.closest?.('label:has(input[type=checkbox])'))return 'option-toggle';
+  if(control.type==='checkbox'||(control.tagName==='LABEL'&&control.querySelector?.('input[type=checkbox]')))return 'option-toggle';
   return 'buttonpress';
 }

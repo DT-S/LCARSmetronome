@@ -29,6 +29,12 @@ export const UI_CUE_ALIASES=Object.freeze({
  Warningsound:'caution'
 });
 export const UI_FALLBACKS=Object.freeze({
+ switchingmenus:'switchingmenus',
+ hoversound:'hoversound',
+ buttonpress:'buttonpress',
+ Acceptsound:'Acceptsound',
+ invalidsound:'invalidsound',
+ Warningsound:'Warningsound',
  'lcars-menu-build':'switchingmenus',
  menu_or_window_change:'switchingmenus',
  modechange:'switchingmenus',

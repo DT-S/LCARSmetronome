@@ -38,10 +38,10 @@ export function classifyControlCue(control){
   if(id==='plus'||id==='linearTempoPlus')return 'keypress-increase';
   if(id==='minus'||id==='linearTempoMinus')return 'keypress-decrease';
   const cl=control.classList;
-  if(cl?.contains?.('matrix-quick-right')||cl?.contains?.('lcars-cap-plus')||cl?.contains?.('lcars-cap-up'))
-    return 'keypress-increase';
-  if(cl?.contains?.('matrix-quick-left')||cl?.contains?.('lcars-cap-minus')||cl?.contains?.('lcars-cap-down'))
-    return 'keypress-decrease';
+  if(['matrix-quick-right','matrix-step-up','matrix-micro-right','lcars-plus','lcars-jump-up']
+      .some(name=>cl?.contains?.(name)))return 'keypress-increase';
+  if(['matrix-quick-left','matrix-step-down','matrix-micro-left','lcars-minus','lcars-jump-down']
+      .some(name=>cl?.contains?.(name)))return 'keypress-decrease';
   if(control.tagName==='SUMMARY'||control.getAttribute?.('aria-expanded')!==null&&control.getAttribute?.('aria-expanded')!==undefined)
     return 'option-toggle';
   if(control.type==='checkbox'||control.closest?.('label:has(input[type=checkbox])'))return 'option-toggle';

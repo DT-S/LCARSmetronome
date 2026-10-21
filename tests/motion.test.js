@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {shouldTransition,shouldLaunchBoot,LCARS_BOOT_DURATION_MS,LCARS_PAGE_BUILD_DURATION_MS,LCARS_VIEW_BUILD_DURATION_MS,createMotionController} from '../src/motion.js';
+import {shouldTransition,shouldLaunchBoot,LCARS_BOOT_DURATION_MS,LCARS_PAGE_BUILD_DURATION_MS,LCARS_AUDIO_BUILD_DURATION_MS,LCARS_VIEW_BUILD_DURATION_MS,createMotionController} from '../src/motion.js';
 import {readFileSync} from 'node:fs';
 
 test('P6 page transitions occur for actual destination change only',()=>{
@@ -122,7 +122,7 @@ test('RC9 page builds never touch persistent chassis and clear on rapid navigati
   assert.equal(shell.classList.contains('lcars-page-building'),false,
     'fixed sidebar/header must stay visible during a tab build');
   assert.equal(byId.audio.classList.contains('lcars-page-enter'),true);
-  assert.equal([...tasks.values()][0].ms,LCARS_PAGE_BUILD_DURATION_MS);
+  assert.equal([...tasks.values()][0].ms,LCARS_AUDIO_BUILD_DURATION_MS);
   assert.equal(motion.page('audio'),false,'current page is never rebooted');
   byId.audio.hidden=true;byId.analytics.hidden=false;
   assert.equal(motion.page('analytics'),true);

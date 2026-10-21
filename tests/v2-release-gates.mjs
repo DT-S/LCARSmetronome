@@ -34,6 +34,13 @@ const base='http://127.0.0.1:'+server.address().port;
 const output=(label,fn)=>fn().then(()=>console.log('PASS P7 '+label)).catch(err=>{
  fail++;console.error('FAIL P7 '+label,err);
 });
+async function initializeLCARS(page){
+ await page.waitForFunction(()=>document.querySelector('#lcarsStartup')?.dataset.ready==='true',{timeout:20000});
+ if(await page.locator('#lcarsInitialize').isVisible()){
+  await page.locator('#lcarsInitialize').click();
+  await page.waitForFunction(()=>document.querySelector('#lcarsStartup').hidden,{timeout:15000});
+ }
+}
 const waitReady=async page=>{
  await page.waitForFunction(()=>Boolean(navigator.serviceWorker?.controller),{timeout:20000});
  await page.waitForFunction(()=>document.querySelector('#rings [data-index]')!==null,{timeout:20000});
@@ -47,6 +54,7 @@ try{
   page.on('pageerror',err=>errors.push(err.message));
   try{
    await page.goto(base,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await waitReady(page);
    const cached=await page.evaluate(async()=>{
     const reg=await navigator.serviceWorker.ready;
@@ -78,6 +86,7 @@ try{
    assert.ok(Array.isArray(backup.customSounds)&&Array.isArray(backup.diary.entries));
    await context.setOffline(true);
    await page.reload({waitUntil:'domcontentloaded'});
+   await initializeLCARS(page);
    await waitReady(page);
    assert.equal(await page.locator('#tempoValue').textContent(),'122');
    for(const tab of ['audio','presets','diary','analytics','settings','metronome']){
@@ -88,6 +97,7 @@ try{
    await page.close();
    const restarted=await context.newPage();
    await restarted.goto(base,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(restarted);
    await waitReady(restarted);
    assert.equal(await restarted.locator('#tempoValue').textContent(),'122','new tab lost IndexedDB');
    await context.setOffline(false);
@@ -101,6 +111,7 @@ try{
    await restarted.waitForFunction(()=>document.querySelector('#tempoValue').textContent==='122',{timeout:20000});
    await restarted.waitForFunction(()=>document.querySelector('#saveStatus').textContent==='SAVED ON THIS DEVICE');
    await restarted.reload({waitUntil:'domcontentloaded'});
+   await initializeLCARS(restarted);
    assert.equal(await restarted.locator('#tempoValue').textContent(),'122','backup did not persist after reload');
    assert.deepEqual(errors,[]);
    await restarted.close();
@@ -113,6 +124,7 @@ try{
   page.on('pageerror',err=>errors.push(err.message));
   try{
    await page.goto(base,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await waitReady(page);
    assert.ok(await page.evaluate(async()=> (await caches.keys()).includes('lcars-core-/-old-p7-release')));
    // V2 RC2+ automatically skipWaiting() once its offline files are
@@ -137,6 +149,7 @@ try{
    await page.waitForSelector('#rings [data-index]',{timeout:20000});
    await context.setOffline(true);
    await page.reload({waitUntil:'domcontentloaded'});
+   await initializeLCARS(page);
    assert.ok(await page.locator('#rings [data-index]').count()>0);
    assert.deepEqual(errors,[]);
   }finally{serveOldWorker=false;await context.close();}
@@ -147,6 +160,7 @@ try{
   page.on('pageerror',err=>errors.push(err.message));
   try{
    await page.goto(base,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.waitForSelector('#rings [data-index]');
    await page.locator('#start').click();
    await page.waitForFunction(()=>document.querySelector('#start').textContent==='STOP',
@@ -185,6 +199,7 @@ try{
   page.on('pageerror',err=>errors.push(err.message));
   try{
    await page.goto(base,{waitUntil:'networkidle'});
+   await initializeLCARS(page);
    await page.waitForSelector('#rings [data-index]',{timeout:20000});
    assert.equal(await page.locator('#modeButtons button').count(),8);
    await page.locator('#plus').click();
@@ -195,6 +210,7 @@ try{
     assert.equal(await page.locator('#'+tab).isVisible(),true);
    }
    await page.reload({waitUntil:'domcontentloaded'});
+   await initializeLCARS(page);
    await page.waitForSelector('#rings [data-index]');
    assert.equal(await page.locator('#tempoValue').textContent(),'121');
    await page.screenshot({path:path.join(screenshots,'p7-firefox-desktop.png')});

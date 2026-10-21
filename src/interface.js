@@ -71,6 +71,14 @@ export function installSegmentCorners(root){
 export function activationSound(control){
  return classifyControlCue(control);
 }
+export function playControlCue(control,audio,settings){
+ const sound=activationSound(control);
+ if(control.dataset?.tab && sound==='lcars-menu-build'){
+  // A short tactile keypress first, then the original window-build cue.
+  audio.ui('buttonpress',settings);
+  audio.ui(sound,settings,.055);
+ }else audio.ui(sound,settings);
+}
 // Treat Tap Tempo like a percussion pad: touch contact is the beat.
 // A following pointer-generated click is ignored, while keyboard activation stays.
 export function installTapTempo(button,onTap){
@@ -88,7 +96,7 @@ export function installTapTempo(button,onTap){
 }
 export function installFeedback(root,{unlock,audio,state}){
  const selector='button,summary,label.file-button,.sound-drop,input[type=checkbox],label:has(input[type=checkbox]),[role=button]';
- const controlFor=target=>{const c=target.closest?.(selector);return c&&!c.disabled&&c.getAttribute('aria-disabled')!=='true'?c:null;};
+ const controlFor=target=>{const c=target.closest?.(selector);if(c?.closest?.('#lcarsStartup'))return null;return c&&!c.disabled&&c.getAttribute('aria-disabled')!=='true'?c:null;};
  let press=null,hoverAt=0,labelClick=null;
  const clear=()=>{press?.control?.classList.remove('touch-pressed');press=null;};
  root.addEventListener('pointerdown',e=>{
@@ -126,8 +134,7 @@ export function installFeedback(root,{unlock,audio,state}){
   if(c.tagName==='LABEL'){if(e.target.tagName==='INPUT'&&labelClick?.control===c&&performance.now()-labelClick.time<80){labelClick=null;return;}if(e.target.tagName!=='INPUT')labelClick={control:c,time:performance.now()};}
   if(c.tagName==='LABEL'&&c.querySelector('input[type=checkbox]'))return;
   if(c.closest('.sound-choices'))return; // These buttons already preview the instrument.
-  const sound=activationSound(c); // Capture before tab/mode handlers mutate state.
-  unlock().then(()=>audio.loading).then(()=>audio.ui(sound,state())).catch(()=>{});
+  unlock().then(()=>audio.loading).then(()=>playControlCue(c,audio,state())).catch(()=>{});
   if(state().haptic)globalThis.navigator?.vibrate?.(8);
  },{capture:true});
  return {clear};

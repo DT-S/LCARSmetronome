@@ -69,7 +69,7 @@ export class AudioEngine {
     const source=c.createBufferSource();source.buffer=buffer;source.connect(track.gain);source.start(time);
     this.active.add(source);source.onended=()=>{this.active.delete(source);source.disconnect();source._env?.disconnect();};
   }
-  ui(name,s){if(!this.ctx||this.ctx.state!=='running'||!s.uiEnabled)return;
+  ui(name,s,delaySeconds=0){if(!this.ctx||this.ctx.state!=='running'||!s.uiEnabled)return;
     const fallback=name===LCARS_MENU_BUILD_SLOT?'legacy-switchingmenus':
       name==='lcars-launch'?'legacy-switchingmenus':
       name==='keypress-increase'||name==='keypress-decrease'||name==='option-toggle'?'legacy-buttonpress':
@@ -80,7 +80,7 @@ export class AudioEngine {
       (name===LCARS_MENU_BUILD_SLOT?this.buffers.get('switchingmenus'):null);
     if(!b)return;
     const source=this.ctx.createBufferSource();source.buffer=b;
-    source.connect(this.uiGain);source.start();
+    source.connect(this.uiGain);source.start(delaySeconds>0?this.ctx.currentTime+delaySeconds:0);
     source.onended=()=>source.disconnect();}
   cancel(){for(const node of this.active){try{node.stop();}catch{}}this.active.clear();}
 }

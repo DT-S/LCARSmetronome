@@ -87,7 +87,7 @@ test('Launch choreography uses real circular geometry, has reduced-motion escape
    'Boot may not transform SVG hit targets');
  assert.match(css,/@media \(prefers-reduced-motion:reduce\)/);
  assert.doesNotMatch(css,/animation:[^;]*infinite/);
- assert.match(app,/\}render\(\);\s*const isLaunching=motion\.boot\(\)/);
+ assert.match(app,/\}render\(\);[\s\S]*function bootDirect\(\)/);
  assert.match(app,/--boot-delay:/);
  assert.match(sw,/const CACHE=PREFIX\+'lcars-core-v2-rc\d+-/);
 });

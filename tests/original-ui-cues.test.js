@@ -16,7 +16,8 @@ test('every one of the 15 uploaded original MP3s is retained and cached for offl
   const data=readFileSync(new URL('../assets/audio/ui/'+file,import.meta.url));
   assert.ok(data.length>2500,file+' empty');
   assert.equal(data.subarray(0,3).toString('ascii'),'ID3',file+' not a valid MP3 tag');
-  assert.ok(worker.includes('"'+file+'"')||worker.includes("'"+file+"'"),file+' missing from offline sound list');
+  const nameWithoutExtension=file.slice(0,-4);
+  assert.ok(worker.includes('"'+nameWithoutExtension+'"')||worker.includes("'"+nameWithoutExtension+"'"),file+' missing from offline sound list');
  }
  assert.equal(UI_CUE_PATHS.length,15);
  assert.equal(LCARS_MENU_BUILD_ASSET,UI_CUE_PATHS.find(x=>x.endsWith('/menu_or_window_change.mp3')));

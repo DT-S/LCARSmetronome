@@ -5,6 +5,7 @@ export const LCARS_PAGE_BUILD_DURATION_MS=1200;
 // More instruments and LED capsules need slightly longer than other tabs.
 export const LCARS_AUDIO_BUILD_DURATION_MS=1550;
 export const LCARS_VIEW_BUILD_DURATION_MS=1200;
+export const LCARS_LINEAR_BUILD_DURATION_MS=1950;
 export function shouldLaunchBoot({reducedMotion=false,metronomeVisible=true}={}){
  return !reducedMotion&&metronomeVisible;
 }
@@ -62,8 +63,15 @@ export function createMotionController(root=document){
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!reduce){
    run(next,'lcars-page-enter');
+   // A real navigation into an already-selected Linear View must run the
+   // SAME element choreography as the Circular -> Linear view button.
+   // Outer LCARS chassis remains fixed and all audio/tempo state stays live.
+   const linear=nextId==='metronome'?root.getElementById('linear'):null;
+   const buildLinear=!!linear&&!linear.hidden;
+   if(buildLinear)view(linear);
    pageTimers.set(next,setTimeout(()=>finishPage(next),
-    nextId==='audio'?LCARS_AUDIO_BUILD_DURATION_MS:LCARS_PAGE_BUILD_DURATION_MS));
+    nextId==='audio'?LCARS_AUDIO_BUILD_DURATION_MS:
+    buildLinear?LCARS_LINEAR_BUILD_DURATION_MS:LCARS_PAGE_BUILD_DURATION_MS));
   }
   return true;
  }
@@ -84,7 +92,8 @@ export function createMotionController(root=document){
   run(next,'lcars-view-enter');
   // Child beats have different delays, so animationend on the container
   // would clean up too early. Use one bounded timer for the last beat.
-  viewTimer=setTimeout(finishView,LCARS_VIEW_BUILD_DURATION_MS);
+  viewTimer=setTimeout(finishView,
+   next.id==='linear'?LCARS_LINEAR_BUILD_DURATION_MS:LCARS_VIEW_BUILD_DURATION_MS);
   return true;
  }
  function mode(button){

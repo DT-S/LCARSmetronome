@@ -532,6 +532,33 @@ try{
   }catch(error){fail++;console.error('FAIL reduced-motion launch skip',error);}
   finally{await page.close();}
  }
+ // Deliberately forcing full LCARS motion must work on an iPhone-sized
+ // viewport even if the device advertises Reduce Motion.
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  try{
+   await page.goto(origin,{waitUntil:'domcontentloaded'});
+   await page.waitForFunction(()=>document.querySelector('#lcarsStartup')?.dataset.ready==='true');
+   await page.evaluate(()=>{
+    const checkbox=document.querySelector('#forceMotion');
+    checkbox.checked=true;
+    checkbox.dispatchEvent(new Event('change',{bubbles:true}));
+   });
+   assert.match(await page.locator('#motionInfo').textContent(),/DEVICE OVERRIDE/);
+   await page.locator('#lcarsInitialize').click();
+   const state=await page.evaluate(()=>({
+    hidden:document.querySelector('#lcarsStartup').hidden,
+    boot:document.querySelector('.app-shell').classList.contains('lcars-booting'),
+    rail:getComputedStyle(document.querySelector('.app-shell > header'),'::after').animationName
+   }));
+   assert.equal(state.hidden,true);
+   assert.equal(state.boot,true);
+   assert.match(state.rail,/lcars-rc22-open-x/);
+   assert.equal(await page.locator('#mobileBuildVersion').isVisible(),true);
+   console.log('PASS RC22 iPhone motion override and visible build');
+  }catch(error){fail++;console.error('FAIL RC22 mobile motion override',error);}
+  finally{await page.close();}
+ }
  // Real Chromium synthetic touch gestures (not just calling a helper).
  // A 40px move near the rail must be coarser than the same move after the
  // finger shifts away vertically; each must update the channel's range.

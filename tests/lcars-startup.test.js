@@ -44,8 +44,11 @@ test('visible accessible LCARS startup includes real logo and an opt-out control
  const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
  const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
  assert.match(html,/id="lcarsStartup"/);
- assert.match(html,/id="lcarsInitialize"[^>]*>INITIALIZE LCARS/);
- assert.match(html,/assets\/icon\.svg/);
+ assert.match(html,/id="lcarsInitText">INITIALIZE LCARS/);
+ assert.match(html,/class="lcars-start-logo" viewBox="0 0 240 240"/);
+ assert.match(html,/class="emblem-ring-outer"/);
+ assert.match(html,/data-set-theme="voyager"/);
+ assert.match(html,/id="bpmPreviewToggle"/);
  assert.match(html,/id="launchScreen" type="checkbox"/);
  assert.match(app,/if\(state\.launchScreen\)/);
  assert.match(app,/await Promise\.race/);

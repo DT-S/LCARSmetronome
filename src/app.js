@@ -330,11 +330,37 @@ if(state.launchScreen){
  const shell=$('.app-shell');
  shell.inert=true; // No keyboard or pointer interaction behind the modal.
  startup.hidden=false;
+ const paletteButtons=[...startup.querySelectorAll('[data-set-theme]')];
+ for(const button of paletteButtons){
+  button.addEventListener('click',()=>{
+   startup.dataset.theme=button.dataset.setTheme;
+   for(const choice of paletteButtons)choice.setAttribute('aria-pressed',String(choice===button));
+  });
+ }
+ const bpmPreview=$('#bpmPreviewToggle'),bpmLabel=$('#bpmPreviewLabel');
+ // Decorative pulse preview only; never touches the real BPM setting.
+ const previewTempos=[state.bpm,120,90,160].filter((v,i,a)=>a.indexOf(v)===i);
+ let previewIndex=0;
+ function previewPulse(){
+  const bpm=previewTempos[previewIndex];
+  startup.style.setProperty('--bpm-duration',(60/bpm).toFixed(3)+'s');
+  bpmLabel.textContent=bpm+' BPM';
+ }
+ previewPulse();
+ bpmPreview.addEventListener('click',()=>{
+  previewIndex=(previewIndex+1)%previewTempos.length;
+  previewPulse();
+ });
  initialize.focus({preventScroll:true});
  initialize.addEventListener('click',async()=>{
   if(initialize.disabled)return;
   initialize.disabled=true;
-  initialize.textContent='INITIALIZING LCARS…';
+
+  $('#lcarsInitText').textContent='INITIALIZING…';
+  $('#lcarsInitCode').textContent='SYNC // 01';
+  $('#lcarsStartupNote').textContent='UNLOCKING WEB AUDIO & LOADING SEQUENCER…';
+  $('#lcarsBootBar').classList.add('active');
+  $('#lcarsBootFill').style.width='35%';
   // The unlock call begins synchronously in this actual user click, before
   // any awaiting, so Firefox/WebKit may grant WebAudio playback.
   if(state.uiEnabled){
@@ -347,6 +373,9 @@ if(state.launchScreen){
     ]);
    }catch{}finally{clearTimeout(timeout);}
   }
+  $('#lcarsBootFill').style.width='100%';
+  $('#lcarsInitText').textContent='SYSTEM ONLINE';
+  $('#lcarsInitCode').textContent='READY';
   startup.hidden=true;
   shell.inert=false;
   motion.boot(); // Real animation starts only after the initialization gesture.

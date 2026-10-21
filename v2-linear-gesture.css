@@ -15,3 +15,20 @@
 @media (prefers-reduced-motion:reduce){
  #linear .pattern-row .step{transition:none!important;}
 }
+
+/* RC12: compact Linear BPM module for iPhone without changing tablet layout rules. */
+@media (max-width:640px) {
+  #metronome #linear {padding-top:4px;}
+  #metronome #linear .linear-tempo-console {
+    grid-template-columns:minmax(0,1fr) minmax(90px,115px) 41px;
+    border-left-width:8px;border-top-width:5px;border-bottom-width:4px;
+    padding:4px;gap:3px;margin-bottom:12px;
+  }
+  #metronome #linear .linear-tempo-id {font-size:11px;padding:2px 4px;}
+  #metronome #linear .linear-tempo-code {font-size:8px;margin-bottom:3px;}
+  #metronome #linear .linear-tempo-hint {font-size:8px;margin-top:4px;}
+  #metronome #linear .linear-tempo-control {min-height:67px;}
+  #metronome #linear #linearTempoValue {font-size:39px;}
+  #metronome #linear #linearBpm:not([hidden]) {font-size:23px;}
+  #metronome #linear .linear-tempo-steps button {min-height:28px;font-size:20px;}
+}

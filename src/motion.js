@@ -2,6 +2,8 @@
 // Never called by the audio frame, scheduler or chart value calculations.
 export const LCARS_BOOT_DURATION_MS=1450;
 export const LCARS_PAGE_BUILD_DURATION_MS=1200;
+// More instruments and LED capsules need slightly longer than other tabs.
+export const LCARS_AUDIO_BUILD_DURATION_MS=1550;
 export const LCARS_VIEW_BUILD_DURATION_MS=1200;
 export function shouldLaunchBoot({reducedMotion=false,metronomeVisible=true}={}){
  return !reducedMotion&&metronomeVisible;
@@ -60,7 +62,8 @@ export function createMotionController(root=document){
   const reduce=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(!reduce){
    run(next,'lcars-page-enter');
-   pageTimers.set(next,setTimeout(()=>finishPage(next),LCARS_PAGE_BUILD_DURATION_MS));
+   pageTimers.set(next,setTimeout(()=>finishPage(next),
+    nextId==='audio'?LCARS_AUDIO_BUILD_DURATION_MS:LCARS_PAGE_BUILD_DURATION_MS));
   }
   return true;
  }

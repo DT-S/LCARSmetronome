@@ -579,3 +579,161 @@
     filter:none;
   }
 }
+
+/* ======================================================================
+   RC11 · AUDIO MATRIX / INSTRUMENT POWER-UP
+   When #audio gains .lcars-page-enter, only the real channel faders,
+   source controls and master/UI output instruments assemble. The permanent
+   LCARS shell and real audio signal state do not change.
+   Geometry and touch hit regions are never animated. 
+   ====================================================================== */
+@keyframes lcars-mixer-rail-on {
+  0%   {opacity:0;filter:brightness(1.7);}
+  64%  {opacity:1;filter:brightness(1.2);}
+  100% {opacity:1;filter:brightness(1);}
+}
+@keyframes lcars-mixer-capsule-on {
+  0%   {opacity:0;filter:brightness(1.8);}
+  58%  {opacity:1;filter:brightness(1.3);}
+  100% {opacity:1;filter:brightness(1);}
+}
+@keyframes lcars-mixer-readout-on {
+  0% {opacity:0;}
+  100% {opacity:1;}
+}
+/* The old blanket fade kept the precise capsules invisible until 590ms.
+   Give the real components their own timeline instead. */
+#audio.lcars-page-enter #mixer .matrix-housing,
+#audio.lcars-page-enter #mixer .matrix-led-instrument {
+  animation:none;
+}
+/* Four actual modules: outer volume -> outer pan -> inner volume -> inner pan.
+   Delays are computed once from channel/kind when the panels are built. */
+#audio.lcars-page-enter #mixer .matrix-module .matrix-label {
+  animation:lcars-mixer-rail-on 215ms ease-out var(--matrix-build-start) both;
+}
+#audio.lcars-page-enter #mixer .matrix-module .matrix-titlebar {
+  animation:lcars-mixer-rail-on 190ms ease-out
+   calc(var(--matrix-build-start) + 75ms) both;
+}
+#audio.lcars-page-enter #mixer .matrix-module .matrix-led-ruler {
+  animation:lcars-mixer-rail-on 190ms ease-out
+   calc(var(--matrix-build-start) + 140ms) both;
+}
+#audio.lcars-page-enter #mixer .matrix-module .matrix-led-ruler-bottom {
+  animation-delay:calc(var(--matrix-build-start) + 195ms);
+}
+#audio.lcars-page-enter #mixer .matrix-module .matrix-segments {
+  animation:lcars-mixer-rail-on 230ms ease-out
+   calc(var(--matrix-build-start) + 175ms) both;
+}
+/* 24 genuine LED capsules per fader, in their real left-to-right order.
+   Existing .lit, .wave-peak and color gradients remain authoritative. */
+#audio.lcars-page-enter #mixer .matrix-module .matrix-segment {
+  animation:lcars-mixer-capsule-on 165ms steps(5,end)
+    var(--matrix-led-build-delay) both;
+}
+/* Orange LCARS brackets emerge only after their underlying capsule rails. */
+#audio.lcars-page-enter #mixer .matrix-module .matrix-bracket {
+  animation:lcars-mixer-rail-on 210ms ease-out
+   calc(var(--matrix-build-start) + 435ms) both;
+}
+#audio.lcars-page-enter #mixer .matrix-module .matrix-fine-row {
+  animation:lcars-mixer-rail-on 190ms ease-out
+   calc(var(--matrix-build-start) + 500ms) both;
+}
+#audio.lcars-page-enter #mixer .matrix-module .matrix-pan-micro {
+  animation:lcars-mixer-rail-on 185ms ease-out
+   calc(var(--matrix-build-start) + 550ms) both;
+}
+#audio.lcars-page-enter #mixer .matrix-module .matrix-readout {
+  animation:lcars-mixer-readout-on 190ms ease-out
+   calc(var(--matrix-build-start) + 580ms) both;
+}
+/* Channel-level panorama presets, mute/solo and sound options cascade after
+   the first capsule rail.  Their native buttons remain clickable throughout. */
+#audio.lcars-page-enter #mixer > .matrix-channel .pan-scale {
+  animation:lcars-mixer-rail-on 205ms ease-out 545ms both;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel:nth-child(2) .pan-scale {
+  animation-delay:695ms;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel .mixer-buttons {
+  animation:lcars-mixer-rail-on 205ms ease-out 635ms both;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel:nth-child(2) .mixer-buttons {
+  animation-delay:785ms;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel .accent-sound-row {
+  animation:lcars-mixer-rail-on 215ms ease-out 710ms both;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel .accent-sound-row:nth-last-child(2) {
+  animation-delay:785ms;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel .accent-sound-row:last-child {
+  animation-delay:860ms;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel:nth-child(2) .accent-sound-row {
+  animation-delay:870ms;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel:nth-child(2) .accent-sound-row:nth-last-child(2) {
+  animation-delay:945ms;
+}
+#audio.lcars-page-enter #mixer > .matrix-channel:nth-child(2) .accent-sound-row:last-child {
+  animation-delay:1020ms;
+}
+/* Existing master/UI faders use the same shared 24-pill LCARS component,
+   so their track, bracket and readout can boot in the same visual language. */
+#audio.lcars-page-enter .master > .lcars-slide {
+  animation:none; /* Real slider replaces the original label at mount. */
+}
+#audio.lcars-page-enter .master > .lcars-slide:nth-of-type(1) {
+  --audio-output-start:300ms;
+}
+#audio.lcars-page-enter .master > .lcars-slide:nth-of-type(2) {
+  --audio-output-start:505ms;
+}
+#audio.lcars-page-enter .master .lcars-slide-label {
+  animation:lcars-mixer-rail-on 210ms ease-out
+   var(--audio-output-start,300ms) both;
+}
+#audio.lcars-page-enter .master .lcars-calibration {
+  animation:lcars-mixer-rail-on 215ms ease-out
+   calc(var(--audio-output-start,300ms) + 100ms) both;
+}
+#audio.lcars-page-enter .master .lcars-slide-cap {
+  animation:lcars-mixer-rail-on 205ms ease-out
+   calc(var(--audio-output-start,300ms) + 135ms) both;
+}
+#audio.lcars-page-enter .master .lcars-ruler {
+  animation:lcars-mixer-rail-on 195ms ease-out
+   calc(var(--audio-output-start,300ms) + 190ms) both;
+}
+#audio.lcars-page-enter .master .lcars-ruler-bottom {
+  animation-delay:calc(var(--audio-output-start,300ms) + 230ms);
+}
+/* Only this decorative rail is masked: no range inputs or touch surfaces. */
+#audio.lcars-page-enter .master .lcars-pill-housing {
+  animation:lcars-mixer-rail-on 230ms ease-out
+   calc(var(--audio-output-start,300ms) + 235ms) both;
+}
+#audio.lcars-page-enter .master .lcars-pill {
+  animation:lcars-mixer-capsule-on 195ms ease-out
+   calc(var(--audio-output-start,300ms) + 285ms) both;
+}
+#audio.lcars-page-enter .master .lcars-bracket {
+  animation:lcars-mixer-rail-on 210ms ease-out
+   calc(var(--audio-output-start,300ms) + 425ms) both;
+}
+#audio.lcars-page-enter .master .lcars-slide-telemetry {
+  animation:lcars-mixer-readout-on 200ms ease-out
+   calc(var(--audio-output-start,300ms) + 490ms) both;
+}
+/* A subsequent page switch removes .lcars-page-enter and restores all
+   existing interactive scrubbing/LED animations without sticky classes. */
+@media (prefers-reduced-motion:reduce) {
+  #audio.lcars-page-enter #mixer *,
+  #audio.lcars-page-enter .master * {
+    animation:none!important;
+  }
+}

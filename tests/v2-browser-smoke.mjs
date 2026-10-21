@@ -864,6 +864,84 @@ try{
   }catch(err){fail++;console.error('FAIL RC10 view reduced motion',err);}
   finally{await reduced.close();}
  }
+
+ // RC11 Audio Matrix: actual staggered instruments, not four blank panels
+ // appearing at once. Capture computed CSS at mobile/tablet/desktop widths.
+ for(const [w,h] of [[320,640],[390,844],[768,1024],[1920,1080]]){
+  const audioPage=await browser.newPage({viewport:{width:w,height:h},reducedMotion:'no-preference'});
+  const faults=[];audioPage.on('pageerror',e=>faults.push(e.message));
+  try{
+   await audioPage.goto(origin,{waitUntil:'domcontentloaded'});
+   await audioPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
+    null,{timeout:4000});
+   await audioPage.locator('[data-tab="audio"]').click();
+   const info=await audioPage.evaluate(()=>{
+    const d=q=>document.querySelector(q),all=q=>[...document.querySelectorAll(q)];
+    const a=q=>getComputedStyle(d(q)).animationName;
+    const delay=q=>parseFloat(getComputedStyle(d(q)).animationDelay)*1000;
+    const boxes=all('#mixer .matrix-module');
+    return {page:d('#audio').classList.contains('lcars-page-enter'),
+      shell:d('.app-shell').classList.contains('lcars-booting'),
+      modules:boxes.length,
+      starts:boxes.map(x=>parseFloat(x.style.getPropertyValue('--matrix-build-start'))),
+      totalLeds:all('#mixer .matrix-segment').length,
+      rail:a('#mixer .matrix-led-ruler'),
+      firstLed:a('#mixer .matrix-segment'),
+      secondLed:a('#mixer .matrix-segment:nth-child(2)'),
+      firstDelay:delay('#mixer .matrix-segment:first-child'),
+      secondDelay:delay('#mixer .matrix-segment:nth-child(2)'),
+      thumb:a('#mixer .matrix-bracket'),
+      vernier:a('#mixer .matrix-fine-row'),
+      micro:a('#mixer .matrix-pan-micro'),
+      masterCount:all('#audio .master .lcars-slide').length,
+      masterRail:a('#audio .master .lcars-pill-housing'),
+      masterThumb:a('#audio .master .lcars-bracket'),
+      sidebarNav:a('aside nav .nav'),
+      header:a('header .elbow'),
+      sourcePan:d('#mixer input[data-field="pan"]').value};
+   });
+   assert.equal(info.page,true,`${w}x${h}: audio build state did not activate`);
+   assert.equal(info.shell,false,`${w}x${h}: fixed outer shell animated`);
+   assert.deepEqual(info.starts,[240,355,380,495],`${w}x${h}: modules not staggered`);
+   assert.equal(info.modules,4);assert.equal(info.totalLeds,96);
+   assert.match(info.rail,/lcars-mixer-rail-on/);
+   assert.match(info.firstLed,/lcars-mixer-capsule-on/);
+   assert.match(info.secondLed,/lcars-mixer-capsule-on/);
+   assert.ok(info.secondDelay>info.firstDelay,`${w}x${h}: capsule LEDs appear all at once`);
+   assert.match(info.thumb,/lcars-mixer-rail-on/);
+   assert.match(info.vernier,/lcars-mixer-rail-on/);
+   assert.match(info.micro,/lcars-mixer-rail-on/);
+   assert.equal(info.masterCount,2);
+   assert.match(info.masterRail,/lcars-mixer-rail-on/);
+   assert.match(info.masterThumb,/lcars-mixer-rail-on/);
+   assert.equal(info.sidebarNav,'none','navigation must stay on');
+   assert.equal(info.header,'none','header must stay on');
+   // A user can adjust pan while the decorative capsules are still assembling.
+   await audioPage.locator('#mixer .matrix-pan .matrix-quick-right').first().click();
+   assert.ok(Number(await audioPage.locator('#mixer input[data-field="pan"]').first().inputValue())
+    >Number(info.sourcePan),`${w}x${h}: animation blocked the panorama control`);
+   if(w===390||w===1920){
+    await audioPage.screenshot({path:path.join(screenshots,`rc11-${w}-audio-mid-build.png`)});
+   }
+   await audioPage.waitForFunction(()=>!document.querySelector('#audio').classList.contains('lcars-page-enter'),
+     null,{timeout:2700});
+   assert.deepEqual(faults,[],`${w}x${h}: errors during mixer assembly`);
+   console.log(`PASS RC11 staged channel faders and master/UI volume ${w}x${h}`);
+  }catch(e){fail++;console.error(`FAIL RC11 mixer animation ${w}x${h}`,e);
+   await audioPage.screenshot({path:path.join(screenshots,`rc11-${w}-FAILED.png`)}).catch(()=>{});
+  }finally{await audioPage.close();}
+ }
+ {
+  const reduced=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  try{
+   await reduced.goto(origin,{waitUntil:'domcontentloaded'});
+   await reduced.locator('[data-tab="audio"]').click();
+   assert.equal(await reduced.locator('#audio.lcars-page-enter').count(),0,
+    'reduced motion should bypass mixer build');
+   assert.equal(await reduced.locator('#mixer .matrix-bracket').count(),4);
+  }catch(e){fail++;console.error('FAIL RC11 reduced-motion mixer',e);}
+  finally{await reduced.close();}
+ }
  // P7: cached PWA must relaunch with network disabled and preserve
  // user preferences in IndexedDB across a full browser page reload.
  {

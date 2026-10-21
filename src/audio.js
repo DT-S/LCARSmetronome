@@ -9,6 +9,7 @@ export const UI_SOUNDS={
  'Acceptsound':'keypress_standart',
  'invalidsound':'invalid_input',
  'Warningsound':'consolewarning',
+ 'consolewarning':'consolewarning',
  'buttonpress':'keypress_standart',
  'lcars-menu-build':'launchsound_Staggered_Entrance_Animation',
  'boot':'launchsound_Staggered_Entrance_Animation',

@@ -49,6 +49,11 @@ test('visible accessible LCARS startup includes real logo and an opt-out control
  assert.match(html,/class="emblem-ring-outer"/);
  assert.match(html,/data-set-theme="voyager"/);
  assert.match(html,/id="bpmPreviewToggle"/);
+ assert.match(html,/<span class="lcars-subbrand-label">LCARS METRONOME \/\/ RHYTHM SYSTEM<\/span>/);
+ const css=readFileSync(new URL('../v2-startup.css',import.meta.url),'utf8');
+ assert.match(css,/\.lcars-subbrand-bar::before/);
+ assert.match(css,/\.lcars-subbrand-bar::after/);
+ assert.match(css,/\.lcars-subbrand-label/);
  assert.match(html,/id="launchScreen" type="checkbox"/);
  assert.match(app,/if\(state\.launchScreen\)/);
  assert.match(app,/await Promise\.race/);

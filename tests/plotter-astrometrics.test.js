@@ -10,7 +10,7 @@ test('Plotters use real practice measurements and preserve missing data gaps',()
  assert.deepEqual(sessionSeries({seconds:20,history:[{at:0,bpm:120},{at:10,bpm:145}]}).map(p=>p.y),
  [120,120,145,145]);
  for(const token of ["class:'chart-grid chart-grid-line'","class:'chart-area'",
- "class:'chart-line-pulse'","class:'xy-plot-stage'","const chartStatic=points.length>120"])
+ "class:'chart-line-pulse'","node('div',undefined,'xy-plot-stage')","const chartStatic=points.length>120"])
   assert.ok(js.includes(token),token);
  assert.match(js,/if\(p.y===null\)\{finishArea\(\);connected=false;continue;\}/);
  assert.match(js,/if\(run.length>1\)/);

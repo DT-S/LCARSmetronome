@@ -1141,6 +1141,111 @@ try{
   }catch(e){fail++;console.error('FAIL RC11 reduced-motion mixer',e);}
   finally{await reduced.close();}
  }
+
+ // RC15: both transitions into Linear must build the SAME real instruments.
+ // Browser-computed CSS, not merely class presence, catches the RC14 bug:
+ // returning from System previously skipped every Linear beat animation.
+ for(const [width,height,label] of [
+  [320,640,'iphone-small'],[390,844,'iphone-13'],
+  [1024,768,'ipad-landscape'],[1920,1080,'desktop']
+ ]){
+  const linearPage=await browser.newPage({viewport:{width,height},reducedMotion:'no-preference'});
+  const errors=[];linearPage.on('pageerror',e=>errors.push(e.message));
+  try{
+   await linearPage.goto(origin,{waitUntil:'domcontentloaded'});
+   await linearPage.waitForSelector('#linear .pattern-row[data-channel="1"] .step',{timeout:12000});
+   await linearPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),null,{timeout:3500});
+   const original=Number(await linearPage.locator('#tempoValue').textContent());
+   const beforeHeader=await linearPage.locator('.app-shell > header').boundingBox();
+   // Route A: press LINEAR VIEW while Circular is active.
+   await linearPage.locator('#view').click();
+   const snapshot=await linearPage.evaluate(()=>{
+    const linear=document.getElementById('linear'),css=q=>getComputedStyle(linear.querySelector(q));
+    const anim=q=>css(q).animationName, delay=q=>parseFloat(css(q).animationDelay)*1000;
+    return {visible:!linear.hidden,building:linear.classList.contains('lcars-view-enter'),
+     pageBuilding:document.getElementById('metronome').classList.contains('lcars-page-enter'),
+     shellBuilding:document.querySelector('.app-shell').classList.contains('lcars-page-building'),
+     console:anim('.linear-tempo-console'),
+     code:anim('.linear-tempo-code'),caption:anim('.linear-tempo-id strong'),
+     value:anim('#linearTempoValue'),minus:anim('#linearTempoMinus'),
+     plus:anim('#linearTempoPlus'),title:anim('h3'),
+     outer:anim('.pattern-row[data-channel="0"] .step'),
+     inner:anim('.pattern-row[data-channel="1"] .step'),
+     valueDelay:delay('#linearTempoValue'),
+     outerDelay:delay('.pattern-row[data-channel="0"] .step'),
+     innerDelay:delay('.pattern-row[data-channel="1"] .step'),
+     valueText:linear.querySelector('#linearTempoValue').textContent};
+   });
+   assert.equal(snapshot.visible,true);
+   assert.equal(snapshot.building,true);
+   assert.equal(snapshot.pageBuilding,false,'pure view toggle should not reload entire tab');
+   assert.equal(snapshot.shellBuilding,false,'permanent LCARS chassis must stay up');
+   for(const field of ['console','code','caption','value','minus','plus','title'])
+    assert.match(snapshot[field],/lcars-linear-/,
+     `${label}: ${field} did not stage on direct Linear toggle`);
+   assert.match(snapshot.outer,/lcars-view-beat/);
+   assert.match(snapshot.inner,/lcars-view-beat/);
+   assert.ok(snapshot.valueDelay<snapshot.outerDelay&&snapshot.outerDelay<snapshot.innerDelay,
+    `${label}: tempo and beats appeared without choreography ${JSON.stringify(snapshot)}`);
+   assert.equal(Number(snapshot.valueText),original);
+   if(width===390)await linearPage.screenshot({path:path.join(screenshots,'rc15-iphone-linear-toggle.png')});
+   // Route B: switch away and return with Linear already selected.
+   await linearPage.locator('[data-tab="settings"]').click();
+   assert.equal(await linearPage.locator('#linear.lcars-view-enter').count(),0,
+    `${label}: previous view animation was not cancelled`);
+   await linearPage.locator('[data-tab="metronome"]').click();
+   const returned=await linearPage.evaluate(()=>{
+    const linear=document.getElementById('linear'),meter=document.getElementById('metronome');
+    const a=q=>getComputedStyle(linear.querySelector(q));
+    const delay=q=>parseFloat(a(q).animationDelay)*1000;
+    return {visible:!linear.hidden,view:linear.classList.contains('lcars-view-enter'),
+     page:meter.classList.contains('lcars-page-enter'),
+     console:a('.linear-tempo-console').animationName,
+     numeric:a('#linearTempoValue').animationName,
+     outer:a('.pattern-row[data-channel="0"] .step').animationName,
+     inner:a('.pattern-row[data-channel="1"] .step').animationName,
+     outerDelay:delay('.pattern-row[data-channel="0"] .step'),
+     valueDelay:delay('#linearTempoValue'),
+     bpm:Number(linear.querySelector('#linearTempoValue').textContent),
+     rail:getComputedStyle(document.querySelector('.app-shell > header')).animationName};
+   });
+   assert.equal(returned.visible,true);
+   assert.equal(returned.view,true,`${label}: Linear re-entry failed to restart view build`);
+   assert.equal(returned.page,true);
+   assert.match(returned.console,/lcars-linear-instrument-outline/);
+   assert.match(returned.numeric,/lcars-linear-number-online/);
+   assert.match(returned.outer,/lcars-view-beat/);
+   assert.match(returned.inner,/lcars-view-beat/);
+   assert.ok(returned.valueDelay>=snapshot.valueDelay+170&&returned.outerDelay>=snapshot.outerDelay+170,
+    `${label}: re-entry not offset behind the page header build`);
+   assert.equal(returned.bpm,original,`${label}: animation changed the tempo`);
+   assert.equal(returned.rail,'none',`${label}: persistent top rail rebooted`);
+   if(width===390||width===1920)await linearPage.screenshot({
+    path:path.join(screenshots,`rc15-${label}-linear-return.png`)});
+   await linearPage.waitForFunction(()=>!document.querySelector('#linear').classList.contains('lcars-view-enter')&&
+     !document.querySelector('#metronome').classList.contains('lcars-page-enter'),null,{timeout:3200});
+   const afterHeader=await linearPage.locator('.app-shell > header').boundingBox();
+   assert.ok(Math.abs(afterHeader.y-beforeHeader.y)<2&&Math.abs(afterHeader.height-beforeHeader.height)<2,
+    `${label}: header geometry changed`);
+   assert.deepEqual(errors,[],`${label}: page errors during Linear return`);
+   console.log(`PASS RC15 Linear tempo/beat choreography on toggle and navigation ${label}`);
+  }catch(e){fail++;console.error(`FAIL RC15 Linear reentry ${label}`,e);
+   await linearPage.screenshot({path:path.join(screenshots,`rc15-${label}-FAILED.png`)}).catch(()=>{});
+  }finally{await linearPage.close();}
+ }
+ {
+  const reduced=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  try{
+   await reduced.goto(origin,{waitUntil:'networkidle'});
+   await reduced.locator('#view').click();
+   await reduced.locator('[data-tab="settings"]').click();
+   await reduced.locator('[data-tab="metronome"]').click();
+   assert.equal(await reduced.locator('#linear.lcars-view-enter').count(),0);
+   assert.equal(await reduced.locator('#metronome.lcars-page-enter').count(),0);
+   assert.equal(await reduced.locator('#linearTempoValue').isVisible(),true);
+  }catch(e){fail++;console.error('FAIL RC15 Linear reduced-motion navigation',e);}
+  finally{await reduced.close();}
+ }
  // P7: cached PWA must relaunch with network disabled and preserve
  // user preferences in IndexedDB across a full browser page reload.
  {

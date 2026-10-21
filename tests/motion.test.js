@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {shouldTransition,shouldLaunchBoot,LCARS_BOOT_DURATION_MS,LCARS_PAGE_BUILD_DURATION_MS,LCARS_AUDIO_BUILD_DURATION_MS,LCARS_VIEW_BUILD_DURATION_MS,createMotionController} from '../src/motion.js';
+import {shouldTransition,shouldLaunchBoot,LCARS_BOOT_DURATION_MS,LCARS_PAGE_BUILD_DURATION_MS,LCARS_AUDIO_BUILD_DURATION_MS,LCARS_VIEW_BUILD_DURATION_MS,LCARS_LINEAR_BUILD_DURATION_MS,createMotionController} from '../src/motion.js';
 import {readFileSync} from 'node:fs';
 
 test('P6 page transitions occur for actual destination change only',()=>{
@@ -202,7 +202,7 @@ test('RC10 view reassembly is one-shot per toggle, cancellable and reduced-motio
   assert.equal(motion.view(linear),true);
   assert.equal(linear.classList.contains('lcars-view-enter'),true);
   assert.equal(pending.size,1);
-  assert.equal([...pending.values()][0].ms,LCARS_VIEW_BUILD_DURATION_MS);
+  assert.equal([...pending.values()][0].ms,LCARS_LINEAR_BUILD_DURATION_MS);
   // Rapid return to Circular cancels the pending Linear assembly.
   linear.hidden=true;dial.hidden=false;
   assert.equal(motion.view(dial),true);
@@ -252,4 +252,84 @@ test('RC10 rebuilds individual view beats without any outer LCARS chassis animat
  assert.doesNotMatch(newRules,/animation:[^;]*infinite/);
  assert.match(newRules,/prefers-reduced-motion:reduce/);
  assert.match(sw,/const CACHE=PREFIX\+'lcars-core-v2-rc\d+-/);
+});
+
+test('RC15 returning to active Linear from another tab replays the real view build',()=>{
+ assert.equal(LCARS_LINEAR_BUILD_DURATION_MS,1950);
+ const createClasses=()=>{const set=new Set();return {
+  add:v=>set.add(v),remove:v=>set.delete(v),contains:v=>set.has(v)
+ };};
+ const linear={id:'linear',hidden:false,offsetWidth:400,classList:createClasses()};
+ const dial={id:'dial',hidden:true,offsetWidth:400,classList:createClasses()};
+ const metronome={id:'metronome',hidden:true,offsetWidth:800,classList:createClasses()};
+ const settings={id:'settings',hidden:false,offsetWidth:800,classList:createClasses()};
+ const shell={classList:createClasses()};
+ const pages=[metronome,settings];
+ const byId={metronome,settings,linear,dial};
+ const root={querySelectorAll:q=>q==='.page'?pages:[],querySelector:q=>q==='.app-shell'?shell:null,
+  getElementById:id=>byId[id]};
+ const orig={set:globalThis.setTimeout,clear:globalThis.clearTimeout,match:globalThis.matchMedia};
+ let counter=0;const scheduled=new Map();
+ try{
+  globalThis.setTimeout=(fn,ms)=>{const id=++counter;scheduled.set(id,{fn,ms});return id;};
+  globalThis.clearTimeout=id=>scheduled.delete(id);
+  globalThis.matchMedia=()=>({matches:false});
+  const motion=createMotionController(root);
+  settings.hidden=true;metronome.hidden=false;
+  assert.equal(motion.page('metronome'),true);
+  assert.equal(metronome.classList.contains('lcars-page-enter'),true);
+  assert.equal(linear.classList.contains('lcars-view-enter'),true,
+   'returning from another tab must animate actual Linear tempo and beats');
+  assert.deepEqual([...scheduled.values()].map(x=>x.ms).sort((a,b)=>a-b),
+   [LCARS_LINEAR_BUILD_DURATION_MS,LCARS_LINEAR_BUILD_DURATION_MS]);
+  assert.equal(shell.classList.contains('lcars-page-building'),false);
+  // Switching out, then quickly back: both previous timers must be cancelled.
+  metronome.hidden=true;settings.hidden=false;
+  assert.equal(motion.page('settings'),true);
+  assert.equal(linear.classList.contains('lcars-view-enter'),false);
+  assert.equal(scheduled.size,1);
+  settings.hidden=true;metronome.hidden=false;
+  assert.equal(motion.page('metronome'),true);
+  assert.equal(linear.classList.contains('lcars-view-enter'),true);
+  assert.equal(scheduled.size,2);
+  for(const task of [...scheduled.values()])task.fn();
+  assert.equal(scheduled.size,0);
+  assert.equal(linear.classList.contains('lcars-view-enter'),false);
+  assert.equal(metronome.classList.contains('lcars-page-enter'),false);
+  // Circular is still the original fast on-page sequence.
+  linear.hidden=true;dial.hidden=false;
+  metronome.hidden=true;settings.hidden=false;motion.page('settings');
+  metronome.hidden=false;settings.hidden=true;motion.page('metronome');
+  assert.equal(linear.classList.contains('lcars-view-enter'),false);
+  assert.deepEqual([...scheduled.values()].map(x=>x.ms),
+   [LCARS_PAGE_BUILD_DURATION_MS]);
+ }finally{
+  globalThis.setTimeout=orig.set;globalThis.clearTimeout=orig.clear;
+  if(orig.match===undefined)delete globalThis.matchMedia;
+  else globalThis.matchMedia=orig.match;
+ }
+});
+
+test('RC15 Linear tempo and real beats are staggered for both entry routes',()=>{
+ const css=readFileSync(new URL('../v2-motion.css',import.meta.url),'utf8');
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ const section=css.slice(css.indexOf('RC15 · LINEAR SUBROUTINE'));
+ assert.ok(section.length>3000,'missing real Linear instrument choreography');
+ for(const target of [
+  '.linear-tempo-console','.linear-tempo-code',
+  '.linear-tempo-id strong','.linear-tempo-hint',
+  '.linear-tempo-control','#linearTempoValue',
+  '.linear-tempo-steps button:first-child',
+  '.linear-tempo-steps button:last-child',
+  '> h3:nth-of-type(2)',
+  '.pattern-row[data-channel="0"] .step',
+  '.pattern-row[data-channel="1"] .step'
+ ])assert.ok(section.includes(target),'missing animated control: '+target);
+ assert.match(section,/#metronome\.lcars-page-enter #linear\.lcars-view-enter/);
+ assert.match(section,/--linear-return-offset:180ms/);
+ assert.match(section,/calc\(var\(--linear-return-offset,0ms\) \+ var\(--view-delay,820ms\)\)/);
+ assert.match(app,/820\+channel\*210\+i\*24/);
+ assert.doesNotMatch(section,/animation:[^;]*infinite/);
+ assert.doesNotMatch(section,/(?:translate[XYZ]?|scale[XYZ]?)\(/);
+ assert.match(section,/prefers-reduced-motion:reduce/);
 });

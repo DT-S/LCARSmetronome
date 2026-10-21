@@ -1329,6 +1329,40 @@ try{
    await p.screenshot({path:path.join(screenshots,`rc16-${label}-FAILED.png`)}).catch(()=>{});
   }finally{await p.close();}
  }
+
+ // RC17: decode the actual fifteen uploaded MP3s with the browser audio
+ // codec. This catches Git binary upload corruption and unavailable assets,
+ // not merely the names present in our JS registry.
+ for(const [width,height,label] of [[390,844,'iphone-size'],[1024,768,'tablet'],[1440,900,'desktop']]){
+  const p=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'});
+  const failures=[];p.on('pageerror',e=>failures.push(e.message));
+  try{
+   await p.goto(origin,{waitUntil:'networkidle'});
+   const result=await p.evaluate(async()=>{
+    const {AudioEngine}=await import('./src/audio.js');
+    const {UI_CUE_ASSETS}=await import('./src/ui-cues.js');
+    const engine=new AudioEngine();
+    engine.ctx=new (window.AudioContext||window.webkitAudioContext)();
+    await engine.load();
+    const names=Object.keys(UI_CUE_ASSETS);
+    const sounds=names.map(name=>({name,duration:engine.buffers.get(name)?.duration||0,
+     channels:engine.buffers.get(name)?.numberOfChannels||0}));
+    const misses=engine.sampleStatus.filter(name=>names.includes(name));
+    await engine.ctx.close();
+    return {sounds,misses,legacySuccess:engine.buffers.has('Acceptsound')};
+   });
+   assert.equal(result.sounds.length,15,`${label}: missing original samples`);
+   assert.deepEqual(result.misses,[],`${label}: samples could not decode`);
+   for(const sound of result.sounds){
+    assert.ok(sound.duration>.05&&sound.duration<2.5,`${label}: corrupt audio ${JSON.stringify(sound)}`);
+    assert.ok(sound.channels>=1,`${label}: no audio channels ${sound.name}`);
+   }
+   assert.equal(result.legacySuccess,true,`${label}: lost ordinary Acceptsound`);
+   assert.deepEqual(failures,[],`${label}: audio generated browser errors`);
+   console.log(`PASS RC17 all 15 uploaded LCARS sounds decode ${label}`);
+  }catch(e){fail++;console.error(`FAIL RC17 sound decodes ${label}`,e);}
+  finally{await p.close();}
+ }
  // P7: cached PWA must relaunch with network disabled and preserve
  // user preferences in IndexedDB across a full browser page reload.
  {

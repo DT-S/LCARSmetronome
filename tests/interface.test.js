@@ -19,7 +19,7 @@ test('navigation cue plays just once for a new page, with no extra click on the 
  f.fire('click',{detail:1});await settle();
  assert.deepEqual(f.calls,['lcars-menu-build','buttonpress']);
 });
-test('finger contact hovers before release; summary activation beeps',async()=>{const f=fixture({tag:'SUMMARY'});f.fire('pointerdown');await settle();assert.deepEqual(f.calls,['hoversound']);assert.ok(f.c.classList.contains('touch-pressed'));f.fire('pointerup');assert.ok(!f.c.classList.contains('touch-pressed'));f.fire('click');await settle();assert.deepEqual(f.calls,['hoversound','buttonpress']);});
+test('finger contact hovers before release; summary activation beeps',async()=>{const f=fixture({tag:'SUMMARY'});f.fire('pointerdown');await settle();assert.deepEqual(f.calls,['hoversound']);assert.ok(f.c.classList.contains('touch-pressed'));f.fire('pointerup');assert.ok(!f.c.classList.contains('touch-pressed'));f.fire('click');await settle();assert.deepEqual(f.calls,['hoversound','option-toggle']);});
 test('release or scrolling cancels a delayed hover',async()=>{for(const event of ['pointerup','pointercancel','pointermove']){const f=fixture();f.fire('pointerdown');f.fire(event,{clientX:30,clientY:30});await settle();assert.deepEqual(f.calls,[]);assert.ok(!f.c.classList.contains('touch-pressed'));}});
 test('hover preference applies to touch and does not disable click feedback',async()=>{const f=fixture();f.state.hoverEnabled=false;f.fire('pointerdown');await settle();f.fire('pointerup');f.fire('click');await settle();assert.deepEqual(f.calls,['buttonpress']);});
 test('disabled buttons produce no touch or click sound',async()=>{const f=fixture();f.c.disabled=true;f.fire('pointerdown');f.fire('click');await settle();assert.deepEqual(f.calls,[]);});

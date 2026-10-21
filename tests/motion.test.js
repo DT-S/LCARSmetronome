@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {shouldTransition,shouldLaunchBoot,LCARS_BOOT_DURATION_MS,LCARS_PAGE_BUILD_DURATION_MS,createMotionController} from '../src/motion.js';
+import {shouldTransition,shouldLaunchBoot,LCARS_BOOT_DURATION_MS,LCARS_PAGE_BUILD_DURATION_MS,LCARS_VIEW_BUILD_DURATION_MS,createMotionController} from '../src/motion.js';
 import {readFileSync} from 'node:fs';
 
 test('P6 page transitions occur for actual destination change only',()=>{
@@ -173,4 +173,83 @@ test('all six pages animate only their inner panels while fixed rails stay untou
  assert.doesNotMatch(css,/\.page\.lcars-page-enter \{[^}]*translateX\(/,
   'never slide the complete page or its hit targets horizontally');
  assert.match(sw,/lcars-core-v2-rc9-static-chassis/);
+});
+
+test('RC10 view reassembly is one-shot per toggle, cancellable and reduced-motion-safe',()=>{
+ assert.equal(LCARS_VIEW_BUILD_DURATION_MS,1200);
+ const classes=()=>{const all=new Set();return {
+  add:v=>all.add(v),remove:v=>all.delete(v),contains:v=>all.has(v)
+ };};
+ const dial={hidden:false,offsetWidth:410,classList:classes()};
+ const linear={hidden:true,offsetWidth:410,classList:classes()};
+ const metronome={id:'metronome',hidden:false,offsetWidth:640,classList:classes()};
+ const audio={id:'audio',hidden:true,offsetWidth:640,classList:classes()};
+ const shell={classList:classes()};
+ const pages=[metronome,audio];
+ const root={
+  querySelectorAll:q=>q==='.page'?pages:[],
+  querySelector:q=>q==='.app-shell'?shell:null,
+  getElementById:id=>id==='metronome'?metronome:id==='audio'?audio:null
+ };
+ const prevSet=globalThis.setTimeout,prevClear=globalThis.clearTimeout,prevMatch=globalThis.matchMedia;
+ let id=0;const pending=new Map();
+ try{
+  globalThis.setTimeout=(fn,ms)=>{const next=++id;pending.set(next,{fn,ms});return next;};
+  globalThis.clearTimeout=id=>pending.delete(id);
+  globalThis.matchMedia=()=>({matches:false});
+  const motion=createMotionController(root);
+  dial.hidden=true;linear.hidden=false;
+  assert.equal(motion.view(linear),true);
+  assert.equal(linear.classList.contains('lcars-view-enter'),true);
+  assert.equal(pending.size,1);
+  assert.equal([...pending.values()][0].ms,LCARS_VIEW_BUILD_DURATION_MS);
+  // Rapid return to Circular cancels the pending Linear assembly.
+  linear.hidden=true;dial.hidden=false;
+  assert.equal(motion.view(dial),true);
+  assert.equal(linear.classList.contains('lcars-view-enter'),false);
+  assert.equal(dial.classList.contains('lcars-view-enter'),true);
+  assert.equal(pending.size,1,'only the most recent build has a timer');
+  assert.equal(shell.classList.contains('lcars-booting'),false);
+  assert.equal(shell.classList.contains('lcars-page-building'),false);
+  [...pending.values()][0].fn();
+  assert.equal(dial.classList.contains('lcars-view-enter'),false);
+  assert.equal(pending.size,0);
+  globalThis.matchMedia=()=>({matches:true});
+  dial.hidden=true;linear.hidden=false;
+  assert.equal(motion.view(linear),false,'reduced motion skips view assembly');
+  assert.equal(linear.classList.contains('lcars-view-enter'),false);
+  globalThis.matchMedia=()=>({matches:false});
+  assert.equal(motion.view(linear),true);
+  metronome.hidden=true;audio.hidden=false;
+  motion.page('audio');
+  assert.equal(linear.classList.contains('lcars-view-enter'),false,
+   'switching to another page cancels sequencer assembly');
+ }finally{
+  globalThis.setTimeout=prevSet;globalThis.clearTimeout=prevClear;
+  if(prevMatch===undefined)delete globalThis.matchMedia;else globalThis.matchMedia=prevMatch;
+ }
+});
+
+test('RC10 rebuilds individual view beats without any outer LCARS chassis animation',()=>{
+ const css=readFileSync(new URL('../v2-motion.css',import.meta.url),'utf8');
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ const sw=readFileSync(new URL('../sw.js',import.meta.url),'utf8');
+ for(const selector of [
+  '#metronome #dial.lcars-view-enter #rings circle.track',
+  '#metronome #dial.lcars-view-enter #rings g[data-index]',
+  '#metronome #linear.lcars-view-enter > h3',
+  '#metronome #linear.lcars-view-enter .pattern-row[data-channel="0"] .step',
+  '#metronome #linear.lcars-view-enter .pattern-row[data-channel="1"] .step'
+ ])assert.ok(css.includes(selector),'missing staged sequencer element: '+selector);
+ assert.match(css,/@keyframes lcars-view-beat/);
+ assert.match(app,/--view-delay:/);
+ assert.match(app,/b\.style\.setProperty\('--view-delay'/);
+ const newRules=css.slice(css.indexOf('RC10 · VIEW-SPECIFIC BEAT ASSEMBLY'));
+ assert.doesNotMatch(newRules,/#metronome\s*\.instrument\s*\{/,
+  'view switch should not rebuild instrument console');
+ assert.doesNotMatch(newRules,/\.app-shell\.lcars-booting/,
+  'view switch must not touch startup shell');
+ assert.doesNotMatch(newRules,/animation:[^;]*infinite/);
+ assert.match(newRules,/prefers-reduced-motion:reduce/);
+ assert.match(sw,/lcars-core-v2-rc10-view-assembly/);
 });

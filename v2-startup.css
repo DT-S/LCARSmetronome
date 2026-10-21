@@ -671,3 +671,79 @@
  .lcars-start-console h2{font-size:clamp(26px,4vw,44px)}
  .lcars-start-activate{min-height:46px}
 }
+
+/* RC20: Keep colored LCARS caps outside the actual title. The old gradient
+   placed a black segment across the last letters of RHYTHM SYSTEM.
+   Real grid segments allow the center text to wrap on narrow displays. */
+.lcars-title-stack {
+  gap: clamp(12px, 1.8vh, 18px);
+}
+.lcars-subbrand-bar {
+  display: grid;
+  grid-template-columns: minmax(16px, 1fr) minmax(0, auto) minmax(16px, 1fr);
+  align-items: stretch;
+  justify-content: normal;
+  column-gap: 5px;
+  width: min(100%, 570px);
+  min-height: 32px;
+  padding: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #09060b;
+  font: inherit;
+  letter-spacing: normal;
+  text-wrap: initial;
+}
+.lcars-subbrand-bar::before,
+.lcars-subbrand-bar::after {
+  content: '';
+  display: block;
+  min-width: 0;
+}
+.lcars-subbrand-bar::before {
+  background: var(--padd-lavender);
+  border-radius: 999px 0 0 999px;
+}
+.lcars-subbrand-bar::after {
+  background: var(--padd-peach);
+  border-radius: 0 999px 999px 0;
+}
+.lcars-subbrand-label {
+  min-width: 0;
+  max-width: 100%;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--padd-amber);
+  color: #080608;
+  font: 900 clamp(11px, 1.12vw, 15px)/1.25 "Arial Narrow", "Liberation Sans Narrow", Arial, sans-serif;
+  letter-spacing: 0.09em;
+  white-space: normal;
+  text-wrap: balance;
+  overflow-wrap: normal;
+}
+.lcars-studio-badge {
+  margin-top: 0;
+  min-height: 24px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  line-height: 1.35;
+  text-align: center;
+}
+@media (max-width:640px) {
+  .lcars-title-stack { gap: 9px; }
+  .lcars-subbrand-bar {
+    grid-template-columns: minmax(10px, 1fr) minmax(0, auto) minmax(10px, 1fr);
+    column-gap: 3px;
+    min-height: 27px;
+  }
+  .lcars-subbrand-label {
+    font-size: clamp(9px, 2.25vw, 11px);
+    padding: 6px 5px;
+    letter-spacing: 0.04em;
+    line-height: 1.3;
+  }
+  .lcars-studio-badge { min-height: 20px; }
+}

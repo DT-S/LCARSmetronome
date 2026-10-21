@@ -47,7 +47,10 @@ async function initializeLCARS(page){
 }
 try{
  // The Voyager launch overlay is checked before it is dismissed.
- for(const {width,height} of [{width:1440,height:900},{width:390,height:844}]){
+ for(const {width,height} of [
+  {width:320,height:740},{width:390,height:844},
+  {width:768,height:1024},{width:900,height:775},{width:1440,height:900}
+ ]){
   const launch=await browser.newPage({viewport:{width,height},reducedMotion:'no-preference'});
   try{
    await launch.goto(origin,{waitUntil:'domcontentloaded'});
@@ -56,10 +59,38 @@ try{
    assert.equal(await launch.locator('#lcarsStartupHeading').textContent(),'RHYTHM PADD');
    assert.equal(await launch.locator('.lcars-side-block').count(),4);
    assert.equal(await launch.locator('.lcars-emblem-wrap svg').count(),1);
+   const branding=await launch.evaluate(()=>{
+    const measure=selector=>{
+     const element=document.querySelector(selector);
+     const rect=element.getBoundingClientRect();
+     const style=getComputedStyle(element);
+     return {left:rect.left,right:rect.right,top:rect.top,bottom:rect.bottom,
+       width:rect.width,height:rect.height,fontSize:style.fontSize};
+    };
+    return {
+     bar:measure('.lcars-subbrand-bar'),
+     label:measure('.lcars-subbrand-label'),
+     badge:measure('.lcars-studio-badge'),
+     heading:measure('#lcarsStartupHeading'),
+     text:document.querySelector('.lcars-subbrand-label').textContent,
+     actualTextWidth:document.querySelector('.lcars-subbrand-label').scrollWidth,
+     availableTextWidth:document.querySelector('.lcars-subbrand-label').clientWidth
+    };
+   });
+   assert.equal(branding.text,'LCARS METRONOME // RHYTHM SYSTEM');
+   assert.ok(branding.label.left>=branding.bar.left-1 &&
+             branding.label.right<=branding.bar.right+1,
+             'Subtitle must sit entirely within its colored bar');
+   assert.ok(branding.actualTextWidth<=branding.availableTextWidth+1,
+             'The subtitle must not overflow its colored segment');
+   assert.ok(branding.badge.top>=branding.bar.bottom+4,
+             'DRUMTRACK STUDIOS must not overlap the subtitle bar');
+   assert.ok(branding.bar.top>=branding.heading.bottom+4,
+             'Subtitle must be separated from RHYTHM PADD heading');
    const bounds=await launch.locator('#lcarsInitialize').boundingBox();
    assert.ok(bounds&&bounds.width>=100&&bounds.x>=0&&bounds.x+bounds.width<=width+1,
      'INITIALIZE LCARS must fit within the viewport');
-   await launch.screenshot({path:path.join(screenshots,`rc19-voyager-launch-${width}.png`)});
+   await launch.screenshot({path:path.join(screenshots,`rc20-startup-branding-${width}.png`)});
    await launch.locator('[data-set-theme="elite"]').click();
    assert.equal(await launch.locator('#lcarsStartup').getAttribute('data-theme'),'elite');
    await launch.locator('[data-set-theme="voyager"]').click();

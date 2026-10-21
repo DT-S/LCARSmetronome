@@ -301,9 +301,15 @@ try{
      const rect=q=>{const r=document.querySelector(q).getBoundingClientRect();
       return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};};
      const title=document.querySelector('.mobile-title');
-     return {header:rect('.app-shell > header'),title:rect('.mobile-title'),
+     const instrument=document.querySelector('#metronome .instrument');
+     const bar=getComputedStyle(instrument,'::after');
+     const titleBox=rect('.mobile-title'),anchor=rect('.app-shell > header .heading');
+     const ratio=instrument.getBoundingClientRect().width/instrument.offsetWidth;
+     const barBottom=instrument.getBoundingClientRect().top+
+      (parseFloat(bar.top)+parseFloat(bar.height))*ratio;
+     return {header:rect('.app-shell > header'),title:titleBox,anchor,
       main:rect('main'),tap:rect('#tap'),start:rect('#start'),
-      linear:rect('#linear'),railColor:getComputedStyle(title).color,
+      linear:rect('#linear'),barBottom,railColor:getComputedStyle(title).color,
       titleText:title.textContent,scrollTop:document.querySelector('main').scrollTop,
       layout:document.querySelector('#linear').hidden?'circular':'linear'};
     });
@@ -315,6 +321,13 @@ try{
     assert.ok(g.title.top>=g.header.top-2&&g.title.bottom<=g.header.top+26*scale+2,
      `${name}/${scale}: RHYTHM PADD is not inside the top rail ${JSON.stringify(g)}`);
     assert.ok(g.title.right<=g.header.right+1,`${name}/${scale}: title clipped horizontally ${JSON.stringify(g)}`);
+    const anchored=(g.title.left-g.anchor.left)/g.anchor.width;
+    assert.ok(Math.abs(anchored-.13)<.025,
+     `${name}/${scale}: wordmark not anchored in colored rail ${JSON.stringify(g)}`);
+    assert.ok(g.title.right<=g.anchor.left+g.anchor.width*.79+2,
+     `${name}/${scale}: title overlaps upper rail gap ${JSON.stringify(g)}`);
+    assert.ok(g.tap.top-g.barBottom>6*scale,
+     `${name}/${scale}: colored telemetry bars collide with Tap/Start ${JSON.stringify(g)}`);
     assert.ok(g.tap.top>=g.main.top-2&&g.tap.bottom<=g.main.bottom+2,
      `${name}/${scale}: Tap Tempo requires scroll ${JSON.stringify(g)}`);
     assert.ok(g.start.top>=g.main.top-2&&g.start.bottom<=g.main.bottom+2,
@@ -329,12 +342,58 @@ try{
     assert.equal(await mobile.locator('#dial').isVisible(),true);
     const y=await mobile.locator('.mobile-title').boundingBox();
     assert.ok(Math.abs(y.y-g.title.top)<3,`${name}/${scale}: title moved on view change`);
+    assert.equal(await mobile.locator('#metronome .instrument').evaluate(x=>getComputedStyle(x).paddingTop),'8px',
+     `${name}/${scale}: Circular should keep original transport spacing`);
    }
    assert.deepEqual(errors,[]);
    console.log(`PASS RC13 compact LCARS title + always-visible Linear transport ${name}`);
   }catch(err){fail++;console.error(`FAIL RC13 iPhone viewport ${name}`,err);
    await mobile.screenshot({path:path.join(screenshots,`rc13-${name}-FAILED.png`)}).catch(()=>{});
   }finally{await mobile.close();}
+ }
+
+ // RC14: medium/wide title shares the proportional orange-bus anchor too.
+ // Each iPad/desktop width + stored UI zoom must keep the title inside the
+ // actual colored segment; no extra hardcoded left coordinate is allowed.
+ for(const [width,height,label] of [
+  [768,1024,'ipad-portrait'],[1024,768,'ipad-landscape'],
+  [1440,900,'desktop'],[1920,1080,'desktop-wide']
+ ]){
+  const page=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'});
+  const faults=[];page.on('pageerror',e=>faults.push(e.message));
+  try{
+   await page.goto(origin,{waitUntil:'networkidle'});
+   for(const scale of [.7,1,1.1]){
+    await page.locator('[data-tab="settings"]').click();
+    await page.locator(`#scaleButtons button[data-ui-scale="${scale}"]`).click();
+    const g=await page.evaluate(()=>{
+     const rect=q=>{const r=document.querySelector(q).getBoundingClientRect();
+      return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+     return {header:rect('.app-shell > header'),
+      heading:rect('.app-shell > header .heading'),
+      title:rect('.mobile-title'),
+      color:getComputedStyle(document.querySelector('.mobile-title')).color,
+      text:document.querySelector('.mobile-title').textContent};
+    });
+    const fraction=(g.title.left-g.heading.left)/g.heading.width;
+    assert.ok(Math.abs(fraction-.13)<.025,
+      `${label}/${scale}: title is not bus-anchored: ${JSON.stringify(g)}`);
+    assert.equal(g.color,'rgb(0, 0, 0)');
+    assert.ok(g.title.top>=g.heading.top-2&&g.title.bottom<=g.heading.bottom+2,
+      `${label}/${scale}: wordmark escaped colored bus vertically: ${JSON.stringify(g)}`);
+    assert.ok(g.title.right<=g.heading.left+.79*g.heading.width+2,
+      `${label}/${scale}: title overlaps right segment gap: ${JSON.stringify(g)}`);
+    await page.locator('[data-tab="metronome"]').click();
+    if(scale===1&&(width===768||width===1440))
+     await page.screenshot({path:path.join(screenshots,`rc14-${label}-anchored-title.png`)});
+    const y=await page.locator('.mobile-title').boundingBox();
+    assert.ok(Math.abs(y.y-g.title.top)<3,`${label}/${scale}: title moved on navigation`);
+   }
+   assert.deepEqual(faults,[]);
+   console.log(`PASS RC14 proportional PADD wordmark ${label}`);
+  }catch(err){fail++;console.error(`FAIL RC14 medium/wide wordmark ${label}`,err);
+   await page.screenshot({path:path.join(screenshots,`rc14-${label}-FAILED.png`)}).catch(()=>{});
+  }finally{await page.close();}
  }
  // Launch choreography tested with real CSS motion, including 5 frame captures.
  {

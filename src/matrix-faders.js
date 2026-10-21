@@ -4,6 +4,12 @@
 // No demo audio synthesis, fake telemetry ticker or navigation replacement.
 export const MATRIX_SEGMENTS=24;
 export const MATRIX_TICKS=35;
+// Visual-only offsets for the four real faders. Source audio values stay intact.
+export const MATRIX_BUILD_START_MS=240;
+export function matrixBuildStart(index,kind){
+ if(!Number.isInteger(index)||index<0||!['volume','pan'].includes(kind))throw RangeError('Invalid mixer build target');
+ return MATRIX_BUILD_START_MS+index*140+(kind==='pan'?115:0);
+}
 
 export function matrixClamp(value,min,max){
  return Math.max(min,Math.min(max,value));
@@ -88,6 +94,8 @@ export function buildMatrixFaders(index,channel,{onChange}){
   const isPan=kind==='pan';
   const module=elem('div',`matrix-module matrix-${kind}`);
   module.dataset.matrixKind=kind;
+  const buildStart=matrixBuildStart(index,kind);
+  module.style.setProperty('--matrix-build-start',`${buildStart}ms`);
   const label=elem('div','matrix-label');
   label.append(elem('span','matrix-code',isPan?'AZIM-02':'GAIN-01'),elem('strong','',isPan?'PAN':'VOLUME'));
   const housing=elem('div','matrix-housing');
@@ -110,6 +118,9 @@ export function buildMatrixFaders(index,channel,{onChange}){
   }
   const segments=elem('div','matrix-segments');
   const segmentNodes=makeSegments(segments);
+  for(const [step,led] of segmentNodes.entries()){
+   led.style.setProperty('--matrix-led-build-delay',`${buildStart+205+step*9}ms`);
+  }
   const bracket=elem('div','matrix-bracket');
   const bracketBox=elem('div','matrix-bracket-box');
   bracketBox.append(elem('span','matrix-bracket-lip'),elem('span','matrix-bracket-core','◀ ▮ ▶'),elem('span','matrix-bracket-lip matrix-bracket-bottom'));

@@ -5,7 +5,7 @@ import {SOUNDS} from './synth.js';
 export const MODES={standard:'Standard metronome',polyrhythm:'Polyrhythm',polymeter:'Polymeter',gap:'Gap click',random:'Random gap',offbeat:'Offbeat',displacement:'Beat displacement',ramp:'Tempo ramp'};
 export const trainingDefaults=()=>({cycleQuarters:4,audibleBars:4,silentBars:4,minOn:2,maxOn:4,minOff:1,maxOff:4,changeBars:4,resolution:4,shiftStep:1,direction:1,manual:false,offset:0,targetBpm:160,bpmStep:5,rampReturn:false});
 /** @typedef {0|1|2|3} ClickState 0=double accent, 1=accent, 2=normal, 3=silent */
-export const fresh = () => ({version:5, uiScale:1, customSounds:[], diary:diaryDefaults(), mode:'standard', swing:.5, training:trainingDefaults(), bpm:120, beats:4, subdivisions:2, outer:[0,2,2,2], inner:[3,2], countIn:0, duration:0, master:.65, uiVolume:.18, uiEnabled:true, hoverEnabled:true, haptic:false, launchScreen:true, channels:[{volume:.8,pan:0,sounds:['click','click','click'],mute:false,solo:false},{volume:.6,pan:0,sounds:['click','click','click'],mute:false,solo:false}], presets:[]});
+export const fresh = () => ({version:5, uiScale:1, customSounds:[], diary:diaryDefaults(), mode:'standard', swing:.5, training:trainingDefaults(), bpm:120, beats:4, subdivisions:2, outer:[0,2,2,2], inner:[3,2], countIn:0, duration:0, master:.65, uiVolume:.18, uiEnabled:true, hoverEnabled:true, haptic:false, launchScreen:true, forceMotion:false, channels:[{volume:.8,pan:0,sounds:['click','click','click'],mute:false,solo:false},{volume:.6,pan:0,sounds:['click','click','click'],mute:false,solo:false}], presets:[]});
 export const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 export function resize(pattern, n) { return Array.from({length:n},(_,i)=>pattern[i]??2); }
 export function validate(raw,inheritedSounds=null) {
@@ -43,6 +43,10 @@ export function validate(raw,inheritedSounds=null) {
     if(typeof raw.launchScreen!=='boolean')throw Error('Invalid LCARS startup screen setting');
     s.launchScreen=raw.launchScreen;
   }
+  if(raw.forceMotion!==undefined){
+    if(typeof raw.forceMotion!=='boolean')throw Error('Invalid LCARS motion override setting');
+    s.forceMotion=raw.forceMotion;
+  }
   if(!Array.isArray(raw.channels)||raw.channels.length!==2) throw Error('Invalid channels');
   s.channels=raw.channels.map(c=>{
     if(!c||!Number.isFinite(c.volume)||c.volume<0||c.volume>1||!Number.isFinite(c.pan)||Math.abs(c.pan)>1||typeof c.mute!=='boolean'||typeof c.solo!=='boolean') throw Error('Invalid mixer');
@@ -62,4 +66,4 @@ export function validate(raw,inheritedSounds=null) {
 export const audible=(channels,i)=>!channels[i].mute&&(!channels.some(c=>c.solo)||channels[i].solo);
 
 export const presetSettings=s=>structuredClone({...s,customSounds:[],diary:diaryDefaults(),presets:[]});
-export const loadPreset=(state,preset)=>validate({...preset.settings,presets:state.presets,version:5,uiScale:state.uiScale,launchScreen:state.launchScreen,customSounds:state.customSounds,diary:state.diary});
+export const loadPreset=(state,preset)=>validate({...preset.settings,presets:state.presets,version:5,uiScale:state.uiScale,launchScreen:state.launchScreen,forceMotion:state.forceMotion,customSounds:state.customSounds,diary:state.diary});

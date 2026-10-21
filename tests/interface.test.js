@@ -9,7 +9,11 @@ const settle=()=>new Promise(resolve=>setImmediate(resolve));
 test('navigation uses switch sound only for a different destination',()=>{assert.equal(activationSound(control({tab:'audio'})),'lcars-menu-build');assert.equal(activationSound(control({tab:'audio',active:true})),'buttonpress');assert.equal(activationSound(control({mode:'ramp',pressed:true})),'buttonpress');assert.equal(activationSound(control({mode:'ramp'})),'switchingmenus');});
 test('navigation plays one keypress plus one window-build cue, without duplicating on same tab',async()=>{
  const f=fixture({tab:'audio'});
- f.fire('click',{detail:1});await settle();
+ f.fire('click',{detail:1});
+ // Navigation updates the active class immediately, but the cue must remember
+ // which tab was selected when the user originally pressed it.
+ f.c.classList.add('active');
+ await settle();
  assert.deepEqual(f.calls,['buttonpress','lcars-menu-build']);
  f.c.classList.add('active');
  f.fire('click',{detail:1});await settle();

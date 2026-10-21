@@ -71,8 +71,7 @@ export function installSegmentCorners(root){
 export function activationSound(control){
  return classifyControlCue(control);
 }
-export function playControlCue(control,audio,settings){
- const sound=activationSound(control);
+export function playControlCue(control,audio,settings,sound=activationSound(control)){
  if(control.dataset?.tab && sound==='lcars-menu-build'){
   // A short tactile keypress first, then the original window-build cue.
   audio.ui('buttonpress',settings);
@@ -134,7 +133,8 @@ export function installFeedback(root,{unlock,audio,state}){
   if(c.tagName==='LABEL'){if(e.target.tagName==='INPUT'&&labelClick?.control===c&&performance.now()-labelClick.time<80){labelClick=null;return;}if(e.target.tagName!=='INPUT')labelClick={control:c,time:performance.now()};}
   if(c.tagName==='LABEL'&&c.querySelector('input[type=checkbox]'))return;
   if(c.closest('.sound-choices'))return; // These buttons already preview the instrument.
-  unlock().then(()=>audio.loading).then(()=>playControlCue(c,audio,state())).catch(()=>{});
+  const sound=activationSound(c); // Snapshot before navigation mutates the active tab.
+  unlock().then(()=>audio.loading).then(()=>playControlCue(c,audio,state(),sound)).catch(()=>{});
   if(state().haptic)globalThis.navigator?.vibrate?.(8);
  },{capture:true});
  return {clear};

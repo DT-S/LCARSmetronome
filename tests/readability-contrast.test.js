@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 const css=readFileSync(new URL('../v2-polish.css',import.meta.url),'utf8');
 const app=readFileSync(new URL('../src/diary-ui.js',import.meta.url),'utf8');
 const chart=readFileSync(new URL('../src/charts.js',import.meta.url),'utf8');
-const block=css.slice(css.indexOf('RC16 · READABILITY SYSTEM'));
+const block=css.slice(css.indexOf('RC16 · READABILITY SYSTEM'),css.indexOf('/* RC17: LCARS SFX diagnostics.'));
 test('RC16 defines dark readable section-heading ink across all LCARS panels',()=>{
  assert.ok(block.startsWith('RC16 · READABILITY SYSTEM'));
  assert.match(block,/:is\(#metronome,#audio,#presets,#diary,#analytics,#settings\) \.panel > :is\(h3,\.eyebrow\)/);

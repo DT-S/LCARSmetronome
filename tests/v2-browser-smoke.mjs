@@ -46,6 +46,31 @@ async function initializeLCARS(page){
  }
 }
 try{
+ // The Voyager launch overlay is checked before it is dismissed.
+ for(const {width,height} of [{width:1440,height:900},{width:390,height:844}]){
+  const launch=await browser.newPage({viewport:{width,height},reducedMotion:'no-preference'});
+  try{
+   await launch.goto(origin,{waitUntil:'domcontentloaded'});
+   await launch.waitForFunction(()=>document.querySelector('#lcarsStartup')?.dataset.ready==='true');
+   assert.equal(await launch.locator('#lcarsInitialize').isVisible(),true);
+   assert.equal(await launch.locator('#lcarsStartupHeading').textContent(),'RHYTHM PADD');
+   assert.equal(await launch.locator('.lcars-side-block').count(),4);
+   assert.equal(await launch.locator('.lcars-emblem-wrap svg').count(),1);
+   const bounds=await launch.locator('#lcarsInitialize').boundingBox();
+   assert.ok(bounds&&bounds.width>=100&&bounds.x>=0&&bounds.x+bounds.width<=width+1,
+     'INITIALIZE LCARS must fit within the viewport');
+   await launch.screenshot({path:path.join(screenshots,`rc19-voyager-launch-${width}.png`)});
+   await launch.locator('[data-set-theme="elite"]').click();
+   assert.equal(await launch.locator('#lcarsStartup').getAttribute('data-theme'),'elite');
+   await launch.locator('[data-set-theme="voyager"]').click();
+   await launch.locator('#lcarsInitialize').click();
+   await launch.waitForFunction(()=>document.querySelector('#lcarsStartup').hidden);
+   assert.equal(await launch.locator('#start').isVisible(),true);
+   console.log('PASS Voyager LCARS startup appearance',width);
+  }catch(error){
+   fail++;console.error('FAIL Voyager LCARS startup appearance',width,error);
+  }finally{await launch.close();}
+ }
  for(const {width,height,label} of targets){
   const page=await browser.newPage({viewport:{width,height},deviceScaleFactor:1,reducedMotion:'reduce'});
   const errors=[];

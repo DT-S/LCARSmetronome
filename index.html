@@ -1,17 +1,158 @@
 <!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#000000"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="description" content="Offline quarter-based metronome and circular rhythm sequencer."><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./assets/icon-192.png"><link rel="icon" href="./assets/icon.svg"><link rel="stylesheet" href="./style.css"><link rel="stylesheet" href="./v2-layout.css"><link rel="stylesheet" href="./v2-precision.css"><link rel="stylesheet" href="./v2-matrix.css"><link rel="stylesheet" href="./v2-gesture-guide.css"><link rel="stylesheet" href="./v2-linear-gesture.css"><link rel="stylesheet" href="./v2-motion.css"><link rel="stylesheet" href="./v2-polish.css"><link rel="stylesheet" href="./v2-lcars-slider.css"><link rel="stylesheet" href="./v2-diary-maintenance.css"><link rel="stylesheet" href="./v2-startup.css"><title>LCARS Metronome</title></head>
 <body>
-<div id="lcarsStartup" class="lcars-start-screen" role="dialog" aria-modal="true" aria-labelledby="lcarsStartupHeading" aria-describedby="lcarsStartupNote" hidden>
- <div class="lcars-start-rail" aria-hidden="true"><span>01 / LCARS</span><span>RHYTHM CONTROL</span></div>
- <div class="lcars-start-console">
-  <span class="lcars-start-kicker">STARFLEET / RHYTHM INTERFACE</span>
-  <img class="lcars-start-logo" src="./assets/icon.svg" width="160" height="160" alt="LCARS metronome emblem">
-  <h2 id="lcarsStartupHeading">LCARS <span>METRONOME</span></h2>
-  <p id="lcarsStartupNote">SYSTEM STANDBY // AUDIO INITIALIZATION READY</p>
-  <button id="lcarsInitialize" type="button" class="lcars-start-activate">INITIALIZE LCARS</button>
-  <span class="lcars-start-footer">LOCAL / OFFLINE / READY</span>
- </div>
- <div class="lcars-start-bottom" aria-hidden="true"><span>PRIMARY SYSTEMS</span><span>01 // AUDIO LINK</span></div>
+<div id="lcarsStartup" class="lcars-start-screen" data-theme="voyager" role="dialog" aria-modal="true" aria-labelledby="lcarsStartupHeading" aria-describedby="lcarsStartupNote" hidden>
+
+  <!-- TOP LCARS FRAME -->
+  <div class="lcars-start-top" aria-hidden="true">
+    <div class="lcars-elbow-top">47-01</div>
+    <div class="lcars-top-right">
+      <div class="lcars-rail-segments">
+        <div class="lcars-seg s1">01 / LCARS</div>
+        <div class="lcars-seg s2">VOY-74656</div>
+        <div class="lcars-seg s3"><span>RHYTHM CONTROL</span><span>CORE 2.0</span></div>
+        <div class="lcars-seg s4">SYNC-LOCK</div>
+        <div class="lcars-seg s5">AUDIO</div>
+      </div>
+      <div class="lcars-top-subbar">
+        <span class="lcars-sub-title">USS VOYAGER // <strong>TACTICAL RHYTHM SUBSYSTEM</strong></span>
+        <div class="lcars-cascade" id="lcarsCascade">
+          <span>47982.4</span><span>99-044</span><span class="lit">120.0</span><span>04/04</span><span>884-A</span><span>2377.9</span>
+          <span>00412.8</span><span class="lit">SYNC</span><span>64-BIT</span><span>Q-REF</span><span>74656</span><span>READY</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDDLE BODY: INTERACTIVE LEFT RAIL + MAIN CONSOLE -->
+  <div class="lcars-start-body">
+    <div class="lcars-left-column" role="group" aria-label="Tactical Display Controls">
+      <button type="button" class="lcars-side-block b1" data-set-theme="voyager" aria-pressed="true">
+        <small>01-VOY</small>
+        <span>VOYAGER</span>
+      </button>
+      <button type="button" class="lcars-side-block b2" data-set-theme="elite" aria-pressed="false">
+        <small>02-HAZ</small>
+        <span>ELITE FORCE</span>
+      </button>
+      <button type="button" class="lcars-side-block b3" data-set-theme="redalert" aria-pressed="false">
+        <small>03-TAC</small>
+        <span>RED ALERT</span>
+      </button>
+      <button type="button" class="lcars-side-block b4" id="bpmPreviewToggle" title="Preview emblem pulse only; metronome tempo is unchanged">
+        <small>04-CLK</small>
+        <span id="bpmPreviewLabel">120 BPM</span>
+      </button>
+      <div class="lcars-side-filler" aria-hidden="true">
+        <span>Q-REF // 001<br>MATRIX IDLE</span>
+      </div>
+    </div>
+
+    <!-- CENTER CONSOLE -->
+    <div class="lcars-start-console">
+      <div class="lcars-console-frame">
+        <span class="lcars-start-kicker">STARFLEET // RHYTHM TRAINING INTERFACE</span>
+
+        <!-- VOYAGER / ELITE FORCE RHYTHM EMBLEM SVG -->
+        <div class="lcars-emblem-wrap">
+          <svg class="lcars-start-logo" viewBox="0 0 240 240" role="img" aria-label="Rhythm PADD LCARS Emblem">
+            <defs>
+              <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#ffcc66" stop-opacity="0.38"/>
+                <stop offset="65%" stop-color="#ff9900" stop-opacity="0.1"/>
+                <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="deltaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffe099"/>
+                <stop offset="55%" stop-color="#ff9900"/>
+                <stop offset="100%" stop-color="#cc6666"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Ambient Halo -->
+            <circle cx="120" cy="120" r="112" fill="url(#coreGlow)"/>
+
+            <!-- Outer Sequencer Beat Ring (16 segments) -->
+            <g class="emblem-ring-outer">
+              <circle cx="120" cy="120" r="104" fill="none" stroke="#cc99cc" stroke-width="5" stroke-dasharray="28 12.8" opacity="0.85"/>
+              <circle cx="120" cy="120" r="95" fill="none" stroke="#ff9900" stroke-width="1.5" stroke-dasharray="6 14" opacity="0.7"/>
+              <!-- Cardinal Beat Markers -->
+              <circle cx="120" cy="16" r="5" fill="#ffeecc"/>
+              <circle cx="224" cy="120" r="4" fill="#ffcc66"/>
+              <circle cx="120" cy="224" r="4" fill="#ffcc66"/>
+              <circle cx="16" cy="120" r="4" fill="#ffcc66"/>
+            </g>
+
+            <!-- Inner Subdivision Ring -->
+            <g class="emblem-ring-inner">
+              <circle cx="120" cy="120" r="78" fill="none" stroke="#9999ff" stroke-width="4" stroke-dasharray="16 14.6" opacity="0.8"/>
+              <circle cx="120" cy="120" r="68" fill="none" stroke="#ffcc66" stroke-width="1.5" opacity="0.35"/>
+            </g>
+
+            <!-- Horizontal LCARS Telemetry Wings -->
+            <path d="M 18 120 H 46 M 194 120 H 222" stroke="#ffcc66" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- Starfleet Delta + Metronome Frame -->
+            <g class="emblem-pulse-core">
+              <path d="M 120 34 L 166 176 L 120 148 L 74 176 Z"
+                    fill="url(#deltaGrad)" stroke="#000" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M 120 56 L 148 154 L 120 137 L 92 154 Z"
+                    fill="#09070e" stroke="#ffcc66" stroke-width="1.8" stroke-linejoin="round"/>
+            </g>
+
+            <!-- Animated Metronome Pendulum Needle -->
+            <g class="emblem-pendulum">
+              <line x1="120" y1="168" x2="120" y2="62" stroke="#99ccff" stroke-width="3.5" stroke-linecap="round"/>
+              <rect x="113" y="84" width="14" height="9" rx="3" fill="#ff9900" stroke="#000" stroke-width="1.5"/>
+              <circle cx="120" cy="62" r="4.5" fill="#ffeecc"/>
+            </g>
+
+            <!-- Pivot Anchor -->
+            <circle cx="120" cy="168" r="7" fill="#ffcc66" stroke="#000" stroke-width="2.5"/>
+          </svg>
+        </div>
+
+        <!-- BRANDING STACK -->
+        <div class="lcars-title-stack">
+          <h2 id="lcarsStartupHeading">RHYTHM <span>PADD</span></h2>
+          <div class="lcars-subbrand-bar">LCARS METRONOME // RHYTHM SYSTEM</div>
+          <div class="lcars-studio-badge">
+            <span class="lcars-studio-dot"></span>
+            <span>DRUMTRACK STUDIOS</span>
+            <span class="lcars-studio-dot"></span>
+          </div>
+        </div>
+
+        <p id="lcarsStartupNote">SYSTEM STANDBY // WEB AUDIO ENGINE &amp; SEQUENCER READY</p>
+
+        <!-- INITIALIZE BUTTON -->
+        <div class="lcars-activate-wrap">
+          <div class="lcars-activate-cap" aria-hidden="true">01</div>
+          <button id="lcarsInitialize" type="button" class="lcars-start-activate">
+            <span id="lcarsInitText">INITIALIZE LCARS</span>
+            <span class="btn-sub" id="lcarsInitCode">ENGAGE // 47</span>
+          </button>
+        </div>
+
+        <div class="lcars-boot-bar" id="lcarsBootBar" aria-hidden="true">
+          <div class="lcars-boot-fill" id="lcarsBootFill"></div>
+        </div>
+
+        <span class="lcars-start-footer">OFFLINE PWA // QUARTZ-LOCK TIMING // DRUMTRACK STUDIOS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM LCARS FRAME -->
+  <div class="lcars-start-bottom-wrap" aria-hidden="true">
+    <div class="lcars-elbow-bottom">01-A</div>
+    <div class="lcars-bottom-segments">
+      <div class="lcars-seg s-b1">PRIMARY SEQUENCER</div>
+      <div class="lcars-seg s-b2">AUDIO MATRIX</div>
+      <div class="lcars-seg s-b3">PRACTICE LOG</div>
+      <div class="lcars-seg s-b4">01 // AUDIO LINK</div>
+    </div>
+  </div>
 </div>
 <div class="app-shell">
 <header><div class="elbow"></div><div class="heading"><span class="eyebrow">RHYTHM TRAINING SYSTEM / 001</span><h1>LCARS <span>METRONOME</span><span class="mobile-title" aria-hidden="true">RHYTHM PADD</span></h1></div><div class="header-tail"><span id="connection">LOCAL SYSTEM</span><span>CORE 2.0.0 RC17</span></div></header>

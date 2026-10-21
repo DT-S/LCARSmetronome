@@ -820,6 +820,9 @@ try{
   tabPage.on('pageerror',e=>failures.push(e.message));
   try{
    await tabPage.goto(origin,{waitUntil:'domcontentloaded'});
+   // domcontentloaded can precede async module initialization. Wait for
+   // real generated rhythm nodes before checking startup completion.
+   await tabPage.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:10000});
    await tabPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
     null,{timeout:3500});
    const stable=await tabPage.evaluate(()=>{
@@ -891,6 +894,9 @@ try{
   const errors=[];viewPage.on('pageerror',e=>errors.push(e.message));
   try{
    await viewPage.goto(origin,{waitUntil:'domcontentloaded'});
+   // domcontentloaded can precede async module initialization. Wait for
+   // real generated rhythm nodes before checking startup completion.
+   await viewPage.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:10000});
    await viewPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
     null,{timeout:4000});
    const before=await viewPage.evaluate(()=>{
@@ -1003,6 +1009,9 @@ try{
   const faults=[];audioPage.on('pageerror',e=>faults.push(e.message));
   try{
    await audioPage.goto(origin,{waitUntil:'domcontentloaded'});
+   // domcontentloaded can precede async module initialization. Wait for
+   // real generated rhythm nodes before checking startup completion.
+   await audioPage.waitForSelector('#rings [data-channel="0"][data-index]',{timeout:10000});
    await audioPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
     null,{timeout:4000});
    await audioPage.locator('[data-tab="audio"]').click();

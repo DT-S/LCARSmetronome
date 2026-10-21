@@ -623,7 +623,11 @@ try{
    assert.notEqual(await mode.evaluate(el=>getComputedStyle(el).animationName),'lcars-mode-confirm',
     'clicking selected mode repeated transition');
    await page.locator('#view').click();
-   assert.equal(await page.locator('#linear').evaluate(el=>getComputedStyle(el).animationName),'lcars-view-build');
+   assert.equal(await page.locator('#linear').evaluate(el=>getComputedStyle(el).animationName),'none',
+    'the static view container must not slide around');
+   assert.match(await page.locator('#linear .step').first()
+    .evaluate(el=>getComputedStyle(el).animationName),/lcars-view-beat/,
+    'individual Linear beats must cascade into the view');
    await page.locator('#view').click();
    assert.ok(await page.locator('#rings [data-index]').count()>0,'circular view broke');
    // Charts get REAL measurement probes. This fixture is ephemeral test-only
@@ -752,6 +756,113 @@ try{
   }catch(e){fail++;console.error(`FAIL RC9 fixed chassis ${w}x${h}`,e);
    await tabPage.screenshot({path:path.join(screenshots,`rc9-${w}-FAILED.png`)}).catch(()=>{});
   }finally{await tabPage.close();}
+ }
+
+ // RC10 view-only rebuild: all viewports, same staggered beat ordering.
+ // Permanent LCARS chassis, transport and BPM must never blink or move.
+ for(const [width,height] of [[320,640],[390,844],[768,1024],[1440,900],[1920,1080]]){
+  const viewPage=await browser.newPage({viewport:{width,height},reducedMotion:'no-preference'});
+  const errors=[];viewPage.on('pageerror',e=>errors.push(e.message));
+  try{
+   await viewPage.goto(origin,{waitUntil:'domcontentloaded'});
+   await viewPage.waitForFunction(()=>!document.querySelector('.app-shell')?.classList.contains('lcars-booting'),
+    null,{timeout:4000});
+   const before=await viewPage.evaluate(()=>{
+    const box=q=>{const r=document.querySelector(q).getBoundingClientRect();
+      return [r.x,r.y,r.width,r.height].map(v=>Math.round(v));};
+    return {header:box('.app-shell > header'),nav:box('.app-shell > aside'),
+      start:document.querySelector('#start').textContent,
+      tempo:document.querySelector('#tempoValue').textContent,
+      outerPath:document.querySelector('#rings .track').getAttribute('r'),
+      beatCount:document.querySelectorAll('#rings g[data-index]').length};
+   });
+   await viewPage.locator('#view').click();
+   const linearData=await viewPage.evaluate(()=>{
+    const view=document.querySelector('#linear');
+    const buttons=[...view.querySelectorAll('.step')];
+    const computed=e=>getComputedStyle(e);
+    return {active:!view.hidden,building:view.classList.contains('lcars-view-enter'),
+      wrapper:computed(view).animationName,
+      title:computed(view.querySelector('h3')).animationName,
+      first:computed(buttons[0]).animationName,
+      next:computed(buttons[1]).animationName,
+      firstDelay:parseFloat(computed(buttons[0]).animationDelay)*1000,
+      nextDelay:parseFloat(computed(buttons[1]).animationDelay)*1000,
+      count:buttons.length,
+      beatIndices:buttons.map(b=>[b.dataset.channel,b.dataset.index])};
+   });
+   assert.equal(linearData.active,true);
+   assert.equal(linearData.building,true);
+   assert.equal(linearData.wrapper,'none');
+   assert.match(linearData.title,/lcars-content-title/);
+   assert.match(linearData.first,/lcars-view-beat/);
+   assert.match(linearData.next,/lcars-view-beat/);
+   assert.ok(linearData.nextDelay>linearData.firstDelay,
+    `${width}x${height} Linear beat order is not staggered`);
+   assert.ok(linearData.count>=2);
+   await viewPage.screenshot({path:path.join(screenshots,`rc10-${width}-linear-beats.png`)});
+   // Quick toggle: old animation cancels without touching audio settings.
+   await viewPage.locator('#view').click();
+   const circularData=await viewPage.evaluate(()=>{
+    const view=document.querySelector('#dial');
+    const ring=view.querySelector('#rings circle.track');
+    const secondary=view.querySelector('#rings circle.track.inner-track');
+    const beats=[...view.querySelectorAll('#rings g[data-index]')];
+    const c=e=>getComputedStyle(e);
+    return {active:!view.hidden,building:view.classList.contains('lcars-view-enter'),
+      wrapper:c(view).animationName,outer:c(ring).animationName,
+      inner:c(secondary).animationName,first:c(beats[0]).animationName,
+      firstDelay:parseFloat(c(beats[0]).animationDelay)*1000,
+      secondDelay:parseFloat(c(beats[1]).animationDelay)*1000,
+      r:ring.getAttribute('r'),count:beats.length};
+   });
+   assert.equal(circularData.active,true);
+   assert.equal(circularData.building,true);
+   assert.equal(circularData.wrapper,'none');
+   assert.match(circularData.outer,/lcars-launch-ring/);
+   assert.match(circularData.inner,/lcars-launch-ring/);
+   assert.match(circularData.first,/lcars-view-beat/);
+   assert.ok(circularData.secondDelay>circularData.firstDelay,
+    `${width}x${height} Circular beat order is not staggered`);
+   assert.equal(circularData.r,before.outerPath);
+   assert.equal(circularData.count,before.beatCount);
+   await viewPage.screenshot({path:path.join(screenshots,`rc10-${width}-circular-rings.png`)});
+   await viewPage.waitForFunction(()=>!document.querySelector('#dial').classList.contains('lcars-view-enter'),
+    null,{timeout:2600});
+   const after=await viewPage.evaluate(()=>{
+    const box=q=>{const r=document.querySelector(q).getBoundingClientRect();
+      return [r.x,r.y,r.width,r.height].map(v=>Math.round(v));};
+    return {header:box('.app-shell > header'),nav:box('.app-shell > aside'),
+      start:document.querySelector('#start').textContent,
+      tempo:document.querySelector('#tempoValue').textContent,
+      pageBuilding:document.querySelector('#metronome').classList.contains('lcars-page-enter'),
+      shellBoot:document.querySelector('.app-shell').classList.contains('lcars-booting')};
+   });
+   assert.deepEqual(after.header,before.header,`${width}x${height} static header shifted`);
+   assert.deepEqual(after.nav,before.nav,`${width}x${height} static navigation shifted`);
+   assert.equal(after.start,before.start);
+   assert.equal(after.tempo,before.tempo);
+   assert.equal(after.pageBuilding,false);
+   assert.equal(after.shellBoot,false);
+   assert.deepEqual(errors,[]);
+   console.log(`PASS RC10 staggered Circular/Linear beats ${width}x${height}`);
+  }catch(err){
+   fail++;console.error(`FAIL RC10 view assembly ${width}x${height}`,err);
+   await viewPage.screenshot({path:path.join(screenshots,`rc10-${width}-FAILED.png`)}).catch(()=>{});
+  }finally{await viewPage.close();}
+ }
+ {
+  const reduced=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  try{
+   await reduced.goto(origin,{waitUntil:'domcontentloaded'});
+   await reduced.locator('#view').click();
+   assert.equal(await reduced.locator('#linear.lcars-view-enter').count(),0,
+    'reduced motion must not start Linear view assembly');
+   await reduced.locator('#view').click();
+   assert.equal(await reduced.locator('#dial.lcars-view-enter').count(),0,
+    'reduced motion must not start Circular view assembly');
+  }catch(err){fail++;console.error('FAIL RC10 view reduced motion',err);}
+  finally{await reduced.close();}
  }
  // P7: cached PWA must relaunch with network disabled and preserve
  // user preferences in IndexedDB across a full browser page reload.

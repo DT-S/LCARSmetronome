@@ -76,7 +76,8 @@ export function activationSound(control){
  if(control.id==='start')return 'toggle';
  if(control.id==='export')return 'Acceptsound';
  if(control.id==='persist')return 'caution';
- if(control.id==='clearDiary'||control.dataset.action==='clear-diary')return 'caution';
+ if(control.id==='import')return 'caution';
+ if(control.id==='clearDiary'||control.dataset.action==='clear-diary')return 'erase';
  if(control.matches('summary,[type=checkbox]')||control.closest('label:has(input[type=checkbox])'))return 'toggle';
  if(control.id==='btnPlus'||control.matches('[data-step="up"],[data-direction="up"]'))return 'increase';
  if(control.id==='btnMinus'||control.matches('[data-step="down"],[data-direction="down"]'))return 'decrease';

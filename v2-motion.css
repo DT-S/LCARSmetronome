@@ -737,3 +737,107 @@
     animation:none!important;
   }
 }
+
+
+/* ==========================================================================
+   RC15 · LINEAR SUBROUTINE / FULL INSTRUMENT CONSTRUCTION
+   Both entry paths use #linear.lcars-view-enter: tapping LINEAR VIEW and
+   returning from another menu while Linear is already active.
+   The permanent PADD chassis, transport, BPM state and touch geometry stay
+   fixed. A page return gets a small staging offset for mode-panel buildup.
+   ========================================================================== */
+@keyframes lcars-linear-instrument-outline {
+  0% {
+    border-top-color:transparent;
+    border-left-color:transparent;
+    border-bottom-color:transparent;
+    background-color:transparent;
+  }
+  55% {
+    border-top-color:var(--padd-amber);
+    border-left-color:var(--padd-amber);
+    border-bottom-color:transparent;
+    background-color:#08060a;
+  }
+  100% {
+    border-top-color:var(--padd-amber);
+    border-left-color:var(--padd-amber);
+    border-bottom-color:var(--padd-peach);
+    background-color:#09070c;
+  }
+}
+@keyframes lcars-linear-element-online {
+  0% {opacity:0;filter:brightness(1.7);}
+  60% {opacity:.95;filter:brightness(1.27);}
+  100% {opacity:1;filter:brightness(1);}
+}
+@keyframes lcars-linear-number-online {
+  0% {opacity:0;filter:brightness(1.7);}
+  40% {opacity:1;filter:brightness(1.35);}
+  100% {opacity:1;filter:brightness(1);}
+}
+/* Returning through navigation already builds the mode panel. Let its
+   headings appear before the Linear instruments start illuminating. */
+#metronome.lcars-page-enter #linear.lcars-view-enter {
+  --linear-return-offset:180ms;
+  animation:none; /* Never fade the entire view or its click targets. */
+}
+/* Tempo console: real colored border, then station ID, labels, numeric
+   readout, and finally the +/- operator controls. */
+#metronome #linear.lcars-view-enter .linear-tempo-console {
+  animation:lcars-linear-instrument-outline 330ms ease-out
+    calc(var(--linear-return-offset,0ms) + 100ms) both;
+}
+#metronome #linear.lcars-view-enter .linear-tempo-code {
+  animation:lcars-linear-element-online 190ms ease-out
+    calc(var(--linear-return-offset,0ms) + 220ms) both;
+}
+#metronome #linear.lcars-view-enter .linear-tempo-id strong {
+  animation:lcars-linear-element-online 215ms ease-out
+    calc(var(--linear-return-offset,0ms) + 315ms) both;
+}
+#metronome #linear.lcars-view-enter .linear-tempo-hint {
+  animation:lcars-linear-element-online 205ms ease-out
+    calc(var(--linear-return-offset,0ms) + 390ms) both;
+}
+#metronome #linear.lcars-view-enter .linear-tempo-control {
+  animation:lcars-linear-element-online 240ms ease-out
+    calc(var(--linear-return-offset,0ms) + 430ms) both;
+}
+#metronome #linear.lcars-view-enter #linearTempoValue,
+#metronome #linear.lcars-view-enter #linearBpm:not([hidden]) {
+  animation:lcars-linear-number-online 220ms ease-out
+    calc(var(--linear-return-offset,0ms) + 570ms) both;
+}
+#metronome #linear.lcars-view-enter .linear-tempo-steps button:first-child {
+  animation:lcars-linear-element-online 200ms ease-out
+    calc(var(--linear-return-offset,0ms) + 640ms) both;
+}
+#metronome #linear.lcars-view-enter .linear-tempo-steps button:last-child {
+  animation:lcars-linear-element-online 200ms ease-out
+    calc(var(--linear-return-offset,0ms) + 690ms) both;
+}
+/* Purple LCARS elbow/label before its corresponding rhythm row.
+   Do not fade the parent row, or it would mask staggered child beats. */
+#metronome #linear.lcars-view-enter > h3 {
+  animation:lcars-linear-element-online 250ms ease-out
+    calc(var(--linear-return-offset,0ms) + 630ms) both;
+}
+#metronome #linear.lcars-view-enter > h3:nth-of-type(2) {
+  animation-delay:calc(var(--linear-return-offset,0ms) + 910ms);
+}
+/* Each actual beat button has its own numeric delay in src/app.js.
+   The fixed offset is shared by both direct toggle and page re-entry. */
+#metronome #linear.lcars-view-enter .pattern-row[data-channel="0"] .step,
+#metronome #linear.lcars-view-enter .pattern-row[data-channel="1"] .step {
+  animation:lcars-view-beat 190ms steps(5,end)
+    calc(var(--linear-return-offset,0ms) + var(--view-delay,820ms)) both;
+}
+/* iOS WebKit also honors reduced motion when the preference changes
+   during a gesture. Never keep inputs or beat controls invisible. */
+@media (prefers-reduced-motion:reduce) {
+  #metronome #linear.lcars-view-enter,
+  #metronome #linear.lcars-view-enter * {
+    animation:none!important;
+  }
+}

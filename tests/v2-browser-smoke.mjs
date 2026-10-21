@@ -906,6 +906,30 @@ try{
    const plot=page.locator('#p6-chart-test .xy-plot');
    assert.equal(await plot.locator('.chart-dot').count(),4);
    assert.equal(await plot.locator('.chart-probe-line').count(),2);
+   assert.equal(await page.locator('#p6-chart-test .xy-plot-stage.is-scanning').count(),1);
+   assert.equal(await plot.locator('.chart-area').count(),1);
+   assert.equal(await plot.locator('.chart-line-pulse').count(),1);
+   assert.equal(await plot.locator('.chart-lock-reticle').count(),0);
+   const effects=await page.evaluate(()=>{
+    const animation=q=>getComputedStyle(document.querySelector('#p6-chart-test '+q)).animationName;
+    return {grid:animation('.chart-grid-line'),line:animation('.chart-line'),
+     pulse:animation('.chart-line-pulse'),area:animation('.chart-area'),dot:animation('.chart-dot')};
+   });
+   assert.match(effects.grid,/lcars-grid-calibrate/);
+   assert.match(effects.line,/lcars-astrometrics-trace/);
+   assert.match(effects.pulse,/lcars-chart-energy-flow/);
+   assert.match(effects.area,/lcars-chart-area-fade/);
+   assert.match(effects.dot,/lcars-astrometrics-point/);
+   await page.evaluate(async()=>{
+    const {sessionChart}=await import('./src/charts.js');
+    const fixture=document.createElement('div');fixture.id='p6-chart-long-history';
+    document.querySelector('#diary').append(fixture);
+    fixture.append(sessionChart({seconds:150,history:Array.from({length:140},
+      (_,i)=>({at:i,bpm:100+i%40}))}));
+   });
+   assert.equal(await page.locator('#p6-chart-long-history .xy-plot.chart-motion-static').count(),1);
+   assert.equal(await page.locator('#p6-chart-long-history .xy-plot-stage.is-scanning').count(),0);
+   assert.equal(await page.locator('#p6-chart-long-history .chart-line-pulse').count(),0);
    const mark=plot.locator('.chart-dot').first();
    await mark.focus();
    assert.equal(await mark.evaluate(el=>el.classList.contains('chart-inspected')),true,

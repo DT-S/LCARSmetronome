@@ -69,8 +69,21 @@ export function installSegmentCorners(root){
 
 export function activationSound(control){
  // Separate menu-build sample slot, currently backed by the original menu tone.
- if(control.dataset.tab)return control.classList.contains('active')?'buttonpress':'lcars-menu-build';
- if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'switchingmenus';
+ if(control.dataset.tab)return control.classList.contains('active')?'buttonpress':'switchingmenus';
+ if(control.dataset.mode)return control.getAttribute('aria-pressed')==='true'?'buttonpress':'modechange';
+ if(control.id==='update')return 'restart';
+ if(control.id==='view')return 'modechange';
+ if(control.id==='start')return 'toggle';
+ if(control.id==='export')return 'Acceptsound';
+ if(control.id==='persist')return 'caution';
+ if(control.id==='clearDiary'||control.dataset.action==='clear-diary')return 'caution';
+ if(control.matches('summary,[type=checkbox]')||control.closest('label:has(input[type=checkbox])'))return 'toggle';
+ if(control.id==='btnPlus'||control.matches('[data-step="up"],[data-direction="up"]'))return 'increase';
+ if(control.id==='btnMinus'||control.matches('[data-step="down"],[data-direction="down"]'))return 'decrease';
+ if(/^(\+|▲|UP)$/.test(control.textContent.trim()))return 'increase';
+ if(/^(−|-|▼|DOWN)$/.test(control.textContent.trim()))return 'decrease';
+ if(/^(DELETE|REMOVE|CLEAR)$/.test(control.textContent.trim()))return 'caution';
+ if(/^(CLOSE|CANCEL)$/.test(control.textContent.trim()))return 'close';
  return 'buttonpress';
 }
 // Treat Tap Tempo like a percussion pad: touch contact is the beat.

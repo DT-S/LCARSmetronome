@@ -77,7 +77,7 @@ function renderPatterns(){
   for(const [channel,key,r] of [[0,'outer',212],[1,'inner',149]]){
     svg+=`<circle class="hit-ring" data-ring="${channel}" cx="250" cy="250" r="${r}"/>`;
     state[key].forEach((s,i)=>{const a=i/state[key].length*Math.PI*2-Math.PI/2,x=250+Math.cos(a)*r,y=250+Math.sin(a)*r;
-      svg+=`<g data-channel="${channel}" data-index="${i}" style="--boot-delay:${560+channel*45+i*19}ms" tabindex="0" role="button" aria-label="${key} ${i+1}: ${names[s]}"><path data-ring="${channel}" class="point beat-arc state${s}" d="${beatArcPath(r,i,state[key].length)}"/><text class="node-label" x="${x}" y="${y}">${s===3?'–':i+1}</text></g>`;
+      svg+=`<g data-channel="${channel}" data-index="${i}" style="--boot-delay:${560+channel*45+i*19}ms;--view-delay:${240+channel*185+i*24}ms" tabindex="0" role="button" aria-label="${key} ${i+1}: ${names[s]}"><path data-ring="${channel}" class="point beat-arc state${s}" d="${beatArcPath(r,i,state[key].length)}"/><text class="node-label" x="${x}" y="${y}">${s===3?'–':i+1}</text></g>`;
     });
   }
   $('#rings').innerHTML=svg;
@@ -106,6 +106,8 @@ function renderPatterns(){
       b.className=`step state${s}`;
       b.dataset.channel=String(channel);
       b.dataset.index=String(i);
+      // Stable even on phones, where rows wrap into nested pattern-line groups.
+      b.style.setProperty('--view-delay',`${230+channel*185+i*24}ms`);
       b.textContent=String(i+1);
       b.setAttribute('aria-label',`${label} ${i+1}: ${names[s]}`);
       return b;

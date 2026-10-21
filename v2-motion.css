@@ -26,7 +26,8 @@
 }
 #metronome #dial.lcars-view-enter,
 #metronome #linear.lcars-view-enter{
-  animation:lcars-view-build 195ms ease-out both;
+  /* The permanent control frame stays put. Animate only view children. */
+  animation:none;
 }
 #modeButtons button.lcars-mode-ack[aria-pressed=true] {
   animation:lcars-mode-confirm 220ms ease-out;
@@ -501,7 +502,7 @@
 }
 #metronome.lcars-page-enter #dial.lcars-view-enter,
 #metronome.lcars-page-enter #linear.lcars-view-enter {
-  animation:lcars-view-build 195ms ease-out both;
+  animation:none; /* Do not translate the view while its beats are rebuilding. */
 }
 /* OS reduced-motion: skip this choreography without affecting page state. */
 @media (prefers-reduced-motion:reduce) {
@@ -511,5 +512,70 @@
   .page.lcars-page-enter::after {
     animation:none!important;
     clip-path:none!important;
+  }
+}
+
+/* =========================================================================
+   RC10 · VIEW-SPECIFIC BEAT ASSEMBLY
+   The navigation/sidebar, panel chrome, transport, mode buttons, BPM and
+   clock remain completely static when Circular ↔ Linear is toggled.
+   Only the newly displayed beat graphic assembles. No transform, geometry
+   changes, continuous animation, or loss of touch hit targets.
+   ========================================================================= */
+@keyframes lcars-view-ticks {
+  0% {opacity:0;filter:brightness(1.6);}
+  100% {opacity:1;filter:brightness(1);}
+}
+@keyframes lcars-view-beat {
+  0% {opacity:0;filter:brightness(1.65);}
+  58% {opacity:1;filter:brightness(1.3);}
+  100% {opacity:1;filter:brightness(1);}
+}
+/* No animation on the two root containers: the user can tap/drag at once. */
+#metronome #dial.lcars-view-enter,
+#metronome #linear.lcars-view-enter,
+#metronome.lcars-page-enter #dial.lcars-view-enter,
+#metronome.lcars-page-enter #linear.lcars-view-enter {
+  animation:none;
+}
+/* CIRCULAR: first the two stroke paths, then the calibration ticks,
+   then each outer/inner beat group according to its real channel/index. */
+#metronome #dial.lcars-view-enter #rings circle.track:not(.inner-track) {
+  --boot-circumference:1333;
+  stroke-dasharray:1333 1333;
+  animation:lcars-launch-ring 420ms cubic-bezier(.22,1,.36,1) 70ms both;
+}
+#metronome #dial.lcars-view-enter #rings circle.track.inner-track {
+  --boot-circumference:937;
+  stroke-dasharray:937 937;
+  animation:lcars-launch-ring 410ms cubic-bezier(.22,1,.36,1) 175ms both;
+}
+#metronome #dial.lcars-view-enter #rings .dial-ticks {
+  animation:lcars-view-ticks 215ms ease-out 300ms both;
+}
+#metronome #dial.lcars-view-enter #rings g[data-index] {
+  animation:lcars-view-beat 195ms steps(5,end) var(--view-delay,425ms) both;
+}
+/* LINEAR: the existing OUTER / INNER PATTERN labels light up, followed by
+   real individual beat buttons. CSS custom delays survive mobile line wraps. */
+#metronome #linear.lcars-view-enter > h3 {
+  animation:lcars-content-title 230ms ease-out 45ms both;
+}
+#metronome #linear.lcars-view-enter > h3:nth-of-type(2) {
+  animation-delay:175ms;
+}
+#metronome #linear.lcars-view-enter .pattern-row[data-channel="0"] .step,
+#metronome #linear.lcars-view-enter .pattern-row[data-channel="1"] .step {
+  animation:lcars-view-beat 195ms steps(5,end) var(--view-delay,425ms) both;
+}
+/* Motion preferences can change at any time and must reveal everything. */
+@media (prefers-reduced-motion:reduce) {
+  #metronome #dial.lcars-view-enter,
+  #metronome #linear.lcars-view-enter,
+  #metronome #dial.lcars-view-enter *,
+  #metronome #linear.lcars-view-enter * {
+    animation:none!important;
+    opacity:1;
+    filter:none;
   }
 }

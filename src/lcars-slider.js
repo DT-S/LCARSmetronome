@@ -151,7 +151,7 @@ export function createLcarsSlider(input,{kind='volume',title='',code='',onValueC
   if(nativeValue()!==before)input.dispatchEvent(new Event('input',{bubbles:true}));
   else sync();
  }
- const change=()=>{sync();if(lastStep!==nativeValue()){lastStep=nativeValue();if(root.classList.contains('lcars-touch-active')&&typeof onValueChange==='function')onValueChange();}};
+ const change=()=>{sync();const next=nativeValue();if(lastStep!==next){const previous=lastStep;lastStep=next;if(root.classList.contains('lcars-touch-active')&&typeof onValueChange==='function')onValueChange(next,previous);}};
  input.addEventListener('input',change);
  input.addEventListener('change',sync);
  const active=()=>root.classList.add('lcars-touch-active');

@@ -1,14 +1,13 @@
 import {decodeBytes} from './custom-sounds.js';
 import {synthesize,SOUNDS} from './synth.js';
+import {UI_SPRITE_URL,resolveUiCue,fallbackUiSound} from './ui-cues.js';
 export const METRONOME_GAIN=2;
-// Future original/licensed menu-build audio goes in this independent slot.
-// Set this to './assets/audio/ui/lcars-menu-build.mp3' when the file exists,
-// and also add that file to sw.js precache to preserve offline playback.
+// Kept as a stable public cue name for the existing navigation handlers.
 export const LCARS_MENU_BUILD_SLOT='lcars-menu-build';
-export const LCARS_MENU_BUILD_ASSET=null;
+export const LCARS_MENU_BUILD_ASSET=UI_SPRITE_URL;
 import {audible} from './model.js';
 export class AudioEngine {
-  constructor(){this.buffers=new Map();this.active=new Set();this.sampleStatus=[];}
+  constructor(){this.buffers=new Map();this.active=new Set();this.sampleStatus=[];this.uiPack=null;}
   async unlock(){
     if(!this.ctx){
       this.ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
@@ -26,9 +25,31 @@ export class AudioEngine {
   async load(){
     const ui=['switchingmenus','hoversound','Acceptsound','invalidsound','Warningsound','buttonpress'];
     const entries=ui.map(n=>[n,`./assets/audio/ui/${n}.mp3`]);
-    if(LCARS_MENU_BUILD_ASSET)entries.push([LCARS_MENU_BUILD_SLOT,LCARS_MENU_BUILD_ASSET]);
-
-    await Promise.all(entries.map(async([key,path])=>{try{const r=await fetch(path);if(!r.ok)throw Error();const data=await r.arrayBuffer();if(data.byteLength===0)throw Error();this.buffers.set(key,await this.ctx.decodeAudioData(data));}catch{this.sampleStatus.push(key);}}));
+    await Promise.all([
+      ...entries.map(async([key,path])=>{
+        try{
+          const response=await fetch(path);if(!response.ok)throw Error('Missing UI fallback');
+          const data=await response.arrayBuffer();if(!data.byteLength)throw Error('Empty fallback');
+          this.buffers.set(key,await this.ctx.decodeAudioData(data));
+        }catch{this.sampleStatus.push(key);}
+      }),
+      (async()=>{
+        try{
+          const response=await fetch(UI_SPRITE_URL);
+          if(!response.ok)throw Error('Missing LCARS sound pack');
+          const data=await response.arrayBuffer();
+          if(!data.byteLength)throw Error('Empty LCARS sound pack');
+          this.uiPack=await this.ctx.decodeAudioData(data);
+          // All cut points must fit inside the decoded buffer. A corrupt or
+          // truncated pack must fall back to the original six sounds.
+          const final=resolveUiCue('update&restart');
+          if(this.uiPack.duration<final[0]+final[1]-.06)throw Error('Incomplete sound pack');
+        }catch{
+          this.uiPack=null;
+          this.sampleStatus.push('lcars-ui-pack');
+        }
+      })()
+    ]);
     for(const kind of Object.keys(SOUNDS).filter(k=>k!=='auto'))for(let state=0;state<3;state++){
       const data=synthesize(kind,state,this.ctx.sampleRate),buffer=this.ctx.createBuffer(1,data.length,this.ctx.sampleRate);buffer.copyToChannel(data,0);this.buffers.set(`synth-${kind}-${state}`,buffer);
     }
@@ -49,10 +70,17 @@ export class AudioEngine {
     const source=c.createBufferSource();source.buffer=buffer;source.connect(track.gain);source.start(time);
     this.active.add(source);source.onended=()=>{this.active.delete(source);source.disconnect();source._env?.disconnect();};
   }
-  ui(name,s){if(!this.ctx||this.ctx.state!=='running'||!s.uiEnabled)return;
-    // Placeholder uses the existing short menu cue until a dedicated sample
-    // is installed; no missing-asset fetch, second beep or network dependency.
-    const b=this.buffers.get(name)||(name===LCARS_MENU_BUILD_SLOT?this.buffers.get('switchingmenus'):null);
-    if(!b)return;const source=this.ctx.createBufferSource();source.buffer=b;source.connect(this.uiGain);source.start();source.onended=()=>source.disconnect();}
+  ui(name,s){
+    if(!this.ctx||this.ctx.state!=='running'||!s.uiEnabled)return;
+    const cue=this.uiPack&&resolveUiCue(name);
+    const buffer=cue?this.uiPack:this.buffers.get(fallbackUiSound(name));
+    if(!buffer)return;
+    const source=this.ctx.createBufferSource();
+    source.buffer=buffer;
+    source.connect(this.uiGain);
+    if(cue)source.start(0,cue[0],cue[1]);
+    else source.start();
+    source.onended=()=>source.disconnect();
+  }
   cancel(){for(const node of this.active){try{node.stop();}catch{}}this.active.clear();}
 }

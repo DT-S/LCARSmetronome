@@ -1699,6 +1699,14 @@ try{
     const {read}=await import('/src/storage.js');
     return (await read())?.theme==='redalert';
    });
+   const beforeReload=await themePage.evaluate(async()=>{
+    const {read}=await import('/src/storage.js');
+    const v=await read();
+    return {origin:location.origin,keys:Object.keys(v||{}),version:v?.version,theme:v?.theme,
+      dbs:await indexedDB.databases()};
+   });
+   console.log('RC24 BEFORE RELOAD',JSON.stringify(beforeReload));
+   await themePage.waitForTimeout(400);
    await themePage.reload({waitUntil:'domcontentloaded'});
    await themePage.waitForFunction(()=>document.querySelector('#lcarsStartup')?.dataset.ready==='true');
    const restored=await themePage.evaluate(async()=>{

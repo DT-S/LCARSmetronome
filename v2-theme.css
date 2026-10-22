@@ -89,14 +89,14 @@ html[data-app-theme="redalert"] .lcars-cap-crescent {background:var(--padd-laven
 /* Actual tablet/desktop fascia uses several strong, direct declarations.
    Override them explicitly so an alternate palette never inherits the
    Voyager white/yellow rail or unthemed crimson START button. */
-html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(1){background:#8f6bd3;}
+html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(1){background:#9979d7;}
 html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(2){background:#728fd9;}
 html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(3){background:#b79ee8;}
 html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(4){background:#78b7e9;}
 html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(5){background:#6c7bcc;}
 html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(6){background:#9d7cda;}
-html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(1){background:#c83845;}
-html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(2){background:#d84b49;}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(1){background:#e45654;}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(2){background:#e45d55;}
 html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(3){background:#e96850;}
 html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(4){background:#ef8257;}
 html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(5){background:#f29962;}

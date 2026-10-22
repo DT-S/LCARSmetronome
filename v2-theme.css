@@ -1,0 +1,52 @@
+/* Optional, persisted palette overlays. Voyager is the current unmodified default. */
+html[data-app-theme="elite"] {
+ --orange:#ff8800;--salmon:#4489b7;--purple:#4b92cf;--pink:#78c5eb;
+ --text:#ffe0ad;--muted:#b3d2e9;--line:#517998;
+ --padd-orange:#ff8800;--padd-amber:#55ccff;--padd-peach:#ffaa44;
+ --padd-lavender:#4488cc;--padd-blue:#88ddff;
+ --padd-tan:#336699;--padd-red:#e46c62;
+}
+html[data-app-theme="redalert"] {
+ --orange:#ff3333;--salmon:#c9474e;--purple:#b44b60;--pink:#e88d8d;
+ --text:#ffe1dc;--muted:#e3b4ba;--line:#81444e;
+ --padd-orange:#ff2222;--padd-amber:#ffaa00;--padd-peach:#ff5544;
+ --padd-lavender:#cc3333;--padd-blue:#ff7744;
+ --padd-tan:#881111;--padd-red:#ff3333;
+}
+html[data-app-theme="elite"] .app-shell,
+html[data-app-theme="redalert"] .app-shell {color:var(--text);}
+html[data-app-theme="elite"] header::after,
+html[data-app-theme="redalert"] header::after {
+ background:linear-gradient(to right,var(--padd-orange) 0 57%,#000 57% 58%,var(--padd-tan) 58% 78%,#000 78% 79%,var(--padd-blue) 79% 96%,#000 96% 97%,var(--padd-lavender) 97%);
+}
+html[data-app-theme="elite"] .nav.active,
+html[data-app-theme="redalert"] .nav.active {background:var(--padd-amber);box-shadow:inset -8px 0 var(--padd-peach);color:#000;}
+html[data-app-theme="elite"] .nav:nth-child(4),
+html[data-app-theme="redalert"] .nav:nth-child(4) {background:var(--padd-tan);}
+html[data-app-theme="elite"] .nav:nth-child(5),
+html[data-app-theme="redalert"] .nav:nth-child(5) {background:var(--padd-peach);}
+html[data-app-theme="elite"] .rail,
+html[data-app-theme="redalert"] .rail {
+ background:linear-gradient(to bottom,var(--padd-tan) 0 36%,#000 36% calc(36% + 6px),var(--padd-lavender) calc(36% + 6px) 72%,#000 72% calc(72% + 6px),var(--padd-peach) calc(72% + 6px));
+}
+html[data-app-theme="elite"] .panel,
+html[data-app-theme="redalert"] .panel {border-color:var(--padd-lavender);}
+html[data-app-theme="elite"] .panel:nth-child(even),
+html[data-app-theme="redalert"] .panel:nth-child(even) {border-color:var(--padd-tan);}
+html[data-app-theme="elite"] .section-heading,
+html[data-app-theme="redalert"] .section-heading {border-color:var(--padd-lavender);}
+html[data-app-theme="elite"] .transport,
+html[data-app-theme="redalert"] .transport {border-color:var(--padd-tan);}
+html[data-app-theme="elite"] .point.state0,
+html[data-app-theme="redalert"] .point.state0 {stroke:var(--padd-orange);fill:var(--text);}
+html[data-app-theme="elite"] .point.state1,
+html[data-app-theme="redalert"] .point.state1 {fill:var(--padd-tan);}
+html[data-app-theme="elite"] .point.state2,
+html[data-app-theme="redalert"] .point.state2 {fill:var(--padd-lavender);}
+html[data-app-theme="elite"] .tempo-buttons button,
+html[data-app-theme="redalert"] .tempo-buttons button {color:var(--text);}
+html[data-app-theme="elite"] #notice,
+html[data-app-theme="redalert"] #notice {background:var(--padd-amber);}
+html[data-app-theme="elite"] .toggled,
+html[data-app-theme="redalert"] .toggled {background:var(--padd-orange)!important;}
+#appTheme {min-height:44px;width:100%;max-width:100%;font-size:14px;letter-spacing:.03em;}

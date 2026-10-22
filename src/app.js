@@ -16,6 +16,7 @@ import {SOUNDS} from './synth.js';
 import {enhanceNumber,syncNumbers} from './number-control.js';
 import {renderTraining,syncSwing} from './training-ui.js';
 import {fresh,clamp,resize,validate,MODES,presetSettings,loadPreset} from './model.js';
+import {applyTheme,normalizeTheme} from './lcars-theme.js';
 import {angleDelta} from './rhythm.js';
 import {AudioEngine} from './audio.js';
 import {Scheduler} from './scheduler.js';
@@ -195,7 +196,7 @@ function applyMotionPreference(){
    reduced?'MOTION: REDUCED BY DEVICE SETTINGS':'MOTION: FULL LCARS / ENABLED';
  }
 }
-function render(){applyMotionPreference();applyScale();for(const k of ['bpm','beats','subdivisions','countIn','duration','master','uiVolume'])$('#'+k).value=state[k];for(const k of ['uiEnabled','hoverEnabled','haptic','launchScreen','forceMotion'])$('#'+k).checked=state[k];$$('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===state.mode));
+function render(){applyTheme(document,state.theme);applyMotionPreference();applyScale();for(const k of ['bpm','beats','subdivisions','countIn','duration','master','uiVolume'])$('#'+k).value=state[k];for(const k of ['uiEnabled','hoverEnabled','haptic','launchScreen','forceMotion'])$('#'+k).checked=state[k];$$('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mode===state.mode));
   const poly=['polyrhythm','polymeter'].includes(state.mode);
   $('#outerLabel').textContent=poly?'OUTER PATTERN LENGTH':'QUARTERS PER BAR';
   $('#innerLabel').textContent=poly?'INNER PATTERN LENGTH':'SUBDIVISIONS / QUARTER';
@@ -290,6 +291,7 @@ for(const k of ['master','uiVolume']){
  mountLcarsSlider(input,{kind:'volume',title:k==='master'?'MASTER / OUTPUT':'UI / VOLUME',
    code:k==='master'?'GAIN-M':'GAIN-UI',onValueChange:faderTouchFeedback});
 }
+$('#appTheme').onchange=e=>{state.theme=normalizeTheme(e.target.value);applyTheme(document,state.theme);save();audio.ui('modechange',state);};
 for(const k of ['uiEnabled','hoverEnabled','haptic','launchScreen','forceMotion'])$('#'+k).onchange=e=>{state[k]=e.target.checked;if(k==='forceMotion')applyMotionPreference();changed();};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();$('main').scrollTop=0;motion.page(b.dataset.tab);});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};
@@ -342,8 +344,9 @@ if(state.launchScreen){
  const paletteButtons=[...startup.querySelectorAll('[data-set-theme]')];
  for(const button of paletteButtons){
   button.addEventListener('click',()=>{
-   startup.dataset.theme=button.dataset.setTheme;
-   for(const choice of paletteButtons)choice.setAttribute('aria-pressed',String(choice===button));
+   state.theme=normalizeTheme(button.dataset.setTheme);
+   applyTheme(document,state.theme);
+   save();
   });
  }
  const bpmPreview=$('#bpmPreviewToggle'),bpmLabel=$('#bpmPreviewLabel');

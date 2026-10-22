@@ -107,8 +107,8 @@ try{
    assert.equal(bootState.hidden,true);
    assert.equal(bootState.boot,true,'main console must start constructing on click');
    assert.match(bootState.top,/lcars-rc22-open-x/);
-   assert.equal(await launch.locator('#mobileBuildVersion').textContent(),'CORE 2.0.0 RC22');
-   assert.equal(await launch.locator('#desktopBuildVersion').textContent(),'CORE 2.0.0 RC22');
+   assert.equal(await launch.locator('#mobileBuildVersion').textContent(),'CORE 2.0.0 RC23');
+   assert.equal(await launch.locator('#desktopBuildVersion').textContent(),'CORE 2.0.0 RC23');
    assert.equal(await launch.locator('#start').isVisible(),true);
    console.log('PASS Voyager LCARS startup appearance',width);
   }catch(error){

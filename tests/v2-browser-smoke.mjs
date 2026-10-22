@@ -1701,6 +1701,18 @@ try{
    });
    await themePage.reload({waitUntil:'domcontentloaded'});
    await themePage.waitForFunction(()=>document.querySelector('#lcarsStartup')?.dataset.ready==='true');
+   const restored=await themePage.evaluate(async()=>{
+    const {read}=await import('/src/storage.js');
+    const {validate}=await import('/src/model.js');
+    const raw=await read();let validated=null,validationError=null;
+    try{validated=validate(raw).theme;}catch(err){validationError=err.message;}
+    return {raw:raw?.theme,validated,validationError,
+      rendered:document.querySelector('#lcarsStartup')?.dataset.theme,
+      root:document.documentElement.dataset.appTheme,
+      savedStatus:document.querySelector('#saveStatus')?.textContent,
+      notice:document.querySelector('#notice')?.textContent};
+   });
+   console.log('RC24 THEME RELOAD DIAGNOSTICS',JSON.stringify(restored));
    assert.equal(await themePage.locator('#lcarsStartup').getAttribute('data-theme'),'redalert');
    await themePage.locator('#lcarsInitialize').click();
    await themePage.locator('[data-tab="settings"]').click();

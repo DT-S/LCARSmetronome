@@ -291,7 +291,7 @@ for(const k of ['master','uiVolume']){
  mountLcarsSlider(input,{kind:'volume',title:k==='master'?'MASTER / OUTPUT':'UI / VOLUME',
    code:k==='master'?'GAIN-M':'GAIN-UI',onValueChange:faderTouchFeedback});
 }
-$('#appTheme').onchange=e=>{state.theme=normalizeTheme(e.target.value);applyTheme(document,state.theme);save();audio.ui('modechange',state);};
+$('#openLaunchConsole').onclick=()=>showLaunchConsole();
 for(const k of ['uiEnabled','hoverEnabled','haptic','launchScreen','forceMotion'])$('#'+k).onchange=e=>{state[k]=e.target.checked;if(k==='forceMotion')applyMotionPreference();changed();};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.page').forEach(p=>p.hidden=p.id!==b.dataset.tab);document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active',n===b));if(b.dataset.tab==='diary'||b.dataset.tab==='analytics')diaryUI.render();$('main').scrollTop=0;motion.page(b.dataset.tab);});
 $('#presetForm').onsubmit=e=>{e.preventDefault();const name=$('#presetName').value.trim();if(!name)return;if(state.presets.length>=100)return notify('Maximum 100 presets.','invalidsound');const existing=state.presets.find(p=>p.name===name);if(existing&&!confirm('Replace this preset with the current settings?'))return;const settings=presetSettings(state);if(existing)existing.settings=settings;else state.presets.push({name,settings});save();renderPresets();$('#presetName').value='';notify('Preset saved.');};
@@ -329,6 +329,26 @@ installUpdateManager({
 function frame(){if(scheduler.running){for(const event of scheduler.position()){$$(`[data-channel="${event.channel}"] .playing, .step.playing[data-channel="${event.channel}"]`).forEach(n=>n.classList.remove('playing'));$$(`[data-channel="${event.channel}"][data-index="${event.index}"]`).forEach(n=>(n.querySelector('.point')||n).classList.add('playing'));$('#playStatus').textContent=event.count?`COUNT-IN · ${-event.bar}`:`${event.mode==='polyrhythm'?'CYCLE':'BAR'} ${event.bar+1} · ${event.phase}`;tempoReadout(event);$('#dial').classList.toggle('gap-phase',event.phase==='GAP');}const elapsed=Math.max(0,audio.ctx.currentTime-scheduler.trainingStart);const seconds=Math.floor(scheduler.settings.duration?Math.max(0,scheduler.settings.duration-elapsed):elapsed);$('#clock').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;}requestAnimationFrame(frame);}
 try{const saved=await read();if(saved)state=validate(saved);$('#saveStatus').textContent='LOCAL STORAGE READY';}catch{notify('Saved data could not be read. Export before making changes.','Warningsound');$('#saveStatus').textContent='STORAGE ERROR';}render();
 const startup=$('#lcarsStartup'),initialize=$('#lcarsInitialize');
+const shell=$('.app-shell'),paletteButtons=[...startup.querySelectorAll('[data-set-theme]')];
+const bpmPreview=$('#bpmPreviewToggle'),bpmLabel=$('#bpmPreviewLabel');
+// Decorative tempo preview. Never modifies the sequencer tempo or transport.
+let previewIndex=0,previewTempos=[];
+function previewPulse(){
+ const bpm=previewTempos[previewIndex]??state.bpm;
+ startup.style.setProperty('--bpm-duration',(60/bpm).toFixed(3)+'s');
+ bpmLabel.textContent=bpm+' BPM';
+}
+for(const button of paletteButtons){
+ button.addEventListener('click',()=>{
+  state.theme=normalizeTheme(button.dataset.setTheme);
+  applyTheme(document,state.theme);
+  save();
+ });
+}
+bpmPreview.addEventListener('click',()=>{
+ previewIndex=(previewIndex+1)%previewTempos.length;
+ previewPulse();
+});
 function bootDirect(){
  const isLaunching=motion.boot();
  if(isLaunching)armLaunchCue({
@@ -337,59 +357,53 @@ function bootDirect(){
   bootDurationMs:LCARS_BOOT_DURATION_MS
  });
 }
-if(state.launchScreen){
- const shell=$('.app-shell');
- shell.inert=true; // No keyboard or pointer interaction behind the modal.
- startup.hidden=false;
- const paletteButtons=[...startup.querySelectorAll('[data-set-theme]')];
- for(const button of paletteButtons){
-  button.addEventListener('click',()=>{
-   state.theme=normalizeTheme(button.dataset.setTheme);
-   applyTheme(document,state.theme);
-   save();
-  });
+// A previously initialized shell can revisit its launch console without
+// resetting BPM, patterns, saved sessions or the app's underlying audio engine.
+let firstEntry=state.launchScreen;
+function showLaunchConsole(){
+ if(!startup.hidden)return;
+ if(scheduler.running||starting||restoring||soundUI.isBusy()){
+  notify('Stop playback or finish the current operation before opening LCARS.','Warningsound');
+  return;
  }
- const bpmPreview=$('#bpmPreviewToggle'),bpmLabel=$('#bpmPreviewLabel');
- // Decorative pulse preview only; never touches the real BPM setting.
- const previewTempos=[state.bpm,120,90,160].filter((v,i,a)=>a.indexOf(v)===i);
- let previewIndex=0;
- function previewPulse(){
-  const bpm=previewTempos[previewIndex];
-  startup.style.setProperty('--bpm-duration',(60/bpm).toFixed(3)+'s');
-  bpmLabel.textContent=bpm+' BPM';
- }
+ applyTheme(document,state.theme);
+ previewTempos=[state.bpm,120,90,160].filter((v,i,a)=>a.indexOf(v)===i);
+ previewIndex=0;
  previewPulse();
- bpmPreview.addEventListener('click',()=>{
-  previewIndex=(previewIndex+1)%previewTempos.length;
-  previewPulse();
- });
+ initialize.disabled=false;
+ shell.inert=true;
+ startup.hidden=false;
  initialize.focus({preventScroll:true});
- initialize.addEventListener('click',()=>{
-  if(initialize.disabled)return;
-  initialize.disabled=true;
-  // AudioContext.resume() must start inside this trusted click on iOS/Firefox.
-  // No awaiting or second animation while the splash is still on the screen.
-  let opening=Promise.resolve();
-  if(state.uiEnabled){
-   try{opening=Promise.resolve(unlock());}catch{opening=Promise.resolve();}
-  }
-  startup.hidden=true;
-  shell.inert=false;
-  const launched=motion.boot();
-  if(!state.uiEnabled)return;
-  let played=false;
-  const playCue=()=>{
-   if(played||!state.uiEnabled||audio.ctx?.state!=='running'||
-      !audio.buffers.has('lcars-launch'))return;
-   // Don't play a delayed cue after the one-shot visual boot has finished.
-   if(launched&&!shell.classList.contains('lcars-booting'))return;
-   played=true;
-   audio.mix(state);
-   audio.ui('lcars-launch',state);
-  };
-  playCue();
-  Promise.resolve(opening).then(()=>audio.launchReady).then(playCue).catch(()=>{});
- },{once:true});
-}else bootDirect();
+}
+initialize.onclick=()=>{
+ if(initialize.disabled||startup.hidden)return;
+ initialize.disabled=true;
+ const originalBoot=firstEntry;
+ firstEntry=false;
+ // iOS/Firefox require unlocking audio inside the actual Initialize click.
+ let opening=Promise.resolve();
+ if(originalBoot&&state.uiEnabled){
+  try{opening=Promise.resolve(unlock());}catch{opening=Promise.resolve();}
+ }
+ startup.hidden=true;
+ shell.inert=false;
+ const launched=motion.boot();
+ // Re-entering from Settings is a palette operation, not a second
+ // music transport startup or a duplicate full launch cue.
+ if(!originalBoot||!state.uiEnabled)return;
+ let played=false;
+ const playCue=()=>{
+  if(played||!state.uiEnabled||audio.ctx?.state!=='running'||
+     !audio.buffers.has('lcars-launch'))return;
+  if(launched&&!shell.classList.contains('lcars-booting'))return;
+  played=true;
+  audio.mix(state);
+  audio.ui('lcars-launch',state);
+ };
+ playCue();
+ Promise.resolve(opening).then(()=>audio.launchReady).then(playCue).catch(()=>{});
+};
+if(state.launchScreen){showLaunchConsole();}
+else bootDirect();
 startup.dataset.ready='true';
 storageStatus().catch(()=>{});frame();

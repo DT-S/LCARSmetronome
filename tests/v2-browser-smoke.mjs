@@ -1671,6 +1671,45 @@ try{
    await page.screenshot({path:path.join(screenshots,'rc-mobile-regression-FAILED.png')}).catch(()=>{});
   }finally{await context.close();}
  }
+ // Reuse the actual launch console to select themes. No dropdown, reload,
+ // duplicate audio boot or change in saved rhythm configuration.
+ for(const size of [{width:390,height:844},{width:1440,height:900}]){
+  const themePage=await browser.newPage({viewport:size});
+  try{
+   await themePage.goto(origin,{waitUntil:'domcontentloaded'});
+   await initializeLCARS(themePage);
+   await themePage.locator('[data-tab="settings"]').click();
+   assert.equal(await themePage.locator('#appTheme').count(),0);
+   await themePage.locator('#openLaunchConsole').click();
+   await themePage.locator('#lcarsStartup').waitFor({state:'visible'});
+   for(const [theme,color] of [['elite','rgb(161, 139, 232)'],['redalert','rgb(238, 74, 75)']]){
+    await themePage.locator('[data-set-theme="'+theme+'"]').click();
+    assert.equal(await themePage.locator('#lcarsStartup').getAttribute('data-theme'),theme);
+    const applied=await themePage.evaluate(()=>({
+     palette:document.documentElement.dataset.appTheme,
+     start:getComputedStyle(document.querySelector('#start')).backgroundColor
+    }));
+    assert.equal(applied.palette,theme);
+    assert.equal(applied.start,color,
+     theme+' transport START must follow the palette, never use Voyager red');
+   }
+   await themePage.locator('#lcarsInitialize').click();
+   assert.equal(await themePage.locator('#lcarsStartup').isVisible(),false);
+   await themePage.waitForFunction(async()=>{
+    const {read}=await import('/src/storage.js');
+    return (await read())?.theme==='redalert';
+   });
+   await themePage.reload({waitUntil:'domcontentloaded'});
+   await themePage.waitForFunction(()=>document.querySelector('#lcarsStartup')?.dataset.ready==='true');
+   assert.equal(await themePage.locator('#lcarsStartup').getAttribute('data-theme'),'redalert');
+   await themePage.locator('#lcarsInitialize').click();
+   await themePage.locator('[data-tab="settings"]').click();
+   await themePage.locator('#openLaunchConsole').click();
+   assert.equal(await themePage.locator('#lcarsStartup').isVisible(),true);
+   console.log('PASS LCARS RC24 launch palette switching + persisted selection '+size.width);
+  }catch(error){fail++;console.error('FAIL LCARS RC24 launch palette '+size.width,error);}
+  finally{await themePage.close();}
+ }
 }finally{
  await browser.close();
  await new Promise(resolve=>server.close(resolve));

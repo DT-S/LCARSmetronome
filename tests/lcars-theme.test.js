@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fresh,validate,loadPreset} from '../src/model.js';
@@ -27,4 +28,18 @@ test('theme follows selection on startup and settings',()=>{
  assert.equal(setting.value,'elite');
  assert.deepEqual(buttons.map(b=>b['aria-pressed']),['false','true','false']);
  assert.equal(normalizeTheme(undefined),'voyager');
+});
+
+test('settings opens the existing LCARS launch console and keeps rhythms unchanged',()=>{
+ const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ const css=readFileSync(new URL('../v2-theme.css',import.meta.url),'utf8');
+ assert.match(html,/id="openLaunchConsole"/);
+ assert.doesNotMatch(html,/id="appTheme"/);
+ assert.match(app,/function showLaunchConsole\(\)/);
+ assert.match(app,/scheduler\.running\|\|starting\|\|restoring/);
+ assert.match(app,/startup\.hidden=true;[\s\S]*shell\.inert=false;/);
+ assert.match(app,/if\(!originalBoot\|\|!state\.uiEnabled\)return;/);
+ assert.match(css,/#metronome \.transport #start/);
+ assert.match(css,/\.app-shell > aside nav \.nav:nth-child\(6\)/);
 });

@@ -1,17 +1,25 @@
 /* Optional, persisted palette overlays. Voyager is the current unmodified default. */
+/* Hazard Team: violet -> indigo -> blue, with gold only as an indicator.
+   Tactical Red: crimson -> coral -> red-orange -> muted amber. */
 html[data-app-theme="elite"] {
- --orange:#ff8800;--salmon:#4489b7;--purple:#4b92cf;--pink:#78c5eb;
- --text:#ffe0ad;--muted:#b3d2e9;--line:#517998;
- --padd-orange:#ff8800;--padd-amber:#55ccff;--padd-peach:#ffaa44;
- --padd-lavender:#4488cc;--padd-blue:#88ddff;
- --padd-tan:#336699;--padd-red:#e46c62;
+ --orange:#9c78df;--salmon:#668fd4;--purple:#9167d1;--pink:#b6a0e7;
+ --text:#e9e1ff;--muted:#c1b5d9;--line:#645a99;
+ --padd-orange:#9871d8;--padd-amber:#91a9e7;--padd-peach:#baa5ec;
+ --padd-lavender:#8661ca;--padd-blue:#7bb7ec;
+ --padd-tan:#648bd1;--padd-red:#aa8be7;
+ --lcars-mobile-orange:#9871d8;--lcars-mobile-peach:#baa5ec;
+ --lcars-mobile-blue:#7bb7ec;--lcars-mobile-lilac:#9973d9;
+ --theme-signal:#e7c875;
 }
 html[data-app-theme="redalert"] {
- --orange:#ff3333;--salmon:#c9474e;--purple:#b44b60;--pink:#e88d8d;
- --text:#ffe1dc;--muted:#e3b4ba;--line:#81444e;
- --padd-orange:#ff2222;--padd-amber:#ffaa00;--padd-peach:#ff5544;
- --padd-lavender:#cc3333;--padd-blue:#ff7744;
- --padd-tan:#881111;--padd-red:#ff3333;
+ --orange:#ed4448;--salmon:#e65d4e;--purple:#c84951;--pink:#f1835d;
+ --text:#ffe1d6;--muted:#e6b6b1;--line:#984953;
+ --padd-orange:#ed4448;--padd-amber:#f0a268;--padd-peach:#f47b56;
+ --padd-lavender:#cd4953;--padd-blue:#f2a56d;
+ --padd-tan:#c23744;--padd-red:#ed5051;
+ --lcars-mobile-orange:#ed4448;--lcars-mobile-peach:#f47b56;
+ --lcars-mobile-blue:#ef9e65;--lcars-mobile-lilac:#d3544c;
+ --theme-signal:#f5bc79;
 }
 html[data-app-theme="elite"] .app-shell,
 html[data-app-theme="redalert"] .app-shell {color:var(--text);}
@@ -49,7 +57,7 @@ html[data-app-theme="elite"] #notice,
 html[data-app-theme="redalert"] #notice {background:var(--padd-amber);}
 html[data-app-theme="elite"] .toggled,
 html[data-app-theme="redalert"] .toggled {background:var(--padd-orange)!important;}
-#appTheme {min-height:44px;width:100%;max-width:100%;font-size:14px;letter-spacing:.03em;}
+#openLaunchConsole {min-height:52px;border-radius:28px 5px 5px 28px;letter-spacing:.04em;}
 
 /* The segmented LCARS sliders have component-local color tokens and hardcoded
    Voyager LED gradients. Recolor those too, without changing their geometry. */
@@ -77,3 +85,69 @@ html[data-app-theme="redalert"] .lcars-bracket-core {
 }
 html[data-app-theme="elite"] .lcars-cap-crescent,
 html[data-app-theme="redalert"] .lcars-cap-crescent {background:var(--padd-lavender);}
+
+/* Actual tablet/desktop fascia uses several strong, direct declarations.
+   Override them explicitly so an alternate palette never inherits the
+   Voyager white/yellow rail or unthemed crimson START button. */
+html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(1){background:#8f6bd3;}
+html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(2){background:#728fd9;}
+html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(3){background:#b79ee8;}
+html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(4){background:#78b7e9;}
+html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(5){background:#6c7bcc;}
+html[data-app-theme="elite"] .app-shell > aside nav .nav:nth-child(6){background:#9d7cda;}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(1){background:#c83845;}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(2){background:#d84b49;}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(3){background:#e96850;}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(4){background:#ef8257;}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(5){background:#f29962;}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav:nth-child(6){background:#efb474;}
+html[data-app-theme="elite"] .app-shell > aside nav .nav.active{
+ background:#c9b5f3!important;box-shadow:inset -7px 0 #e7c875!important;color:#151025;
+}
+html[data-app-theme="redalert"] .app-shell > aside nav .nav.active{
+ background:#ffc184!important;box-shadow:inset -7px 0 #ee6250!important;color:#240d0d;
+}
+html[data-app-theme="elite"] .app-shell > header .elbow{background:#8f6bd3;}
+html[data-app-theme="redalert"] .app-shell > header .elbow{background:#e84549;}
+html[data-app-theme="elite"] .app-shell > header::after{
+ background:linear-gradient(90deg,#8f6bd3 0 56%,#000 56% 57.5%,#7193d9 57.5% 81%,#000 81% 82.5%,#b6a0ec 82.5%);
+}
+html[data-app-theme="redalert"] .app-shell > header::after{
+ background:linear-gradient(90deg,#d83b45 0 56%,#000 56% 57.5%,#ec7554 57.5% 81%,#000 81% 82.5%,#f3a66d 82.5%);
+}
+html[data-app-theme="elite"] .app-shell > aside .rail{background:#7f76d0;}
+html[data-app-theme="elite"] .app-shell > aside .rail-end{background:#769fdf;}
+html[data-app-theme="redalert"] .app-shell > aside .rail{background:#dc4850;}
+html[data-app-theme="redalert"] .app-shell > aside .rail-end{background:#ec865c;}
+html[data-app-theme="elite"] .app-shell > aside .rail-end::after{
+ background:linear-gradient(90deg,#9d73d9 0 42%,#000 42% 44%,#779cde 44% 83%,#000 83% 85%,#c2a9ed 85%);
+}
+html[data-app-theme="redalert"] .app-shell > aside .rail-end::after{
+ background:linear-gradient(90deg,#d7444e 0 42%,#000 42% 44%,#ed7755 44% 83%,#000 83% 85%,#f4aa70 85%);
+}
+html[data-app-theme="elite"] #metronome .transport #start{background:#a18be8;color:#140e2d;}
+html[data-app-theme="elite"] #metronome .transport #tap{background:#83bbe9;color:#10142d;}
+html[data-app-theme="redalert"] #metronome .transport #start{background:#ee4a4b;color:#280d0b;}
+html[data-app-theme="redalert"] #metronome .transport #tap{background:#f49765;color:#2b1209;}
+/* Component-specific audio controls otherwise keep fixed rusty Voyager colors. */
+html[data-app-theme="elite"] #mixer .panel.matrix-channel{
+ --matrix-amber:#9874d9;--matrix-gold:#c8adef;--matrix-rust:#648bd1;
+ --matrix-lilac:#9769d0;--matrix-ice:#87c0ec;--matrix-cream:#eee5ff;
+}
+html[data-app-theme="redalert"] #mixer .panel.matrix-channel{
+ --matrix-amber:#ec514c;--matrix-gold:#f7ad70;--matrix-rust:#c33e47;
+ --matrix-lilac:#e16a54;--matrix-ice:#f3a26a;--matrix-cream:#ffe4cb;
+}
+/* The app's other accent panels follow the same progression. */
+html[data-app-theme="elite"] #settings .panel,html[data-app-theme="elite"] #metronome .panel{
+ border-color:#8767cc;
+}
+html[data-app-theme="redalert"] #settings .panel,html[data-app-theme="redalert"] #metronome .panel{
+ border-color:#d54c50;
+}
+html[data-app-theme="elite"] #settings .panel:nth-child(even),
+html[data-app-theme="elite"] #metronome .panel:nth-child(even){border-color:#78a9e6;}
+html[data-app-theme="redalert"] #settings .panel:nth-child(even),
+html[data-app-theme="redalert"] #metronome .panel:nth-child(even){border-color:#ef8a5a;}
+html[data-app-theme="elite"] #openLaunchConsole{background:#aa8be7;color:#140e2d;}
+html[data-app-theme="redalert"] #openLaunchConsole{background:#f07f55;color:#29100d;}
